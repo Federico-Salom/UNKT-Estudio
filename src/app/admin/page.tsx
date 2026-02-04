@@ -86,6 +86,12 @@ export default async function AdminPage() {
                 >
                   Editar contenido
                 </Link>
+                <Link
+                  className="inline-flex items-center justify-center rounded-full border border-accent/40 px-6 py-3 text-sm font-semibold uppercase tracking-wide text-accent transition hover:border-accent2 hover:text-accent2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2"
+                  href="/admin/agenda"
+                >
+                  Gestionar agenda
+                </Link>
               </div>
             )}
           </div>

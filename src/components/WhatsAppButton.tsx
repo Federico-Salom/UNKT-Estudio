@@ -17,9 +17,9 @@ export default function WhatsAppButton({ studio }: WhatsAppButtonProps) {
       href={whatsappLink}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label={studio.ctas.primary}
+      aria-label="WhatsApp"
     >
-      {studio.ctas.primary}
+      WhatsApp
     </a>
   );
 }

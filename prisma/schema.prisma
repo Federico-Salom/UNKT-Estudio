@@ -14,6 +14,8 @@ model User {
   role         String   @default("user")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  bookings     Booking[]
 }
 
 model SiteContent {
@@ -21,4 +23,32 @@ model SiteContent {
   data      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model AvailabilitySlot {
+  id        String   @id @default(cuid())
+  start     DateTime @unique
+  end       DateTime
+  status    String   @default("available")
+  booking   Booking?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Booking {
+  id        String            @id @default(cuid())
+  userId    String
+  user      User              @relation(fields: [userId], references: [id])
+  slotId    String?           @unique
+  slot      AvailabilitySlot? @relation(fields: [slotId], references: [id])
+  slotIds   String            @default("[]")
+  hours     Int               @default(1)
+  name      String
+  email     String
+  phone     String
+  extras    String
+  total     Int
+  status    String            @default("pending_payment")
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
 }

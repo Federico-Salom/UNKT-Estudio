@@ -13,6 +13,12 @@ export default function Footer({ studio }: FooterProps) {
           {studio.name}
         </div>
         <p>{studio.footer.text}</p>
+        <a
+          className="font-semibold text-accent hover:text-accent2"
+          href={`mailto:${studio.contact.email}`}
+        >
+          {studio.contact.email}
+        </a>
       </Container>
     </footer>
   );

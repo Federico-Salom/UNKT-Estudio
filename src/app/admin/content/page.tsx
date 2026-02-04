@@ -39,6 +39,12 @@ export default async function AdminContentPage() {
           <div className="flex items-center gap-6">
             <Link
               className="text-sm font-semibold uppercase tracking-wide text-fg/80 transition hover:text-fg"
+              href="/admin/agenda"
+            >
+              Agenda
+            </Link>
+            <Link
+              className="text-sm font-semibold uppercase tracking-wide text-fg/80 transition hover:text-fg"
               href="/admin"
             >
               Panel

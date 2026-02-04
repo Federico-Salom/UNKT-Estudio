@@ -29,6 +29,10 @@ export default function AdminContentForm({
   const [status, setStatus] = useState<Status>("idle");
   const [showToast, setShowToast] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [heroFileName, setHeroFileName] = useState("Ningún archivo seleccionado");
+  const [galleryFileNames, setGalleryFileNames] = useState<Record<number, string>>(
+    {}
+  );
   const hideTimer = useRef<number | null>(null);
 
   useEffect(() => {
@@ -93,6 +97,20 @@ export default function AdminContentForm({
     }
   };
 
+  const handleHeroFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    setHeroFileName(file ? file.name : "Ningún archivo seleccionado");
+  };
+
+  const handleGalleryFileChange =
+    (index: number) => (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      setGalleryFileNames((prev) => ({
+        ...prev,
+        [index]: file ? file.name : "Ningún archivo seleccionado",
+      }));
+    };
+
   return (
     <form
       className="grid gap-10"
@@ -108,237 +126,273 @@ export default function AdminContentForm({
         </p>
 
         <div className="mt-8 grid gap-6">
-          <label className="grid gap-2 text-sm font-semibold">
-            Nombre del estudio
-            <input
-              className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-              type="text"
-              name="name"
-              defaultValue={studio.name}
-              required
-            />
-          </label>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <label className="grid gap-2 text-sm font-semibold">
-              Título principal
-              <input
-                className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-                type="text"
-                name="heroTitle"
-                defaultValue={studio.hero.title}
-                required
-              />
-            </label>
-            <label className="grid gap-2 text-sm font-semibold">
-              Subtítulo
-              <input
-                className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-                type="text"
-                name="heroSubtitle"
-                defaultValue={studio.hero.subtitle}
-                required
-              />
-            </label>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <label className="grid gap-2 text-sm font-semibold">
-              CTA principal
-              <input
-                className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-                type="text"
-                name="ctaPrimary"
-                defaultValue={studio.ctas.primary}
-                required
-              />
-            </label>
-            <label className="grid gap-2 text-sm font-semibold">
-              CTA secundario
-              <input
-                className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-                type="text"
-                name="ctaSecondary"
-                defaultValue={studio.ctas.secondary}
-                required
-              />
-            </label>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <label className="grid gap-2 text-sm font-semibold">
-              WhatsApp (E.164 sin +)
-              <input
-                className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-                type="text"
-                name="whatsappPhone"
-                defaultValue={studio.contact.whatsapp.phone}
-                required
-              />
-            </label>
-            <label className="grid gap-2 text-sm font-semibold">
-              Mensaje WhatsApp
-              <input
-                className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-                type="text"
-                name="whatsappMessage"
-                defaultValue={studio.contact.whatsapp.message}
-                required
-              />
-            </label>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <label className="grid gap-2 text-sm font-semibold">
-              Correo de contacto
-              <input
-                className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-                type="email"
-                name="contactEmail"
-                defaultValue={studio.contact.email}
-                required
-              />
-            </label>
-            <label className="grid gap-2 text-sm font-semibold">
-              Texto dirección
-              <input
-                className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-                type="text"
-                name="locationText"
-                defaultValue={studio.contact.locationText}
-              />
-            </label>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <label className="grid gap-2 text-sm font-semibold">
-              Link Google Maps
-              <input
-                className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-                type="url"
-                name="locationUrl"
-                defaultValue={studio.contact.locationUrl}
-              />
-            </label>
-            <label className="grid gap-2 text-sm font-semibold">
-              Horarios
-              <input
-                className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-                type="text"
-                name="hours"
-                defaultValue={studio.contact.hours}
-              />
-            </label>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <label className="grid gap-2 text-sm font-semibold">
-              Título de contacto
-              <input
-                className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-                type="text"
-                name="contactTitle"
-                defaultValue={studio.contact.title}
-              />
-            </label>
-            <label className="grid gap-2 text-sm font-semibold">
-              Nota de contacto
-              <input
-                className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-                type="text"
-                name="contactNote"
-                defaultValue={studio.contact.note}
-              />
-            </label>
-          </div>
-
-          <label className="grid gap-2 text-sm font-semibold">
-            Texto del footer
-            <input
-              className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-              type="text"
-              name="footerText"
-              defaultValue={studio.footer.text}
-            />
-          </label>
-
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="grid gap-3">
+          <details
+            className="rounded-2xl border border-accent/15 bg-white/80 p-5"
+            open
+          >
+            <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
+              Identidad y héroe
+            </summary>
+            <div className="mt-4 grid gap-4">
               <label className="grid gap-2 text-sm font-semibold">
-                Título incluido
+                Nombre del estudio
                 <input
-                  className="rounded-2xl border border-accent/20 bg-white px-4 py-2 text-sm outline-none transition focus:border-accent"
+                  className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
                   type="text"
-                  name="includedTitle"
-                  defaultValue={studio.included.title}
+                  name="name"
+                  defaultValue={studio.name}
+                  required
                 />
               </label>
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="grid gap-2 text-sm font-semibold">
+                  Título principal
+                  <input
+                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                    type="text"
+                    name="heroTitle"
+                    defaultValue={studio.hero.title}
+                    required
+                  />
+                </label>
+                <label className="grid gap-2 text-sm font-semibold">
+                  Subtítulo
+                  <input
+                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                    type="text"
+                    name="heroSubtitle"
+                    defaultValue={studio.hero.subtitle}
+                    required
+                  />
+                </label>
+              </div>
+            </div>
+          </details>
+
+          <details className="rounded-2xl border border-accent/15 bg-white/80 p-5">
+            <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
+              CTAs y WhatsApp
+            </summary>
+            <div className="mt-4 grid gap-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="grid gap-2 text-sm font-semibold">
+                  CTA principal
+                  <input
+                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                    type="text"
+                    name="ctaPrimary"
+                    defaultValue={
+                      studio.ctas.primary
+                        .replace(/\s*por\s*whats?app/i, "")
+                        .trim() || "Reservar"
+                    }
+                    required
+                  />
+                </label>
+                <label className="grid gap-2 text-sm font-semibold">
+                  CTA secundario
+                  <input
+                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                    type="text"
+                    name="ctaSecondary"
+                    defaultValue={studio.ctas.secondary}
+                    required
+                  />
+                </label>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="grid gap-2 text-sm font-semibold">
+                  WhatsApp (E.164 sin +)
+                  <input
+                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                    type="text"
+                    name="whatsappPhone"
+                    defaultValue={studio.contact.whatsapp.phone}
+                    required
+                  />
+                </label>
+                <label className="grid gap-2 text-sm font-semibold">
+                  Mensaje WhatsApp
+                  <input
+                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                    type="text"
+                    name="whatsappMessage"
+                    defaultValue={studio.contact.whatsapp.message}
+                    required
+                  />
+                </label>
+              </div>
+            </div>
+          </details>
+
+          <details className="rounded-2xl border border-accent/15 bg-white/80 p-5">
+            <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
+              Datos de contacto
+            </summary>
+            <div className="mt-4 grid gap-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="grid gap-2 text-sm font-semibold">
+                  Correo de contacto
+                  <input
+                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                    type="email"
+                    name="contactEmail"
+                    defaultValue={studio.contact.email}
+                    required
+                  />
+                </label>
+                <label className="grid gap-2 text-sm font-semibold">
+                  Texto dirección
+                  <input
+                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                    type="text"
+                    name="locationText"
+                    defaultValue={studio.contact.locationText}
+                  />
+                </label>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="grid gap-2 text-sm font-semibold">
+                  Link Google Maps
+                  <input
+                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                    type="url"
+                    name="locationUrl"
+                    defaultValue={studio.contact.locationUrl}
+                  />
+                </label>
+                <label className="grid gap-2 text-sm font-semibold">
+                  Horarios
+                  <input
+                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                    type="text"
+                    name="hours"
+                    defaultValue={studio.contact.hours}
+                  />
+                </label>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="grid gap-2 text-sm font-semibold">
+                  Título de contacto
+                  <input
+                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                    type="text"
+                    name="contactTitle"
+                    defaultValue={studio.contact.title}
+                  />
+                </label>
+                <label className="grid gap-2 text-sm font-semibold">
+                  Nota de contacto
+                  <input
+                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                    type="text"
+                    name="contactNote"
+                    defaultValue={studio.contact.note}
+                  />
+                </label>
+              </div>
+            </div>
+          </details>
+
+          <details className="rounded-2xl border border-accent/15 bg-white/80 p-5">
+            <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
+              Listas y bloques
+            </summary>
+            <div className="mt-4 grid gap-4 md:grid-cols-3">
+              <div className="grid gap-3">
+                <label className="grid gap-2 text-sm font-semibold">
+                  Título incluido
+                  <input
+                    className="rounded-2xl border border-accent/20 bg-white px-4 py-2 text-sm outline-none transition focus:border-accent"
+                    type="text"
+                    name="includedTitle"
+                    defaultValue={studio.included.title}
+                  />
+                </label>
+                <label className="grid gap-2 text-sm font-semibold">
+                  Subtítulo incluido
+                  <input
+                    className="rounded-2xl border border-accent/20 bg-white px-4 py-2 text-sm outline-none transition focus:border-accent"
+                    type="text"
+                    name="includedSubtitle"
+                    defaultValue={studio.included.subtitle}
+                  />
+                </label>
+                <label className="grid gap-2 text-sm font-semibold">
+                  Incluido (uno por línea)
+                  <textarea
+                    className="min-h-[120px] rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                    name="includedItems"
+                    defaultValue={studio.included.items.join("\n")}
+                  />
+                </label>
+              </div>
+              <div className="grid gap-3">
+                <label className="grid gap-2 text-sm font-semibold">
+                  Título extras
+                  <input
+                    className="rounded-2xl border border-accent/20 bg-white px-4 py-2 text-sm outline-none transition focus:border-accent"
+                    type="text"
+                    name="extrasTitle"
+                    defaultValue={studio.extras.title}
+                  />
+                </label>
+                <label className="grid gap-2 text-sm font-semibold">
+                  Subtítulo extras
+                  <input
+                    className="rounded-2xl border border-accent/20 bg-white px-4 py-2 text-sm outline-none transition focus:border-accent"
+                    type="text"
+                    name="extrasSubtitle"
+                    defaultValue={studio.extras.subtitle}
+                  />
+                </label>
+                <label className="grid gap-2 text-sm font-semibold">
+                  Extras (uno por línea)
+                  <textarea
+                    className="min-h-[120px] rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                    name="extrasItems"
+                    defaultValue={studio.extras.items.join("\n")}
+                  />
+                </label>
+              </div>
+              <div className="grid gap-3">
+                <label className="grid gap-2 text-sm font-semibold">
+                  Título cómo reservar
+                  <input
+                    className="rounded-2xl border border-accent/20 bg-white px-4 py-2 text-sm outline-none transition focus:border-accent"
+                    type="text"
+                    name="howToBookTitle"
+                    defaultValue={studio.howToBook.title}
+                  />
+                </label>
+                <label className="grid gap-2 text-sm font-semibold">
+                  Pasos (uno por línea)
+                  <textarea
+                    className="min-h-[120px] rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                    name="howToBookSteps"
+                    defaultValue={studio.howToBook.steps.join("\n")}
+                  />
+                </label>
+              </div>
+            </div>
+          </details>
+
+          <details className="rounded-2xl border border-accent/15 bg-white/80 p-5">
+            <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
+              Footer
+            </summary>
+            <div className="mt-4 grid gap-2">
               <label className="grid gap-2 text-sm font-semibold">
-                Subtítulo incluido
+                Texto del footer
                 <input
-                  className="rounded-2xl border border-accent/20 bg-white px-4 py-2 text-sm outline-none transition focus:border-accent"
+                  className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
                   type="text"
-                  name="includedSubtitle"
-                  defaultValue={studio.included.subtitle}
-                />
-              </label>
-              <label className="grid gap-2 text-sm font-semibold">
-                Incluido (uno por línea)
-                <textarea
-                  className="min-h-[120px] rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-                  name="includedItems"
-                  defaultValue={studio.included.items.join("\n")}
+                  name="footerText"
+                  defaultValue={studio.footer.text}
                 />
               </label>
             </div>
-            <div className="grid gap-3">
-              <label className="grid gap-2 text-sm font-semibold">
-                Título extras
-                <input
-                  className="rounded-2xl border border-accent/20 bg-white px-4 py-2 text-sm outline-none transition focus:border-accent"
-                  type="text"
-                  name="extrasTitle"
-                  defaultValue={studio.extras.title}
-                />
-              </label>
-              <label className="grid gap-2 text-sm font-semibold">
-                Subtítulo extras
-                <input
-                  className="rounded-2xl border border-accent/20 bg-white px-4 py-2 text-sm outline-none transition focus:border-accent"
-                  type="text"
-                  name="extrasSubtitle"
-                  defaultValue={studio.extras.subtitle}
-                />
-              </label>
-              <label className="grid gap-2 text-sm font-semibold">
-                Extras (uno por línea)
-                <textarea
-                  className="min-h-[120px] rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-                  name="extrasItems"
-                  defaultValue={studio.extras.items.join("\n")}
-                />
-              </label>
-            </div>
-            <div className="grid gap-3">
-              <label className="grid gap-2 text-sm font-semibold">
-                Título cómo reservar
-                <input
-                  className="rounded-2xl border border-accent/20 bg-white px-4 py-2 text-sm outline-none transition focus:border-accent"
-                  type="text"
-                  name="howToBookTitle"
-                  defaultValue={studio.howToBook.title}
-                />
-              </label>
-              <label className="grid gap-2 text-sm font-semibold">
-                Pasos (uno por línea)
-                <textarea
-                  className="min-h-[120px] rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-                  name="howToBookSteps"
-                  defaultValue={studio.howToBook.steps.join("\n")}
-                />
-              </label>
-            </div>
-          </div>
+          </details>
         </div>
       </div>
 
@@ -351,36 +405,63 @@ export default function AdminContentForm({
         </p>
 
         <div className="mt-8 grid gap-6">
-          <div className="grid gap-4 md:grid-cols-[1fr_1.2fr]">
-            <div className="overflow-hidden rounded-2xl border border-accent/20 bg-bg">
-              <img
-                className="h-full w-full object-cover"
-                src={studio.hero.image.src}
-                alt={studio.hero.image.alt}
-              />
-            </div>
-            <div className="grid gap-3">
-              <label className="grid gap-2 text-sm font-semibold">
-                Imagen principal
-                <input type="file" name="heroImage" accept="image/*" />
-              </label>
-              <label className="grid gap-2 text-sm font-semibold">
-                Alt de imagen principal
-                <input
-                  className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-                  type="text"
-                  name="heroImageAlt"
-                  defaultValue={studio.hero.image.alt}
+          <details
+            className="rounded-2xl border border-accent/15 bg-white/80 p-5"
+            open
+          >
+            <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
+              Imagen principal
+            </summary>
+            <div className="mt-4 grid gap-4 md:grid-cols-[1fr_1.2fr]">
+              <div className="overflow-hidden rounded-2xl border border-accent/20 bg-bg">
+                <img
+                  className="h-full w-full object-cover"
+                  src={studio.hero.image.src}
+                  alt={studio.hero.image.alt}
                 />
-              </label>
+              </div>
+              <div className="grid gap-3">
+                <label className="grid gap-2 text-sm font-semibold">
+                  Imagen principal
+                  <div className="flex flex-wrap items-center gap-3">
+                    <label
+                      htmlFor="heroImage"
+                      className="inline-flex items-center justify-center rounded-full border border-accent/30 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10"
+                    >
+                      Seleccionar imagen
+                    </label>
+                    <span className="text-xs text-muted">{heroFileName}</span>
+                  </div>
+                  <input
+                    id="heroImage"
+                    type="file"
+                    name="heroImage"
+                    accept="image/*"
+                    className="sr-only"
+                    onChange={handleHeroFileChange}
+                  />
+                  <span className="text-xs text-muted">
+                    Si no cargás una imagen, se mantiene la actual.
+                  </span>
+                </label>
+                <label className="grid gap-2 text-sm font-semibold">
+                  Alt de imagen principal
+                  <input
+                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                    type="text"
+                    name="heroImageAlt"
+                    defaultValue={studio.hero.image.alt}
+                  />
+                </label>
+              </div>
             </div>
-          </div>
+          </details>
 
-          <div className="grid gap-4">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-muted">
+          <details className="rounded-2xl border border-accent/15 bg-white/80 p-5">
+            <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
               Galería
-            </h3>
-            <div className="grid gap-6 md:grid-cols-2">
+            </summary>
+            <div className="mt-4 grid gap-6 md:grid-cols-2">
               {gallery.map((item, index) => (
                 <div
                   key={`${item.src}-${index}`}
@@ -395,10 +476,24 @@ export default function AdminContentForm({
                   </div>
                   <label className="grid gap-2 text-sm font-semibold">
                     Reemplazar imagen
+                    <div className="flex flex-wrap items-center gap-3">
+                      <label
+                        htmlFor={`galleryImage${index}`}
+                        className="inline-flex items-center justify-center rounded-full border border-accent/30 px-4 py-2 text-[10px] font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10"
+                      >
+                        Elegir archivo
+                      </label>
+                      <span className="text-xs text-muted">
+                        {galleryFileNames[index] || "Ningún archivo seleccionado"}
+                      </span>
+                    </div>
                     <input
+                      id={`galleryImage${index}`}
                       type="file"
                       name={`galleryImage${index}`}
                       accept="image/*"
+                      className="sr-only"
+                      onChange={handleGalleryFileChange(index)}
                     />
                   </label>
                   <label className="grid gap-2 text-sm font-semibold">
@@ -413,8 +508,9 @@ export default function AdminContentForm({
                 </div>
               ))}
             </div>
-          </div>
+          </details>
         </div>
+
       </div>
 
       <div className="relative">

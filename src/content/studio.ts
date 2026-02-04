@@ -4,7 +4,7 @@ export const studio = {
   seo: {
     title: "UNKT Estudio | Alquiler de estudio fotográfico",
     description:
-      "Alquiler de estudio fotográfico listo para producir. Luces, difusores y fondos incluidos. Reservá por WhatsApp.",
+      "Alquiler de estudio fotográfico listo para producir. Luces, difusores y fondos incluidos. Reservá online.",
     ogImage: "/hero-placeholder.svg",
   },
   hero: {
@@ -54,14 +54,14 @@ export const studio = {
   howToBook: {
     title: "Cómo reservar",
     steps: [
-      "Escribinos por WhatsApp.",
-      "Contanos fecha, horario y qué vas a producir.",
-      "Confirmamos disponibilidad y extras.",
+      "Elegí el horario disponible.",
+      "Completá tus datos y seleccioná extras.",
+      "Pagá para confirmar la reserva.",
     ],
   },
   contact: {
     title: "Reservá ahora",
-    note: "Respuesta rápida en horario laboral.",
+    note: "Elegí horario, completá tus datos y confirmá el pago.",
     whatsapp: {
       phone: "5491158524000",
       message:
@@ -73,7 +73,7 @@ export const studio = {
     hours: "(Sumar horarios)",
   },
   ctas: {
-    primary: "Reservar por WhatsApp",
+    primary: "Reservar",
     secondary: "Consultar disponibilidad",
   },
   footer: {

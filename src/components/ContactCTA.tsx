@@ -11,6 +11,7 @@ export default function ContactCTA({ studio }: ContactCTAProps) {
     studio.contact.whatsapp.phone,
     studio.contact.whatsapp.message
   );
+  const bookingLink = "/reservar";
 
   return (
     <section id="contacto" className="bg-bg py-16 md:py-24">
@@ -27,19 +28,9 @@ export default function ContactCTA({ studio }: ContactCTAProps) {
             <div className="flex flex-wrap gap-3">
               <a
                 className="inline-flex items-center justify-center rounded-full bg-accent px-6 py-3 text-sm font-semibold uppercase tracking-wide text-bg shadow-[0_12px_24px_-12px_rgba(0,0,0,0.6)] transition hover:bg-accent2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2"
-                href={whatsappLink}
-                target="_blank"
-                rel="noopener noreferrer"
+                href={bookingLink}
               >
                 {studio.ctas.primary}
-              </a>
-              <a
-                className="inline-flex items-center justify-center rounded-full border border-accent px-6 py-3 text-sm font-semibold uppercase tracking-wide text-accent transition hover:border-accent2 hover:text-accent2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2"
-                href={whatsappLink}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {studio.ctas.secondary}
               </a>
             </div>
           </div>

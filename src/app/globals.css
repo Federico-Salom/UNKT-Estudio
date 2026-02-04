@@ -23,3 +23,39 @@ body {
   background: var(--bg);
   color: var(--fg);
 }
+
+.fc {
+  --fc-border-color: color-mix(in srgb, var(--accent) 20%, transparent);
+  --fc-page-bg-color: transparent;
+  --fc-today-bg-color: color-mix(in srgb, var(--accent) 10%, transparent);
+  --fc-neutral-bg-color: color-mix(in srgb, var(--accent) 8%, transparent);
+  --fc-button-bg-color: var(--accent);
+  --fc-button-border-color: var(--accent);
+  --fc-button-text-color: var(--bg);
+  --fc-button-hover-bg-color: var(--accent2);
+  --fc-button-hover-border-color: var(--accent2);
+  --fc-button-active-bg-color: var(--accent2);
+  --fc-button-active-border-color: var(--accent2);
+}
+
+.fc .fc-toolbar-title {
+  font-family: var(--font-head);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 0.95rem;
+}
+
+.fc .fc-button {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+.fc .fc-selected-day {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.fc .fc-selected-day .fc-daygrid-day-frame {
+  border-radius: 16px;
+}
