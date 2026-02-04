@@ -36,8 +36,19 @@ const saveUpload = async (file: File) => {
 };
 
 export async function POST(request: NextRequest) {
+  const wantsJson = request.headers
+    .get("accept")
+    ?.toLowerCase()
+    .includes("application/json");
+
   const session = await getSessionFromCookies();
   if (!session) {
+    if (wantsJson) {
+      return NextResponse.json(
+        { ok: false, error: "unauthorized" },
+        { status: 401 }
+      );
+    }
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
@@ -46,6 +57,12 @@ export async function POST(request: NextRequest) {
   });
 
   if (!user || user.role !== "admin") {
+    if (wantsJson) {
+      return NextResponse.json(
+        { ok: false, error: "forbidden" },
+        { status: 403 }
+      );
+    }
     return NextResponse.redirect(new URL("/admin", request.url));
   }
 
@@ -136,5 +153,8 @@ export async function POST(request: NextRequest) {
 
   await updateStudioContent(nextContent);
 
+  if (wantsJson) {
+    return NextResponse.json({ ok: true });
+  }
   return NextResponse.redirect(new URL("/admin/content", request.url));
 }
