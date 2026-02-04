@@ -1,0 +1,31 @@
+name: Deploy to Droplet
+
+on:
+  push:
+    branches: ["master"]
+
+concurrency:
+  group: unkt-estudio-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          script_stop: true
+          command_timeout: 30m
+          script: |
+            set -e
+            cd /var/www/unkt-estudio
+            git fetch --all --prune
+            git reset --hard origin/master
+            npm ci
+            npm run build
+            sudo /usr/bin/systemctl restart unkt-estudio
+            sudo /usr/bin/systemctl status unkt-estudio --no-pager
