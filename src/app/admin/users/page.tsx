@@ -64,7 +64,10 @@ export default async function AdminUsersPage() {
 
       <main className="px-6 py-16">
         <Container>
-          <AdminUsersPanel users={usersForPanel} />
+          <AdminUsersPanel
+            users={usersForPanel}
+            currentUserId={session.userId}
+          />
         </Container>
       </main>
     </div>
