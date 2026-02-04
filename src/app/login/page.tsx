@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Container from "@/components/Container";
+import LoginForm from "@/components/LoginForm";
 import { getStudioContent } from "@/lib/studio-content";
 
 type LoginPageProps = {
@@ -47,45 +48,10 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             Accede al panel con tu correo y contraseña.
           </p>
 
-          {registered && (
-            <div className="mt-5 rounded-2xl border border-accent/20 bg-bg px-4 py-3 text-sm">
-              Cuenta creada. Inicia sesión.
-            </div>
-          )}
-
-          {error && (
-            <div className="mt-5 rounded-2xl border border-accent/20 bg-bg px-4 py-3 text-sm text-accent">
-              {error}
-            </div>
-          )}
-
-          <form className="mt-6 grid gap-4" action="/api/auth/login" method="post">
-            <label className="grid gap-2 text-sm font-semibold">
-              Correo
-              <input
-                className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-                type="email"
-                name="email"
-                required
-              />
-            </label>
-            <label className="grid gap-2 text-sm font-semibold">
-              Contraseña
-              <input
-                className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-                type="password"
-                name="password"
-                minLength={8}
-                required
-              />
-            </label>
-            <button
-              className="mt-2 inline-flex items-center justify-center rounded-full bg-accent px-6 py-3 text-sm font-semibold uppercase tracking-wide text-bg transition hover:bg-accent2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2"
-              type="submit"
-            >
-              Entrar
-            </button>
-          </form>
+          <LoginForm
+            initialError={error}
+            registered={registered === "true" || Boolean(registered)}
+          />
 
           <div className="mt-6 text-sm text-muted">
             No tienes cuenta?{" "}

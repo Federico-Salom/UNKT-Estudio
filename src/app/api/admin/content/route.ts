@@ -8,6 +8,17 @@ import type { StudioContent } from "@/content/studio";
 
 export const runtime = "nodejs";
 
+const getBaseUrl = (request: NextRequest) => {
+  const parsed = new URL(request.url);
+  const host = request.headers.get("host") || parsed.host;
+  const forwardedProto = request.headers.get("x-forwarded-proto");
+  const isLocal = host.includes("localhost") || host.startsWith("127.0.0.1");
+  const protocol = isLocal
+    ? "http"
+    : forwardedProto || parsed.protocol.replace(":", "");
+  return `${protocol}://${host}`;
+};
+
 const toText = (value: FormDataEntryValue | null) =>
   String(value ?? "").trim();
 
@@ -49,7 +60,7 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       );
     }
-    return NextResponse.redirect(new URL("/login", request.url));
+    return NextResponse.redirect(new URL("/login", getBaseUrl(request)));
   }
 
   const user = await prisma.user.findUnique({
@@ -63,7 +74,7 @@ export async function POST(request: NextRequest) {
         { status: 403 }
       );
     }
-    return NextResponse.redirect(new URL("/admin", request.url));
+    return NextResponse.redirect(new URL("/admin", getBaseUrl(request)));
   }
 
   const current = await getStudioContent();
@@ -156,5 +167,5 @@ export async function POST(request: NextRequest) {
   if (wantsJson) {
     return NextResponse.json({ ok: true });
   }
-  return NextResponse.redirect(new URL("/admin/content", request.url));
+  return NextResponse.redirect(new URL("/admin/content", getBaseUrl(request)));
 }

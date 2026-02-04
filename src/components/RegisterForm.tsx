@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 type RegisterFormProps = {
   serverError?: string;
@@ -11,10 +12,13 @@ const hasLettersAndNumbers = (value: string) => {
 };
 
 export default function RegisterForm({ serverError }: RegisterFormProps) {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [attempted, setAttempted] = useState(false);
+  const [status, setStatus] = useState<"idle" | "loading">("idle");
+  const [apiError, setApiError] = useState("");
 
   const getEmailError = () => {
     if (!email) return "Escribe tu correo.";
@@ -39,13 +43,45 @@ export default function RegisterForm({ serverError }: RegisterFormProps) {
     return null;
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     setAttempted(true);
     const emailError = getEmailError();
     const passwordError = getPasswordError();
     const confirmError = getConfirmError();
     if (emailError || passwordError || confirmError) {
       event.preventDefault();
+      return;
+    }
+
+    event.preventDefault();
+    setApiError("");
+    setStatus("loading");
+
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ email, password, passwordConfirm }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        setApiError(data.error || "No se pudo crear la cuenta.");
+        setStatus("idle");
+        return;
+      }
+
+      const redirectTo =
+        typeof data.redirectTo === "string" ? data.redirectTo : "/admin";
+      router.push(redirectTo);
+    } catch {
+      setApiError("No se pudo crear la cuenta. Intenta nuevamente.");
+      setStatus("idle");
     }
   };
 
@@ -63,19 +99,13 @@ export default function RegisterForm({ serverError }: RegisterFormProps) {
     ].join(" ");
 
   return (
-    <form
-      className="mt-6 grid gap-4"
-      action="/api/auth/register"
-      method="post"
-      onSubmit={handleSubmit}
-      noValidate
-    >
-      {serverError && (
+    <form className="mt-6 grid gap-4" onSubmit={handleSubmit} noValidate>
+      {(serverError || apiError) && (
         <div
           className="rounded-2xl border border-accent/40 bg-accent/10 px-4 py-3 text-sm text-accent"
           role="alert"
         >
-          {serverError}
+          {apiError || serverError}
         </div>
       )}
 
@@ -145,8 +175,9 @@ export default function RegisterForm({ serverError }: RegisterFormProps) {
       <button
         className="mt-2 inline-flex items-center justify-center rounded-full bg-accent px-6 py-3 text-sm font-semibold uppercase tracking-wide text-bg transition hover:bg-accent2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2"
         type="submit"
+        disabled={status === "loading"}
       >
-        Crear cuenta
+        {status === "loading" ? "Creando..." : "Crear cuenta"}
       </button>
     </form>
   );

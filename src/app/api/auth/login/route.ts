@@ -9,6 +9,17 @@ type AuthInput = {
   password: string;
 };
 
+const getBaseUrl = (request: NextRequest) => {
+  const parsed = new URL(request.url);
+  const host = request.headers.get("host") || parsed.host;
+  const forwardedProto = request.headers.get("x-forwarded-proto");
+  const isLocal = host.includes("localhost") || host.startsWith("127.0.0.1");
+  const protocol = isLocal
+    ? "http"
+    : forwardedProto || parsed.protocol.replace(":", "");
+  return `${protocol}://${host}`;
+};
+
 const getAuthInput = async (request: NextRequest): Promise<AuthInput> => {
   const contentType = request.headers.get("content-type") || "";
   if (contentType.includes("application/json")) {
@@ -40,7 +51,7 @@ const errorResponse = (
   status = 400
 ) => {
   if (isFormRequest(request)) {
-    const url = new URL("/login", request.url);
+    const url = new URL("/login", getBaseUrl(request));
     url.searchParams.set("error", message);
     return NextResponse.redirect(url, { status: 303 });
   }
@@ -77,7 +88,7 @@ export async function POST(request: NextRequest) {
   const redirectPath = user.role === "admin" ? "/admin" : "/account";
 
   if (isFormRequest(request)) {
-    const url = new URL(redirectPath, request.url);
+    const url = new URL(redirectPath, getBaseUrl(request));
     const response = NextResponse.redirect(url, { status: 303 });
     response.cookies.set({
       name: AUTH_COOKIE,

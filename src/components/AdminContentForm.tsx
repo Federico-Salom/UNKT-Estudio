@@ -16,6 +16,11 @@ type AdminContentFormProps = {
 
 type Status = "idle" | "saving" | "saved" | "error";
 
+const errorMessages: Record<string, string> = {
+  unauthorized: "Tu sesión expiró. Inicia sesión nuevamente.",
+  forbidden: "No tienes permisos para editar el contenido.",
+};
+
 export default function AdminContentForm({
   studio,
   gallery,
@@ -23,6 +28,7 @@ export default function AdminContentForm({
   const router = useRouter();
   const [status, setStatus] = useState<Status>("idle");
   const [showToast, setShowToast] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const hideTimer = useRef<number | null>(null);
 
   useEffect(() => {
@@ -40,6 +46,7 @@ export default function AdminContentForm({
     }
 
     const startedAt = Date.now();
+    setErrorMessage("");
     setStatus("saving");
     setShowToast(true);
 
@@ -54,9 +61,17 @@ export default function AdminContentForm({
         },
       });
 
+      const data = await response.json().catch(() => ({}));
+
       if (!response.ok) {
+        const serverError =
+          typeof data.error === "string"
+            ? errorMessages[data.error] || data.error
+            : "No se pudo guardar.";
+        setErrorMessage(serverError);
         throw new Error("error");
       }
+
       const elapsed = Date.now() - startedAt;
       if (elapsed < 1000) {
         await new Promise((resolve) => setTimeout(resolve, 1000 - elapsed));
@@ -73,6 +88,7 @@ export default function AdminContentForm({
       hideTimer.current = window.setTimeout(() => {
         setShowToast(false);
         setStatus("idle");
+        setErrorMessage("");
       }, 1600);
     }
   };
@@ -429,7 +445,7 @@ export default function AdminContentForm({
           >
             {status === "saving" && "Guardando cambios..."}
             {status === "saved" && "Cambios guardados"}
-            {status === "error" && "No se pudo guardar"}
+            {status === "error" && (errorMessage || "No se pudo guardar")}
           </div>
         </div>
       </div>
