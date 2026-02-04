@@ -23,10 +23,16 @@ jobs:
           script: |
             set -e
             cd /var/www/unkt-estudio
+
             git fetch --all --prune
             git reset --hard origin/master
+
             export DATABASE_URL="file:/var/www/unkt-estudio/prisma/dev.db"
+
             npm ci
-            npm run build
-            sudo /usr/bin/systemctl restart unkt-estudio
-            sudo /usr/bin/systemctl status unkt-estudio --no-pager
+
+            npx prisma migrate deploy
+
+            npx prisma generate
+            npm run build  
+            sudo -n /usr/bin/systemctl restart unkt-estudio
