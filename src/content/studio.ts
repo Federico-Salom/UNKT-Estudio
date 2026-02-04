@@ -67,6 +67,7 @@ export const studio = {
       message:
         "Hola, quiero reservar UNKT Estudio. Fecha: __ / Horario: __ / Extras: __",
     },
+    instagram: "https://instagram.com/unktestudio",
     email: "hola@unktestudio.com",
     locationText: "(Sumar dirección)",
     locationUrl: "https://maps.google.com/?q=UNKT+Estudio",

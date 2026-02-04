@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import AdminContentForm from "@/components/AdminContentForm";
 import Container from "@/components/Container";
+import UserMenu from "@/components/UserMenu";
 import { getSessionFromCookies } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getStudioContent } from "@/lib/studio-content";
@@ -25,6 +26,7 @@ export default async function AdminContentPage() {
 
   const studio = await getStudioContent();
   const gallery = studio.gallery.length ? studio.gallery : fallbackStudio.gallery;
+  const createdAtLabel = user.createdAt.toLocaleString("es-AR");
 
   return (
     <div className="min-h-screen bg-bg text-fg">
@@ -49,12 +51,14 @@ export default async function AdminContentPage() {
             >
               Panel
             </Link>
-            <a
-              className="text-sm font-semibold uppercase tracking-wide text-fg/80 transition hover:text-fg"
-              href="/api/auth/logout"
-            >
-              Salir
-            </a>
+            <UserMenu
+              user={{
+                email: user.email,
+                roleLabel: "Administrador",
+                id: user.id,
+                createdAtLabel,
+              }}
+            />
           </div>
         </Container>
       </header>

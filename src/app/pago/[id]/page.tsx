@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { BOOKING_TIMEZONE } from "@/lib/booking";
 import { getStudioContent } from "@/lib/studio-content";
 import MercadoPagoButton from "@/components/MercadoPagoButton";
+import UserMenu from "@/components/UserMenu";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +21,14 @@ export default async function PagoPage({ params, searchParams }: PagoPageProps) 
     redirect("/login");
   }
 
+  const user = await prisma.user.findUnique({
+    where: { id: session.userId },
+  });
+
+  if (!user) {
+    redirect("/login");
+  }
+
   const booking = await prisma.booking.findUnique({
     where: { id: params.id },
     include: { slot: true, user: true },
@@ -31,6 +40,8 @@ export default async function PagoPage({ params, searchParams }: PagoPageProps) 
 
   const isOwner = booking.userId === session.userId;
   const isAdmin = session.role === "admin";
+  const roleLabel = user.role === "admin" ? "Administrador" : "Usuario";
+  const createdAtLabel = user.createdAt.toLocaleString("es-AR");
 
   if (!isOwner && !isAdmin) {
     redirect("/account");
@@ -115,12 +126,14 @@ export default async function PagoPage({ params, searchParams }: PagoPageProps) 
             >
               Mi cuenta
             </Link>
-            <a
-              className="text-sm font-semibold uppercase tracking-wide text-fg/80 transition hover:text-fg"
-              href="/api/auth/logout"
-            >
-              Salir
-            </a>
+            <UserMenu
+              user={{
+                email: user.email,
+                roleLabel,
+                id: user.id,
+                createdAtLabel,
+              }}
+            />
           </div>
         </Container>
       </header>

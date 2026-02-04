@@ -147,19 +147,31 @@ export async function POST(request: NextRequest) {
     nextContent.hero.image.src = await saveUpload(heroFile);
   }
 
-  const updatedGallery = [];
-  for (let i = 0; i < current.gallery.length; i += 1) {
-    const item = current.gallery[i];
-    const file = getFile(formData.get(`galleryImage${i}`));
-    const alt = toText(formData.get(`galleryAlt${i}`)) || item.alt;
-    let src = item.src;
-    if (file) {
-      src = await saveUpload(file);
+  const galleryOrderRaw = formData.get("galleryOrder");
+  if (galleryOrderRaw !== null) {
+    try {
+      const galleryOrder = JSON.parse(String(galleryOrderRaw)) as {
+        id: string;
+        src?: string;
+        alt?: string;
+      }[];
+      const updatedGallery = [];
+      for (const item of galleryOrder.slice(0, 10)) {
+        const file = getFile(formData.get(`galleryFile_${item.id}`));
+        let src = item.src || "";
+        if (file) {
+          src = await saveUpload(file);
+        }
+        if (!src) continue;
+        updatedGallery.push({
+          src,
+          alt: item.alt || "",
+        });
+      }
+      nextContent.gallery = updatedGallery;
+    } catch {
+      // ignore invalid gallery payload
     }
-    updatedGallery.push({ src, alt });
-  }
-  if (updatedGallery.length) {
-    nextContent.gallery = updatedGallery;
   }
 
   await updateStudioContent(nextContent);

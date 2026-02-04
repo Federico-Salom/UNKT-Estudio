@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Bebas_Neue, IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
 import { getStudioContent } from "@/lib/studio-content";
+import VisitTracker from "@/components/VisitTracker";
 
 const bodyFont = IBM_Plex_Sans({
   subsets: ["latin"],
@@ -54,6 +55,7 @@ export default function RootLayout({
       <body
         className={`${bodyFont.variable} ${displayFont.variable} font-sans antialiased`}
       >
+        <VisitTracker />
         {children}
       </body>
     </html>

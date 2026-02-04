@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import AdminUsersPanel from "@/components/AdminUsersPanel";
 import Container from "@/components/Container";
+import UserMenu from "@/components/UserMenu";
 import { getSessionFromCookies } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getStudioContent } from "@/lib/studio-content";
@@ -23,6 +24,7 @@ export default async function AdminUsersPage() {
   }
 
   const studio = await getStudioContent();
+  const createdAtLabel = user.createdAt.toLocaleString("es-AR");
 
   const users = await prisma.user.findMany({
     orderBy: { createdAt: "desc" },
@@ -58,12 +60,14 @@ export default async function AdminUsersPage() {
             >
               Panel
             </Link>
-            <a
-              className="text-sm font-semibold uppercase tracking-wide text-fg/80 transition hover:text-fg"
-              href="/api/auth/logout"
-            >
-              Salir
-            </a>
+            <UserMenu
+              user={{
+                email: user.email,
+                roleLabel: "Administrador",
+                id: user.id,
+                createdAtLabel,
+              }}
+            />
           </div>
         </Container>
       </header>

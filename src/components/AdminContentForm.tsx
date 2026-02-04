@@ -9,6 +9,14 @@ type GalleryItem = {
   alt: string;
 };
 
+type GalleryFormItem = {
+  id: string;
+  src?: string;
+  alt: string;
+  file?: File;
+  previewUrl?: string;
+};
+
 type AdminContentFormProps = {
   studio: StudioContent;
   gallery: GalleryItem[];
@@ -29,10 +37,16 @@ export default function AdminContentForm({
   const [status, setStatus] = useState<Status>("idle");
   const [showToast, setShowToast] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [heroFileName, setHeroFileName] = useState("Ningún archivo seleccionado");
-  const [galleryFileNames, setGalleryFileNames] = useState<Record<number, string>>(
-    {}
+  const [heroFileName, setHeroFileName] = useState("Ningun archivo seleccionado");
+  const [galleryItems, setGalleryItems] = useState<GalleryFormItem[]>(() =>
+    gallery.slice(0, 10).map((item, index) => ({
+      id: `existing-${index}-${Math.random().toString(36).slice(2, 8)}`,
+      src: item.src,
+      alt: item.alt,
+    }))
   );
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const galleryItemsRef = useRef<GalleryFormItem[]>([]);
   const hideTimer = useRef<number | null>(null);
 
   useEffect(() => {
@@ -40,6 +54,20 @@ export default function AdminContentForm({
       if (hideTimer.current) {
         window.clearTimeout(hideTimer.current);
       }
+    };
+  }, []);
+
+  useEffect(() => {
+    galleryItemsRef.current = galleryItems;
+  }, [galleryItems]);
+
+  useEffect(() => {
+    return () => {
+      galleryItemsRef.current.forEach((item) => {
+        if (item.previewUrl) {
+          URL.revokeObjectURL(item.previewUrl);
+        }
+      });
     };
   }, []);
 
@@ -55,6 +83,18 @@ export default function AdminContentForm({
     setShowToast(true);
 
     const formData = new FormData(event.currentTarget);
+
+    const galleryPayload = galleryItems.slice(0, 10).map((item) => ({
+      id: item.id,
+      src: item.src || "",
+      alt: item.alt || "",
+    }));
+    formData.set("galleryOrder", JSON.stringify(galleryPayload));
+    galleryItems.forEach((item) => {
+      if (item.file) {
+        formData.append(`galleryFile_${item.id}`, item.file);
+      }
+    });
 
     try {
       const response = await fetch("/api/admin/content", {
@@ -102,14 +142,48 @@ export default function AdminContentForm({
     setHeroFileName(file ? file.name : "Ningún archivo seleccionado");
   };
 
-  const handleGalleryFileChange =
-    (index: number) => (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      setGalleryFileNames((prev) => ({
-        ...prev,
-        [index]: file ? file.name : "Ningún archivo seleccionado",
+  const handleGalleryUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files ?? []);
+    if (!files.length) return;
+    setGalleryItems((prev) => {
+      const remaining = Math.max(0, 10 - prev.length);
+      const nextFiles = files.slice(0, remaining);
+      const nextItems = nextFiles.map((file) => ({
+        id: `new-${Math.random().toString(36).slice(2, 10)}`,
+        file,
+        alt: "",
+        previewUrl: URL.createObjectURL(file),
       }));
-    };
+      return [...prev, ...nextItems];
+    });
+    event.target.value = "";
+  };
+
+  const handleGalleryAltChange = (id: string, value: string) => {
+    setGalleryItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, alt: value } : item))
+    );
+  };
+
+  const handleRemoveGalleryItem = (id: string) => {
+    setGalleryItems((prev) => {
+      const target = prev.find((item) => item.id === id);
+      if (target?.previewUrl) {
+        URL.revokeObjectURL(target.previewUrl);
+      }
+      return prev.filter((item) => item.id !== id);
+    });
+  };
+
+  const handleReorder = (from: number, to: number) => {
+    if (from === to) return;
+    setGalleryItems((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next;
+    });
+  };
 
   return (
     <form
@@ -459,54 +533,99 @@ export default function AdminContentForm({
 
           <details className="rounded-2xl border border-accent/15 bg-white/80 p-5">
             <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
-              Galería
+              Galeria
             </summary>
-            <div className="mt-4 grid gap-6 md:grid-cols-2">
-              {gallery.map((item, index) => (
-                <div
-                  key={`${item.src}-${index}`}
-                  className="grid gap-3 rounded-2xl border border-accent/15 bg-white/70 p-4"
-                >
-                  <div className="overflow-hidden rounded-2xl border border-accent/15 bg-bg">
-                    <img
-                      className="h-48 w-full object-cover"
-                      src={item.src}
-                      alt={item.alt}
-                    />
-                  </div>
-                  <label className="grid gap-2 text-sm font-semibold">
-                    Reemplazar imagen
-                    <div className="flex flex-wrap items-center gap-3">
-                      <label
-                        htmlFor={`galleryImage${index}`}
-                        className="inline-flex items-center justify-center rounded-full border border-accent/30 px-4 py-2 text-[10px] font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10"
-                      >
-                        Elegir archivo
-                      </label>
-                      <span className="text-xs text-muted">
-                        {galleryFileNames[index] || "Ningún archivo seleccionado"}
-                      </span>
-                    </div>
-                    <input
-                      id={`galleryImage${index}`}
-                      type="file"
-                      name={`galleryImage${index}`}
-                      accept="image/*"
-                      className="sr-only"
-                      onChange={handleGalleryFileChange(index)}
-                    />
+            <div className="mt-4 grid gap-4">
+              <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-semibold uppercase tracking-wide text-muted">
+                <span>La primera es la principal. Maximo 10 imagenes.</span>
+                <span>{galleryItems.length}/10</span>
+              </div>
+
+              <label className="grid gap-2 text-sm font-semibold">
+                Subir imagenes
+                <div className="flex flex-wrap items-center gap-3">
+                  <label
+                    htmlFor="galleryUpload"
+                    className="inline-flex items-center justify-center rounded-full border border-accent/30 px-4 py-2 text-[10px] font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10"
+                  >
+                    Agregar imagenes
                   </label>
-                  <label className="grid gap-2 text-sm font-semibold">
-                    Alt
-                    <input
-                      className="rounded-2xl border border-accent/20 bg-white px-4 py-2 text-sm outline-none transition focus:border-accent"
-                      type="text"
-                      name={`galleryAlt${index}`}
-                      defaultValue={item.alt}
-                    />
-                  </label>
+                  <span className="text-xs text-muted">
+                    Arrastra para ordenar. Elimina para quitar.
+                  </span>
                 </div>
-              ))}
+                <input
+                  id="galleryUpload"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="sr-only"
+                  onChange={handleGalleryUpload}
+                />
+              </label>
+
+              {galleryItems.length === 0 ? (
+                <div className="rounded-2xl border border-accent/15 bg-bg/80 px-4 py-3 text-sm text-muted">
+                  No hay imagenes cargadas.
+                </div>
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2">
+                  {galleryItems.map((item, index) => (
+                    <div
+                      key={item.id}
+                      className={`grid gap-3 rounded-2xl border border-accent/15 bg-white/70 p-4 ${
+                        dragIndex === index ? "opacity-70" : ""
+                      }`}
+                      draggable
+                      onDragStart={() => setDragIndex(index)}
+                      onDragOver={(event) => event.preventDefault()}
+                      onDragEnd={() => setDragIndex(null)}
+                      onDrop={() => {
+                        if (dragIndex === null) return;
+                        handleReorder(dragIndex, index);
+                        setDragIndex(null);
+                      }}
+                    >
+                      <div className="overflow-hidden rounded-2xl border border-accent/15 bg-bg">
+                        {item.previewUrl || item.src ? (
+                          <img
+                            className="h-40 w-full object-cover"
+                            src={item.previewUrl || item.src}
+                            alt={item.alt || "Imagen del estudio"}
+                          />
+                        ) : (
+                          <div className="flex h-40 items-center justify-center text-xs text-muted">
+                            Sin imagen
+                          </div>
+                        )}
+                      </div>
+                      <label className="grid gap-2 text-sm font-semibold">
+                        Alt
+                        <input
+                          className="rounded-2xl border border-accent/20 bg-white px-4 py-2 text-sm outline-none transition focus:border-accent"
+                          type="text"
+                          value={item.alt}
+                          onChange={(event) =>
+                            handleGalleryAltChange(item.id, event.target.value)
+                          }
+                        />
+                      </label>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-semibold uppercase tracking-wide text-muted">
+                          Arrastra para ordenar
+                        </span>
+                        <button
+                          className="rounded-full border border-accent/30 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10"
+                          type="button"
+                          onClick={() => handleRemoveGalleryItem(item.id)}
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </details>
         </div>

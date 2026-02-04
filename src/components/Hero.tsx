@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Container from "@/components/Container";
 import type { StudioContent } from "@/content/studio";
 
@@ -10,10 +9,11 @@ export default function Hero({ studio }: HeroProps) {
   const bookingLink = "/reservar";
   const primaryCta =
     studio.ctas.primary.replace(/\s*por\s*whats?app/i, "").trim() || "Reservar";
+  const instagramUrl = studio.contact.instagram;
 
   return (
     <section className="relative overflow-hidden bg-bg py-16 md:py-24">
-      <Container className="grid items-center gap-10 md:grid-cols-[1.1fr_0.9fr]">
+      <Container className="grid items-center gap-10">
         <div className="space-y-6">
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted">
             {studio.name}
@@ -29,17 +29,15 @@ export default function Hero({ studio }: HeroProps) {
             >
               {primaryCta}
             </a>
+            <a
+              className="inline-flex items-center justify-center rounded-full border border-accent/40 bg-bg px-6 py-3 text-sm font-semibold uppercase tracking-wide text-accent shadow-[0_12px_24px_-18px_rgba(0,0,0,0.4)] transition hover:border-accent hover:bg-accent/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2"
+              href={instagramUrl}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Instagram
+            </a>
           </div>
-        </div>
-        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-3xl border border-accent/20 bg-muted/10 shadow-[0_24px_60px_-32px_rgba(0,0,0,0.6)]">
-          <Image
-            src={studio.hero.image.src}
-            alt={studio.hero.image.alt}
-            fill
-            className="object-cover"
-            sizes="(min-width: 768px) 45vw, 90vw"
-            priority
-          />
         </div>
       </Container>
     </section>
