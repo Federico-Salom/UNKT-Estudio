@@ -21,9 +21,6 @@ type BookingFormProps = {
   extraPrice: number;
 };
 
-const hasLettersAndNumbers = (value: string) =>
-  /[a-zA-Z]/.test(value) && /\d/.test(value);
-
 const dateKeyFormatter = new Intl.DateTimeFormat("en-CA", {
   timeZone: BOOKING_TIMEZONE,
   year: "numeric",
@@ -63,10 +60,7 @@ export default function BookingForm({
 }: BookingFormProps) {
   const router = useRouter();
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [password, setPassword] = useState("");
-  const [passwordConfirm, setPasswordConfirm] = useState("");
   const [selectedSlotIds, setSelectedSlotIds] = useState<string[]>([]);
   const [selectedExtras, setSelectedExtras] = useState<string[]>([]);
   const [attempted, setAttempted] = useState(false);
@@ -135,30 +129,7 @@ export default function BookingForm({
 
   const getNameError = () => (!name ? "Escribe tu nombre." : null);
 
-  const getEmailError = () => {
-    if (!email) return "Escribe tu correo.";
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return "Correo inválido.";
-    }
-    return null;
-  };
-
   const getPhoneError = () => (!phone ? "Escribe tu teléfono." : null);
-
-  const getPasswordError = () => {
-    if (!password) return "Escribe una contraseña.";
-    if (password.length < 8) return "Debe tener al menos 8 caracteres.";
-    if (!hasLettersAndNumbers(password)) {
-      return "Debe incluir letras y números.";
-    }
-    return null;
-  };
-
-  const getConfirmError = () => {
-    if (!passwordConfirm) return "Repite la contraseña.";
-    if (password !== passwordConfirm) return "Las contraseñas no coinciden.";
-    return null;
-  };
 
   const getSlotError = () =>
     selectedSlotIds.length > 0
@@ -171,10 +142,7 @@ export default function BookingForm({
 
     const errors = [
       getNameError(),
-      getEmailError(),
       getPhoneError(),
-      getPasswordError(),
-      getConfirmError(),
       getSlotError(),
     ].filter(Boolean);
 
@@ -192,10 +160,7 @@ export default function BookingForm({
         },
         body: JSON.stringify({
           name,
-          email,
           phone,
-          password,
-          passwordConfirm,
           slotIds: selectedSlotIds,
           extras: selectedExtras,
         }),
@@ -219,10 +184,7 @@ export default function BookingForm({
   };
 
   const nameError = attempted ? getNameError() : null;
-  const emailError = attempted ? getEmailError() : null;
   const phoneError = attempted ? getPhoneError() : null;
-  const passwordError = attempted ? getPasswordError() : null;
-  const confirmError = attempted ? getConfirmError() : null;
   const slotError = attempted ? getSlotError() : null;
 
   const inputClass = (invalid: boolean) =>
@@ -255,20 +217,6 @@ export default function BookingForm({
       </label>
 
       <label className="grid gap-2 text-sm font-semibold">
-        Correo
-        <input
-          className={inputClass(Boolean(emailError))}
-          type="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          required
-        />
-        {emailError && (
-          <span className="text-xs text-accent">{emailError}</span>
-        )}
-      </label>
-
-      <label className="grid gap-2 text-sm font-semibold">
         Teléfono
         <input
           className={inputClass(Boolean(phoneError))}
@@ -282,33 +230,9 @@ export default function BookingForm({
         )}
       </label>
 
-      <label className="grid gap-2 text-sm font-semibold">
-        Contraseña
-        <input
-          className={inputClass(Boolean(passwordError))}
-          type="password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          required
-        />
-        {passwordError && (
-          <span className="text-xs text-accent">{passwordError}</span>
-        )}
-      </label>
-
-      <label className="grid gap-2 text-sm font-semibold">
-        Repetir contraseña
-        <input
-          className={inputClass(Boolean(confirmError))}
-          type="password"
-          value={passwordConfirm}
-          onChange={(event) => setPasswordConfirm(event.target.value)}
-          required
-        />
-        {confirmError && (
-          <span className="text-xs text-accent">{confirmError}</span>
-        )}
-      </label>
+      <p className="text-xs text-muted">
+        Solo necesitamos tu nombre y teléfono. El resto lo cargamos luego.
+      </p>
 
       <div className="grid gap-3">
         <p className="text-sm font-semibold">Seleccioná un día</p>

@@ -1,26 +1,65 @@
 import Container from "@/components/Container";
+import BrandMark from "@/components/BrandMark";
+import UserMenu from "@/components/UserMenu";
 import type { StudioContent } from "@/content/studio";
+import { getSessionFromCookies } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 type HeaderProps = {
   studio: StudioContent;
 };
 
-export default function Header({ studio }: HeaderProps) {
+export default async function Header({ studio }: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 border-b border-accent/20 bg-bg/95 backdrop-blur">
       <Container className="flex items-center justify-between py-4">
-        <div className="font-display text-2xl uppercase tracking-[0.2em] text-fg">
-          {studio.name}
-        </div>
-        <div className="flex items-center gap-4">
-          <a
-            className="inline-flex text-sm font-semibold uppercase tracking-wide text-fg/80 transition hover:text-fg"
-            href="/login"
-          >
-            Iniciar sesión
-          </a>
-        </div>
+        <BrandMark studio={studio} />
+        <HeaderActions />
       </Container>
     </header>
+  );
+}
+
+async function HeaderActions() {
+  const session = await getSessionFromCookies();
+  if (!session) {
+    return (
+      <div className="flex items-center gap-4">
+        <a
+          className="inline-flex text-sm font-semibold uppercase tracking-wide text-fg/80 transition hover:text-fg"
+          href="/login"
+        >
+          Iniciar sesión
+        </a>
+      </div>
+    );
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.userId },
+  });
+
+  if (!user) {
+    return (
+      <div className="flex items-center gap-4">
+        <a
+          className="inline-flex text-sm font-semibold uppercase tracking-wide text-fg/80 transition hover:text-fg"
+          href="/login"
+        >
+          Iniciar sesión
+        </a>
+      </div>
+    );
+  }
+
+  const roleLabel = user.role === "admin" ? "Administrador" : "Usuario";
+
+  return (
+    <UserMenu
+      user={{
+        email: user.email,
+        roleLabel,
+      }}
+    />
   );
 }

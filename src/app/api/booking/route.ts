@@ -1,22 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { AUTH_COOKIE, hashPassword, signSession, verifyPassword } from "@/lib/auth";
+import { AUTH_COOKIE, hashPassword, signSession, verifySession } from "@/lib/auth";
 import { BASE_PRICE, EXTRA_PRICE } from "@/lib/booking";
+import { randomUUID } from "crypto";
 
 export const runtime = "nodejs";
 
 type BookingInput = {
   name?: string;
-  email?: string;
   phone?: string;
-  password?: string;
-  passwordConfirm?: string;
   slotId?: string;
   slotIds?: string[];
   extras?: string[];
 };
 
-const normalizeEmail = (value: string) => value.trim().toLowerCase();
+const normalizePhone = (value: string) => value.replace(/\D/g, "");
+const buildGuestEmail = (phone: string) => `guest-${phone}@guest.unk`;
 
 const errorResponse = (message: string, status = 400) =>
   NextResponse.json({ ok: false, error: message }, { status });
@@ -24,10 +23,7 @@ const errorResponse = (message: string, status = 400) =>
 export async function POST(request: NextRequest) {
   const body = (await request.json().catch(() => ({}))) as BookingInput;
   const name = String(body.name || "").trim();
-  const email = normalizeEmail(String(body.email || ""));
   const phone = String(body.phone || "").trim();
-  const password = String(body.password || "");
-  const passwordConfirm = String(body.passwordConfirm || "");
   const slotId = String(body.slotId || "");
   const slotIds = Array.isArray(body.slotIds)
     ? body.slotIds.map((item) => String(item))
@@ -37,10 +33,6 @@ export async function POST(request: NextRequest) {
     : [];
 
   if (!name) return errorResponse("Escribe tu nombre.");
-  if (!email) return errorResponse("Escribe tu correo.");
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return errorResponse("Correo inválido.");
-  }
   if (!phone) return errorResponse("Escribe tu teléfono.");
   const selectedSlotIds = Array.from(
     new Set(slotIds.length ? slotIds : slotId ? [slotId] : [])
@@ -48,17 +40,14 @@ export async function POST(request: NextRequest) {
   if (selectedSlotIds.length === 0) {
     return errorResponse("Selecciona un horario disponible.");
   }
-  if (!password) return errorResponse("Escribe una contraseña.");
-  if (password.length < 8) {
-    return errorResponse("La contraseña debe tener al menos 8 caracteres.");
+  const normalizedPhone = normalizePhone(phone);
+  if (!normalizedPhone) {
+    return errorResponse("Escribe un teléfono válido.");
   }
-  if (!/[a-zA-Z]/.test(password) || !/\d/.test(password)) {
-    return errorResponse("La contraseña debe incluir letras y números.");
-  }
-  if (!passwordConfirm) return errorResponse("Repite la contraseña.");
-  if (password !== passwordConfirm) {
-    return errorResponse("Las contraseñas no coinciden.");
-  }
+
+  const guestEmail = buildGuestEmail(normalizedPhone);
+  const existingSession = request.cookies.get(AUTH_COOKIE)?.value;
+  const sessionPayload = existingSession ? verifySession(existingSession) : null;
 
   const hours = selectedSlotIds.length;
   const totalPerHour = BASE_PRICE + extras.length * EXTRA_PRICE;
@@ -68,18 +57,20 @@ export async function POST(request: NextRequest) {
 
   try {
     result = await prisma.$transaction(async (tx) => {
-      let user = await tx.user.findUnique({ where: { email } });
+      let user =
+        sessionPayload?.userId
+          ? await tx.user.findUnique({ where: { id: sessionPayload.userId } })
+          : null;
 
-      if (user) {
-        const isValid = await verifyPassword(password, user.passwordHash);
-        if (!isValid) {
-          throw new Error("Credenciales inválidas.");
-        }
-      } else {
-        const passwordHash = await hashPassword(password);
+      if (!user) {
+        user = await tx.user.findUnique({ where: { email: guestEmail } });
+      }
+
+      if (!user) {
+        const passwordHash = await hashPassword(randomUUID());
         user = await tx.user.create({
           data: {
-            email,
+            email: guestEmail,
             passwordHash,
             role: "user",
           },
@@ -115,7 +106,7 @@ export async function POST(request: NextRequest) {
           slotIds: JSON.stringify(selectedSlotIds),
           hours,
           name,
-          email,
+          email: user.email,
           phone,
           extras: JSON.stringify(extras),
           total,
@@ -148,15 +139,17 @@ export async function POST(request: NextRequest) {
     { status: 201 }
   );
 
-  response.cookies.set({
-    name: AUTH_COOKIE,
-    value: token,
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 7,
-  });
+  if (!sessionPayload) {
+    response.cookies.set({
+      name: AUTH_COOKIE,
+      value: token,
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+    });
+  }
 
   return response;
 }

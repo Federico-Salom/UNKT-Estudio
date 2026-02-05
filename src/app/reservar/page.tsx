@@ -1,5 +1,5 @@
-import Link from "next/link";
 import Container from "@/components/Container";
+import Header from "@/components/Header";
 import BookingForm from "@/components/BookingForm";
 import { BASE_PRICE, EXTRA_PRICE } from "@/lib/booking";
 import { prisma } from "@/lib/prisma";
@@ -23,22 +23,7 @@ export default async function ReservarPage() {
 
   return (
     <div className="min-h-screen bg-bg text-fg">
-      <header className="border-b border-accent/20 bg-bg/95">
-        <Container className="flex items-center justify-between py-4">
-          <Link
-            className="font-display text-2xl uppercase tracking-[0.2em] text-fg"
-            href="/"
-          >
-            {studio.name}
-          </Link>
-          <Link
-            className="text-sm font-semibold uppercase tracking-wide text-fg/80 transition hover:text-fg"
-            href="/login"
-          >
-            Iniciar sesión
-          </Link>
-        </Container>
-      </header>
+      <Header studio={studio} />
 
       <main className="flex min-h-[calc(100vh-80px)] items-center justify-center px-6 py-16">
         <div className="w-full max-w-2xl rounded-3xl border border-accent/20 bg-white/70 p-8 shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)] backdrop-blur">
