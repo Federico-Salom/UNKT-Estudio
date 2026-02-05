@@ -30,7 +30,8 @@ export default function BrandMark({
         alt={logoAlt}
         width={size}
         height={size}
-        className="h-10 w-10 rounded-full object-contain"
+        className="rounded-full object-contain"
+        style={{ width: size, height: size }}
         priority
       />
       {showText ? (

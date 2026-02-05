@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 260">
+  <defs>
+    <filter id="ink" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence
+        type="fractalNoise"
+        baseFrequency="0.015"
+        numOctaves="2"
+        seed="2"
+        result="noise"
+      />
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="6" />
+    </filter>
+  </defs>
+  <rect width="900" height="260" fill="none" />
+  <g filter="url(#ink)">
+    <text
+      x="50%"
+      y="55%"
+      text-anchor="middle"
+      dominant-baseline="middle"
+      font-family="Brush Script MT, Segoe Script, Snell Roundhand, Comic Sans MS, cursive"
+      font-size="140"
+      font-weight="700"
+      fill="#b23462"
+      stroke="#b23462"
+      stroke-width="6"
+      paint-order="stroke"
+      letter-spacing="2"
+    >
+      UNKT Estudio
+    </text>
+  </g>
+</svg>

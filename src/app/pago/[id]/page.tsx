@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import BrandMark from "@/components/BrandMark";
 import Container from "@/components/Container";
 import { getSessionFromCookies } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -113,12 +114,7 @@ export default async function PagoPage({ params, searchParams }: PagoPageProps) 
     <div className="min-h-screen bg-bg text-fg">
       <header className="border-b border-accent/20 bg-bg/95">
         <Container className="flex items-center justify-between py-4">
-          <Link
-            className="font-display text-2xl uppercase tracking-[0.2em] text-fg"
-            href="/"
-          >
-            {studio.name}
-          </Link>
+          <BrandMark studio={studio} />
           <div className="flex items-center gap-6">
             <Link
               className="text-sm font-semibold uppercase tracking-wide text-fg/80 transition hover:text-fg"

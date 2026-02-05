@@ -2,14 +2,14 @@ export const studio = {
   name: "UNKT Estudio",
   siteUrl: "https://unktestudio.com",
   logo: {
-    src: "/logo.png",
+    src: "/logo.svg",
     alt: "Logo UNKT Estudio",
   },
   seo: {
     title: "UNKT Estudio | Alquiler de estudio fotográfico",
     description:
       "Alquiler de estudio fotográfico listo para producir. Luces, difusores y fondos incluidos. Reservá online.",
-    ogImage: "/logo.png",
+    ogImage: "/logo.svg",
   },
   hero: {
     title: "Un estudio listo para producir.",
@@ -71,7 +71,7 @@ export const studio = {
       message:
         "Hola, quiero reservar UNKT Estudio. Fecha: __ / Horario: __ / Extras: __",
     },
-    instagram: "https://instagram.com/unktestudio",
+    instagram: "https://www.instagram.com/unkt.estudio",
     email: "hola@unktestudio.com",
     locationText: "(Sumar dirección)",
     locationUrl: "https://maps.google.com/?q=UNKT+Estudio",

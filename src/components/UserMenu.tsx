@@ -44,6 +44,10 @@ export default function UserMenu({ user }: UserMenuProps) {
 
   const displayName = user.name || user.email;
   const showSecondaryEmail = user.name && user.name !== user.email;
+  const isAdmin =
+    user.roleLabel && user.roleLabel.toLowerCase().includes("admin");
+  const actionLabel = isAdmin ? "Gestion" : "Reservas";
+  const actionHref = isAdmin ? "/admin" : "/account";
 
   return (
     <div ref={wrapperRef} className="relative">
@@ -89,8 +93,14 @@ export default function UserMenu({ user }: UserMenuProps) {
             ) : null}
           </div>
           <a
-            href="/api/auth/logout"
+            href={actionHref}
             className="mt-4 inline-flex w-full items-center justify-center rounded-full border border-accent/30 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10"
+          >
+            {actionLabel}
+          </a>
+          <a
+            href="/api/auth/logout"
+            className="mt-3 inline-flex w-full items-center justify-center rounded-full border border-accent/30 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10"
           >
             Cerrar sesion
           </a>

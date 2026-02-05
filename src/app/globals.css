@@ -20,8 +20,23 @@
 }
 
 body {
-  background: var(--bg);
   color: var(--fg);
+  min-height: 100vh;
+  background-color: var(--bg);
+}
+
+.min-h-screen.bg-bg,
+section.bg-bg,
+footer.bg-bg {
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(
+      rgba(247, 239, 224, 0.72),
+      rgba(247, 239, 224, 0.72)
+    ),
+    url("/patron-flores.png");
+  background-repeat: repeat;
+  background-size: 900px auto;
 }
 
 .fc {

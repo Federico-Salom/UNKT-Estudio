@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
+import BrandMark from "@/components/BrandMark";
 import Container from "@/components/Container";
 import UserMenu from "@/components/UserMenu";
 import { getSessionFromCookies } from "@/lib/auth";
@@ -33,12 +33,7 @@ export default async function AccountPage() {
     <div className="min-h-screen bg-bg text-fg">
       <header className="border-b border-accent/20 bg-bg/95">
         <Container className="flex items-center justify-between py-4">
-          <Link
-            className="font-display text-2xl uppercase tracking-[0.2em] text-fg"
-            href="/"
-          >
-            {studio.name}
-          </Link>
+          <BrandMark studio={studio} />
           <UserMenu
             user={{
               email: user.email,

@@ -42,6 +42,9 @@ export async function generateMetadata(): Promise<Metadata> {
         },
       ],
     },
+    icons: {
+      icon: studio.logo?.src || "/logo.png",
+    },
   };
 }
 
