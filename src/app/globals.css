@@ -28,15 +28,30 @@ body {
 .min-h-screen.bg-bg,
 section.bg-bg,
 footer.bg-bg {
+  background-image: none;
+}
+
+.min-h-screen.bg-bg,
+section.bg-bg {
   background-color: var(--bg);
   background-image:
     linear-gradient(
-      rgba(247, 239, 224, 0.72),
-      rgba(247, 239, 224, 0.72)
+      rgba(247, 239, 224, 0.88),
+      rgba(247, 239, 224, 0.88)
     ),
-    url("/patron-flores.png");
+    url("/patron-flores-soft.png");
   background-repeat: repeat;
-  background-size: 900px auto;
+  background-size: 1800px auto;
+  background-position: center top;
+  background-attachment: fixed;
+}
+
+@media (max-width: 768px) {
+  .min-h-screen.bg-bg,
+  section.bg-bg {
+    background-size: 1100px auto;
+    background-attachment: scroll;
+  }
 }
 
 .fc {
