@@ -41,6 +41,9 @@ export default function AdminContentForm({
   const [wordmarkFileName, setWordmarkFileName] = useState(
     "Ningun archivo seleccionado"
   );
+  const [seoOgFileName, setSeoOgFileName] = useState(
+    "Ningun archivo seleccionado"
+  );
   const [galleryItems, setGalleryItems] = useState<GalleryFormItem[]>(() =>
     gallery.slice(0, 10).map((item, index) => ({
       id: `existing-${index}-${Math.random().toString(36).slice(2, 8)}`,
@@ -152,6 +155,11 @@ export default function AdminContentForm({
     setWordmarkFileName(file ? file.name : "Ningun archivo seleccionado");
   };
 
+  const handleSeoOgFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    setSeoOgFileName(file ? file.name : "Ningun archivo seleccionado");
+  };
+
   const handleGalleryUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files ?? []);
     if (!files.length) return;
@@ -226,26 +234,9 @@ export default function AdminContentForm({
                     alt={studio.logo.alt}
                   />
                 </div>
-                <label className="grid gap-2 text-sm font-semibold">
-                  Logo (avatar)
-                  <div className="flex flex-wrap items-center gap-3">
-                    <label
-                      htmlFor="logoImage"
-                      className="inline-flex items-center justify-center rounded-full border border-accent/30 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10"
-                    >
-                      Seleccionar imagen
-                    </label>
-                    <span className="text-xs text-muted">{logoFileName}</span>
-                  </div>
-                  <input
-                    id="logoImage"
-                    type="file"
-                    name="logoImage"
-                    accept="image/*"
-                    className="sr-only"
-                    onChange={handleLogoFileChange}
-                  />
-                </label>
+                <span className="text-xs font-semibold uppercase tracking-wide text-muted">
+                  Logo actual (se reemplaza en Marca, SEO y sitio)
+                </span>
               </div>
               <div className="grid gap-3">
                 <div className="overflow-hidden rounded-2xl border border-accent/20 bg-bg p-3">
@@ -255,26 +246,9 @@ export default function AdminContentForm({
                     alt={studio.logo.alt}
                   />
                 </div>
-                <label className="grid gap-2 text-sm font-semibold">
-                  Wordmark (texto del logo)
-                  <div className="flex flex-wrap items-center gap-3">
-                    <label
-                      htmlFor="wordmarkImage"
-                      className="inline-flex items-center justify-center rounded-full border border-accent/30 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10"
-                    >
-                      Seleccionar imagen
-                    </label>
-                    <span className="text-xs text-muted">{wordmarkFileName}</span>
-                  </div>
-                  <input
-                    id="wordmarkImage"
-                    type="file"
-                    name="wordmarkImage"
-                    accept="image/*"
-                    className="sr-only"
-                    onChange={handleWordmarkFileChange}
-                  />
-                </label>
+                <span className="text-xs font-semibold uppercase tracking-wide text-muted">
+                  Wordmark actual (se reemplaza en Marca, SEO y sitio)
+                </span>
               </div>
             </div>
           </details>
@@ -330,6 +304,10 @@ export default function AdminContentForm({
                     defaultValue={studio.siteUrl}
                     required
                   />
+                  <span className="text-xs font-medium text-muted">
+                    Ejemplo: https://tudominio.com. Si no pones protocolo, se
+                    completa automaticamente.
+                  </span>
                 </label>
                 <label className="grid gap-2 text-sm font-semibold">
                   Alt del logo
@@ -342,25 +320,49 @@ export default function AdminContentForm({
                   />
                 </label>
               </div>
+              <div className="rounded-2xl border border-accent/15 bg-bg/70 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted">
+                No hace falta editar rutas manuales. Para cambiar logo, wordmark
+                o imagen SEO, sube un archivo y el sistema guarda la ruta solo.
+              </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <label className="grid gap-2 text-sm font-semibold">
-                  Ruta logo (avatar)
+                  Reemplazar logo (avatar)
+                  <div className="flex flex-wrap items-center gap-3">
+                    <label
+                      htmlFor="logoImageSeo"
+                      className="inline-flex items-center justify-center rounded-full border border-accent/30 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10"
+                    >
+                      Seleccionar imagen
+                    </label>
+                    <span className="text-xs text-muted">{logoFileName}</span>
+                  </div>
                   <input
-                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-                    type="text"
-                    name="logoSrc"
-                    defaultValue={studio.logo.src}
-                    required
+                    id="logoImageSeo"
+                    type="file"
+                    name="logoImage"
+                    accept="image/*"
+                    className="sr-only"
+                    onChange={handleLogoFileChange}
                   />
                 </label>
                 <label className="grid gap-2 text-sm font-semibold">
-                  Ruta wordmark (texto)
+                  Reemplazar wordmark (texto)
+                  <div className="flex flex-wrap items-center gap-3">
+                    <label
+                      htmlFor="wordmarkImageSeo"
+                      className="inline-flex items-center justify-center rounded-full border border-accent/30 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10"
+                    >
+                      Seleccionar imagen
+                    </label>
+                    <span className="text-xs text-muted">{wordmarkFileName}</span>
+                  </div>
                   <input
-                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-                    type="text"
-                    name="wordmarkSrc"
-                    defaultValue={studio.logo.wordmarkSrc}
-                    required
+                    id="wordmarkImageSeo"
+                    type="file"
+                    name="wordmarkImage"
+                    accept="image/*"
+                    className="sr-only"
+                    onChange={handleWordmarkFileChange}
                   />
                 </label>
               </div>
@@ -384,14 +386,31 @@ export default function AdminContentForm({
                 />
               </label>
               <label className="grid gap-2 text-sm font-semibold">
-                SEO imagen (Open Graph)
+                Imagen para compartir (Open Graph)
+                <span className="text-xs font-medium text-muted">
+                  Es la miniatura que muestran WhatsApp, Instagram, Facebook y
+                  otros cuando pegas el link de tu web.
+                </span>
+                <div className="flex flex-wrap items-center gap-3">
+                  <label
+                    htmlFor="seoOgImageFile"
+                    className="inline-flex items-center justify-center rounded-full border border-accent/30 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10"
+                  >
+                    Seleccionar imagen
+                  </label>
+                  <span className="text-xs text-muted">{seoOgFileName}</span>
+                </div>
                 <input
-                  className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-                  type="text"
-                  name="seoOgImage"
-                  defaultValue={studio.seo.ogImage}
-                  required
+                  id="seoOgImageFile"
+                  type="file"
+                  name="seoOgImageFile"
+                  accept="image/*"
+                  className="sr-only"
+                  onChange={handleSeoOgFileChange}
                 />
+                <span className="text-xs font-medium text-muted">
+                  Actual: {studio.seo.ogImage}
+                </span>
               </label>
             </div>
           </details>
@@ -434,14 +453,19 @@ export default function AdminContentForm({
               </label>
               <div className="grid gap-4 md:grid-cols-2">
                 <label className="grid gap-2 text-sm font-semibold">
-                  WhatsApp (E.164 sin +)
+                  Numero de WhatsApp
                   <input
                     className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
                     type="text"
                     name="whatsappPhone"
+                    placeholder="+54 9 11 5852-4000"
                     defaultValue={studio.contact.whatsapp.phone}
                     required
                   />
+                  <span className="text-xs font-medium text-muted">
+                    Podes escribirlo con +, espacios o guiones. Se limpia
+                    automaticamente al generar el link.
+                  </span>
                 </label>
                 <label className="grid gap-2 text-sm font-semibold">
                   Mensaje WhatsApp

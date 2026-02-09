@@ -36,6 +36,26 @@ type BookingPopover = {
   y: number;
 };
 
+type MonthCounterKind = "booked" | "available";
+
+type MonthCounterEvent = {
+  id: string;
+  title: string;
+  start: string;
+  allDay: boolean;
+  backgroundColor: string;
+  borderColor: string;
+  textColor: string;
+  extendedProps: {
+    type: "month-counter";
+    dayKey: string;
+    counterKind: MonthCounterKind;
+    count: number;
+    chipBg: string;
+    chipText: string;
+  };
+};
+
 type VisibleRange = {
   startISO: string;
   endISO: string;
@@ -76,26 +96,53 @@ const slotStatusLabels: Record<SlotStatus, string> = {
 };
 
 const slotColors: Record<SlotStatus, { bg: string; text: string }> = {
-  available: { bg: "#8b0d5a", text: "#f7efe0" },
-  blocked: { bg: "#e8dccb", text: "#6e5a4a" },
-  booked: { bg: "#6e5a4a", text: "#f7efe0" },
+  available: { bg: "var(--accent)", text: "var(--bg)" },
+  blocked: {
+    bg: "color-mix(in srgb, var(--bg) 72%, var(--muted) 28%)",
+    text: "var(--muted)",
+  },
+  booked: { bg: "var(--muted)", text: "var(--bg)" },
 };
 
 const nightSlotColors: Record<SlotStatus, { bg: string; text: string }> = {
-  available: { bg: "#ff4bb3", text: "#1a1020" },
-  blocked: { bg: "#f3cde6", text: "#32143a" },
-  booked: { bg: "#7a3f95", text: "#fdf1fb" },
+  available: {
+    bg: "color-mix(in srgb, var(--accent) 68%, var(--accent2) 32%)",
+    text: "var(--bg)",
+  },
+  blocked: {
+    bg: "color-mix(in srgb, var(--muted) 62%, var(--accent2) 38%)",
+    text: "var(--fg)",
+  },
+  booked: {
+    bg: "color-mix(in srgb, var(--accent2) 62%, var(--muted) 38%)",
+    text: "var(--bg)",
+  },
 };
 
 const bookingColors: Record<string, { bg: string; text: string }> = {
-  paid: { bg: "#8b0d5a", text: "#f7efe0" },
-  pending_payment: { bg: "#b01374", text: "#f7efe0" },
+  paid: { bg: "var(--accent)", text: "var(--bg)" },
+  pending_payment: { bg: "var(--accent2)", text: "var(--bg)" },
 };
 
 const nightBookingColors: Record<string, { bg: string; text: string }> = {
-  paid: { bg: "#ff4bb3", text: "#190f20" },
-  pending_payment: { bg: "#d975ff", text: "#2e1038" },
+  paid: {
+    bg: "color-mix(in srgb, var(--accent) 62%, var(--accent2) 38%)",
+    text: "var(--bg)",
+  },
+  pending_payment: {
+    bg: "color-mix(in srgb, var(--accent2) 72%, var(--accent) 28%)",
+    text: "var(--bg)",
+  },
 };
+
+const bookingFallbackColors: Record<TimeWindowMode, { bg: string; text: string }> =
+  {
+    day: { bg: "var(--muted)", text: "var(--bg)" },
+    night: {
+      bg: "color-mix(in srgb, var(--accent2) 58%, var(--muted) 42%)",
+      text: "var(--bg)",
+    },
+  };
 
 const dateKeyFormatter = new Intl.DateTimeFormat("en-CA", {
   timeZone: BOOKING_TIMEZONE,
@@ -109,6 +156,14 @@ const timeFormatter = new Intl.DateTimeFormat("es-AR", {
   hour: "2-digit",
   minute: "2-digit",
   hour12: false,
+});
+
+const dayLabelFormatter = new Intl.DateTimeFormat("es-AR", {
+  timeZone: BOOKING_TIMEZONE,
+  weekday: "long",
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
 });
 
 const normalizeIso = (value: string) =>
@@ -125,9 +180,18 @@ const formatRangeLabel = (startIso: string, endIso: string) => {
   const startTime = formatTime(startIso);
   const endTime = formatTime(endIso);
   if (startTime === "00:00" && endTime === "00:00" && durationHours >= 23) {
-    return "Todo el día";
+    return "Todo el dia";
   }
   return `${startTime} - ${endTime}`;
+};
+
+const formatDayLabel = (dayKey: string) => {
+  const [year, month, day] = dayKey.split("-").map(Number);
+  if (!year || !month || !day) {
+    return dayKey;
+  }
+  const date = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+  return dayLabelFormatter.format(date);
 };
 
 export default function AdminAgendaPanel({
@@ -139,6 +203,10 @@ export default function AdminAgendaPanel({
   const [localSlots, setLocalSlots] = useState<SlotItem[]>(slots);
   const [isMobile, setIsMobile] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<BookingPopover | null>(
+    null
+  );
+  const [monthDetailDayKey, setMonthDetailDayKey] = useState<string | null>(null);
+  const [pendingSlotActionId, setPendingSlotActionId] = useState<string | null>(
     null
   );
   const [availabilityView, setAvailabilityView] = useState("timeGridWeek");
@@ -155,11 +223,36 @@ export default function AdminAgendaPanel({
   const isNight = effectiveTimeWindowMode === "night";
   const activeSlotColors = isNight ? nightSlotColors : slotColors;
   const activeBookingColors = isNight ? nightBookingColors : bookingColors;
+  const fallbackBookingPalette = bookingFallbackColors[effectiveTimeWindowMode];
   const activeWindow = timeWindowConfig[effectiveTimeWindowMode];
+  const monthDetailDialogClass = isNight
+    ? "border-accent2/40 bg-bg/95 text-fg"
+    : "border-accent/20 bg-white text-fg";
+  const monthDetailHeadingClass = "text-fg";
+  const monthDetailMutedClass = "text-muted";
+  const monthDetailStrongClass = "text-fg";
+  const monthDetailSectionClass = isNight
+    ? "border-accent2/28 bg-bg/80"
+    : "border-accent/15 bg-bg/70";
+  const monthDetailCardClass = isNight
+    ? "border-accent2/24 bg-bg/75"
+    : "border-accent/12 bg-white/90";
+  const monthDetailSecondaryButtonClass = isNight
+    ? "border-accent2/45 bg-bg/80 text-fg hover:border-accent2 hover:bg-accent2/15"
+    : "border-accent/30 bg-bg text-muted hover:border-accent/55 hover:bg-accent/10";
+  const monthDetailPrimaryButtonClass = isNight
+    ? "border-accent2/50 bg-accent2 text-bg hover:bg-accent"
+    : "border-accent/40 bg-accent text-bg hover:bg-accent2";
 
   useEffect(() => {
     setLocalSlots(slots);
   }, [slots]);
+
+  useEffect(() => {
+    if (!isMonthView) {
+      setMonthDetailDayKey(null);
+    }
+  }, [isMonthView]);
 
   useEffect(() => {
     const media = window.matchMedia("(max-width: 768px)");
@@ -301,70 +394,139 @@ export default function AdminAgendaPanel({
     setSelectedBooking({ booking, x, y });
   };
 
+  const daySlotGroups = useMemo(() => {
+    const grouped = new Map<
+      string,
+      { available: SlotItem[]; blocked: SlotItem[]; booked: SlotItem[] }
+    >();
+
+    localSlots.forEach((slot) => {
+      const dateKey = getDateKey(slot.start);
+      if (!grouped.has(dateKey)) {
+        grouped.set(dateKey, { available: [], blocked: [], booked: [] });
+      }
+      grouped.get(dateKey)![slot.status].push(slot);
+    });
+
+    grouped.forEach((slotsByStatus) => {
+      slotsByStatus.available.sort(
+        (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()
+      );
+      slotsByStatus.blocked.sort(
+        (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()
+      );
+      slotsByStatus.booked.sort(
+        (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()
+      );
+    });
+
+    return grouped;
+  }, [localSlots]);
+
+  const dayBookingGroups = useMemo(() => {
+    const grouped = new Map<string, BookingItem[]>();
+    bookings.forEach((booking) => {
+      const dateKey = getDateKey(booking.start);
+      const list = grouped.get(dateKey) ?? [];
+      list.push(booking);
+      grouped.set(dateKey, list);
+    });
+
+    grouped.forEach((bookingList) => {
+      bookingList.sort(
+        (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()
+      );
+    });
+
+    return grouped;
+  }, [bookings]);
+
+  const monthVisibleDayKeys = useMemo(() => {
+    if (!isMonthView || !visibleRange) {
+      return [] as string[];
+    }
+    const start = new Date(visibleRange.startISO);
+    const end = new Date(visibleRange.endISO);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+      return [] as string[];
+    }
+
+    const dayKeys: string[] = [];
+    const seen = new Set<string>();
+    const cursor = new Date(start);
+    while (cursor < end) {
+      const dayKey = dateKeyFormatter.format(cursor);
+      if (!seen.has(dayKey)) {
+        seen.add(dayKey);
+        dayKeys.push(dayKey);
+      }
+      cursor.setDate(cursor.getDate() + 1);
+    }
+    return dayKeys;
+  }, [isMonthView, visibleRange]);
+
+  const monthCounterEvents = useMemo<MonthCounterEvent[]>(() => {
+    if (!isMonthView) {
+      return [];
+    }
+
+    const defaultDayKeys = [...daySlotGroups.keys(), ...dayBookingGroups.keys()];
+    const dayKeys = monthVisibleDayKeys.length
+      ? monthVisibleDayKeys
+      : Array.from(new Set(defaultDayKeys)).sort();
+
+    return dayKeys.flatMap((dayKey) => {
+      const bookingCount = dayBookingGroups.get(dayKey)?.length ?? 0;
+      const availableCount = daySlotGroups.get(dayKey)?.available.length ?? 0;
+
+      return [
+        {
+          id: `month-booked-${dayKey}`,
+          title: String(bookingCount),
+          start: dayKey,
+          allDay: true,
+          backgroundColor: 'transparent',
+          borderColor: 'transparent',
+          textColor: 'inherit',
+          extendedProps: {
+            type: 'month-counter',
+            dayKey,
+            counterKind: 'booked',
+            count: bookingCount,
+            chipBg: activeSlotColors.booked.bg,
+            chipText: activeSlotColors.booked.text,
+          },
+        },
+        {
+          id: `month-available-${dayKey}`,
+          title: String(availableCount),
+          start: dayKey,
+          allDay: true,
+          backgroundColor: 'transparent',
+          borderColor: 'transparent',
+          textColor: 'inherit',
+          extendedProps: {
+            type: 'month-counter',
+            dayKey,
+            counterKind: 'available',
+            count: availableCount,
+            chipBg: activeSlotColors.available.bg,
+            chipText: activeSlotColors.available.text,
+          },
+        },
+      ];
+    });
+  }, [
+    isMonthView,
+    monthVisibleDayKeys,
+    daySlotGroups,
+    dayBookingGroups,
+    activeSlotColors,
+  ]);
+
   const availabilityEvents = useMemo(() => {
-    if (availabilityView.startsWith("dayGrid")) {
-      const grouped = new Map<string, Map<SlotStatus, SlotItem[]>>();
-      localSlots.forEach((slot) => {
-        const dateKey = getDateKey(slot.start);
-        if (!grouped.has(dateKey)) {
-          grouped.set(dateKey, new Map());
-        }
-        const statusGroup = grouped.get(dateKey)!;
-        const list = statusGroup.get(slot.status) ?? [];
-        list.push(slot);
-        statusGroup.set(slot.status, list);
-      });
-
-      const summaryEvents: {
-        id: string;
-        title: string;
-        start: string;
-        allDay: boolean;
-        backgroundColor: string;
-        borderColor: string;
-        textColor: string;
-        extendedProps: {
-          dayKey: string;
-          status: SlotStatus;
-          isSummary: true;
-          type: "slot";
-        };
-      }[] = [];
-
-      grouped.forEach((statusMap, dateKey) => {
-        statusMap.forEach((daySlots, statusKey) => {
-          const sorted = [...daySlots].sort(
-            (a, b) =>
-              new Date(a.start).getTime() - new Date(b.start).getTime()
-          );
-          const start = sorted[0]?.start;
-          const end = sorted[sorted.length - 1]?.end;
-          if (!start || !end) return;
-          const rangeLabel = formatRangeLabel(start, end);
-          const title =
-            rangeLabel === "Todo el día"
-              ? `Todo el día · ${slotStatusLabels[statusKey]}`
-              : `${rangeLabel} · ${slotStatusLabels[statusKey]}`;
-
-          summaryEvents.push({
-            id: `${dateKey}-${statusKey}`,
-            title,
-            start: dateKey,
-            allDay: true,
-            backgroundColor: activeSlotColors[statusKey].bg,
-            borderColor: activeSlotColors[statusKey].bg,
-            textColor: activeSlotColors[statusKey].text,
-            extendedProps: {
-              dayKey: dateKey,
-              status: statusKey,
-              isSummary: true,
-              type: "slot",
-            },
-          });
-        });
-      });
-
-      return summaryEvents;
+    if (isMonthView) {
+      return [];
     }
 
     return localSlots.map((slot) => ({
@@ -380,54 +542,19 @@ export default function AdminAgendaPanel({
       extendedProps: {
         status: slot.status,
         dayKey: getDateKey(slot.start),
-        isSummary: false,
-        type: "slot",
+        type: 'slot',
       },
     }));
-  }, [availabilityView, localSlots, activeSlotColors]);
+  }, [isMonthView, localSlots, activeSlotColors]);
 
   const bookingEvents = useMemo(() => {
-    if (availabilityView.startsWith("dayGrid")) {
-      const grouped = new Map<string, BookingItem[]>();
-      bookings.forEach((booking) => {
-        const dateKey = getDateKey(booking.start);
-        const list = grouped.get(dateKey) ?? [];
-        list.push(booking);
-        grouped.set(dateKey, list);
-      });
-
-      return Array.from(grouped.entries()).map(([dateKey, items]) => {
-        const sorted = [...items].sort(
-          (a, b) =>
-            new Date(a.start).getTime() - new Date(b.start).getTime()
-        );
-        const start = sorted[0]?.start;
-        const end = sorted[sorted.length - 1]?.end;
-        const rangeLabel = start && end ? formatRangeLabel(start, end) : "";
-        const title = rangeLabel
-          ? `Reservas · ${rangeLabel} (${items.length})`
-          : `Reservas · ${items.length}`;
-        const summaryPalette = isNight
-          ? { bg: "#d975ff", text: "#2e1038" }
-          : { bg: "#6e5a4a", text: "#f7efe0" };
-        return {
-          id: `booking-${dateKey}`,
-          title,
-          start: dateKey,
-          allDay: true,
-          backgroundColor: summaryPalette.bg,
-          borderColor: summaryPalette.bg,
-          textColor: summaryPalette.text,
-          extendedProps: { isSummary: true, dayKey: dateKey, type: "booking" },
-        };
-      });
+    if (isMonthView) {
+      return [];
     }
 
     return bookings.map((booking) => {
-      const palette = activeBookingColors[booking.status]
-        || (isNight
-          ? { bg: "#d975ff", text: "#2e1038" }
-          : { bg: "#6e5a4a", text: "#f7efe0" });
+      const palette = activeBookingColors[booking.status] ?? fallbackBookingPalette;
+
       return {
         id: booking.id,
         title: booking.title,
@@ -436,15 +563,39 @@ export default function AdminAgendaPanel({
         backgroundColor: palette.bg,
         borderColor: palette.bg,
         textColor: palette.text,
-        extendedProps: { ...booking, isSummary: false, type: "booking" },
+        extendedProps: { ...booking, type: 'booking' },
       };
     });
-  }, [availabilityView, bookings, activeBookingColors, isNight]);
+  }, [isMonthView, bookings, activeBookingColors, fallbackBookingPalette]);
 
   const combinedEvents = useMemo(
-    () => [...availabilityEvents, ...bookingEvents],
-    [availabilityEvents, bookingEvents]
+    () =>
+      isMonthView
+        ? monthCounterEvents
+        : [...availabilityEvents, ...bookingEvents],
+    [isMonthView, monthCounterEvents, availabilityEvents, bookingEvents]
   );
+
+  const monthDetailData = useMemo(() => {
+    if (!monthDetailDayKey) {
+      return null;
+    }
+
+    const slotsByStatus = daySlotGroups.get(monthDetailDayKey) ?? {
+      available: [],
+      blocked: [],
+      booked: [],
+    };
+
+    return {
+      dayKey: monthDetailDayKey,
+      dayLabel: formatDayLabel(monthDetailDayKey),
+      bookings: dayBookingGroups.get(monthDetailDayKey) ?? [],
+      availableSlots: slotsByStatus.available,
+      blockedSlots: slotsByStatus.blocked,
+      bookedSlots: slotsByStatus.booked,
+    };
+  }, [monthDetailDayKey, daySlotGroups, dayBookingGroups]);
 
   const handleSelect = async (selection: {
     startStr: string;
@@ -484,12 +635,16 @@ export default function AdminAgendaPanel({
   };
 
   const handleSlotClick = async (slotId: string, currentStatus: SlotStatus) => {
+    if (pendingSlotActionId) {
+      return;
+    }
     if (currentStatus === "booked") {
-      showToast("error", "Ese horario ya está reservado.");
+      showToast("error", "Ese horario ya esta reservado.");
       return;
     }
     const nextStatus = currentStatus === "available" ? "blocked" : "available";
 
+    setPendingSlotActionId(slotId);
     try {
       const response = await fetch("/api/admin/availability", {
         method: "PATCH",
@@ -512,6 +667,38 @@ export default function AdminAgendaPanel({
       showToast("saved", "Horario actualizado.");
     } catch {
       showToast("error", "No se pudo actualizar.");
+    } finally {
+      setPendingSlotActionId((current) => (current === slotId ? null : current));
+    }
+  };
+
+  const handleDeleteSlot = async (slotId: string) => {
+    if (pendingSlotActionId) {
+      return;
+    }
+
+    setPendingSlotActionId(slotId);
+    try {
+      const response = await fetch("/api/admin/availability", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({ slotId }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        showToast("error", data.error || "No se pudo eliminar.");
+        return;
+      }
+
+      setLocalSlots((prev) => prev.filter((slot) => slot.id !== slotId));
+      showToast("saved", "Horario eliminado.");
+    } catch {
+      showToast("error", "No se pudo eliminar.");
+    } finally {
+      setPendingSlotActionId((current) => (current === slotId ? null : current));
     }
   };
 
@@ -532,23 +719,19 @@ export default function AdminAgendaPanel({
             aria-describedby="clear-confirm-description"
             className={`relative w-full max-w-md rounded-3xl border px-5 py-4 shadow-[0_28px_60px_-32px_rgba(0,0,0,0.65)] ${
               isNight
-                ? "border-[#f08be1]/45 bg-[#190f24]/96 text-[#fdf2fb]"
+                ? "border-accent2/40 bg-bg/95 text-fg"
                 : "border-accent/25 bg-white text-fg"
             }`}
           >
             <h3
               id="clear-confirm-title"
-              className={`text-sm font-semibold uppercase tracking-wide ${
-                isNight ? "text-[#fdf2fb]" : "text-fg"
-              }`}
+              className="text-sm font-semibold uppercase tracking-wide text-fg"
             >
               Confirmar limpieza
             </h3>
             <p
               id="clear-confirm-description"
-              className={`mt-2 text-sm leading-relaxed ${
-                isNight ? "text-[#f0dff2]/90" : "text-muted"
-              }`}
+              className="mt-2 text-sm leading-relaxed text-muted"
             >
               Vas a borrar {getClearScopeDescription()}. Solo se eliminan horarios
               disponibles y bloqueados.
@@ -559,7 +742,7 @@ export default function AdminAgendaPanel({
                 onClick={() => setShowClearConfirm(false)}
                 className={`rounded-full border px-4 py-2 text-[10px] font-semibold uppercase tracking-wide transition ${
                   isNight
-                    ? "border-[#df7ed5]/55 bg-white/8 text-[#fdf2fb] hover:bg-white/14"
+                    ? monthDetailSecondaryButtonClass
                     : "border-accent/30 bg-bg text-muted hover:border-accent/50 hover:bg-accent/5"
                 }`}
               >
@@ -570,12 +753,274 @@ export default function AdminAgendaPanel({
                 onClick={handleClearVisibleRange}
                 className={`rounded-full border px-4 py-2 text-[10px] font-semibold uppercase tracking-wide transition ${
                   isNight
-                    ? "border-[#ffc1ec]/70 bg-[#ffb3e3] text-[#2f1138] hover:bg-[#ffc8ef]"
+                    ? monthDetailPrimaryButtonClass
                     : "border-accent/35 bg-accent text-bg hover:bg-accent2"
                 }`}
               >
                 Confirmar
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {monthDetailData && (
+        <div className="fixed inset-0 z-[78] flex items-center justify-center p-4">
+          <button
+            type="button"
+            aria-label="Cerrar detalle diario"
+            className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
+            onClick={() => setMonthDetailDayKey(null)}
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="month-detail-title"
+            className={`relative w-full max-w-4xl rounded-3xl border px-5 py-5 shadow-[0_35px_90px_-40px_rgba(0,0,0,0.8)] sm:px-6 sm:py-6 ${
+              monthDetailDialogClass
+            }`}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3
+                  id="month-detail-title"
+                  className={`text-sm font-semibold uppercase tracking-wide ${monthDetailHeadingClass}`}
+                >
+                  Detalle del dia
+                </h3>
+                <p className={`mt-1 text-sm ${monthDetailMutedClass}`}>
+                  {monthDetailData.dayLabel}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMonthDetailDayKey(null)}
+                className={`rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-wide transition ${
+                  monthDetailSecondaryButtonClass
+                }`}
+              >
+                Cerrar
+              </button>
+            </div>
+
+            <div className="mt-5 grid gap-4 lg:grid-cols-2">
+              <section
+                className={`rounded-2xl border p-4 ${
+                  monthDetailSectionClass
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-semibold uppercase tracking-wide">
+                    Reservas
+                  </h4>
+                  <span className="text-xs font-semibold">{monthDetailData.bookings.length}</span>
+                </div>
+
+                <div className="mt-3 max-h-60 space-y-2 overflow-y-auto pr-1">
+                  {monthDetailData.bookings.length ? (
+                    monthDetailData.bookings.map((booking) => {
+                      const bookingPalette =
+                        activeBookingColors[booking.status] ?? fallbackBookingPalette;
+
+                      return (
+                        <article
+                          key={booking.id}
+                          className={`rounded-xl border p-3 text-xs ${
+                            monthDetailCardClass
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <strong>{formatRangeLabel(booking.start, booking.end)}</strong>
+                            <span
+                              className="rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase"
+                              style={{
+                                backgroundColor: bookingPalette.bg,
+                                color: bookingPalette.text,
+                              }}
+                            >
+                              {booking.status === "paid" ? "Pagada" : "Pendiente"}
+                            </span>
+                          </div>
+                          <div className="mt-1 font-semibold">{booking.title}</div>
+                          <div className={monthDetailMutedClass}>
+                            {booking.email}
+                          </div>
+                          <div className={monthDetailMutedClass}>
+                            {booking.phone}
+                          </div>
+                          <div className={monthDetailMutedClass}>
+                            {booking.extrasLabel}
+                          </div>
+                          <div className={monthDetailStrongClass}>
+                            {booking.totalLabel}
+                          </div>
+                        </article>
+                      );
+                    })
+                  ) : (
+                    <p className={`text-xs ${monthDetailMutedClass}`}>
+                      No hay reservas en este dia.
+                    </p>
+                  )}
+                </div>
+              </section>
+
+              <section
+                className={`rounded-2xl border p-4 ${
+                  monthDetailSectionClass
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-semibold uppercase tracking-wide">
+                    Disponibles
+                  </h4>
+                  <span className="text-xs font-semibold">
+                    {monthDetailData.availableSlots.length}
+                  </span>
+                </div>
+
+                <div className="mt-3 max-h-60 space-y-2 overflow-y-auto pr-1">
+                  {monthDetailData.availableSlots.length ? (
+                    monthDetailData.availableSlots.map((slot) => {
+                      const isPending = pendingSlotActionId === slot.id;
+                      return (
+                        <article
+                          key={slot.id}
+                          className={`rounded-xl border p-3 text-xs ${
+                            monthDetailCardClass
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <strong>{formatRangeLabel(slot.start, slot.end)}</strong>
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => handleSlotClick(slot.id, "available")}
+                                disabled={isPending}
+                                className={`rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-wide transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                                  monthDetailSecondaryButtonClass
+                                }`}
+                              >
+                                Bloquear
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteSlot(slot.id)}
+                                disabled={isPending}
+                                className={`rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-wide transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                                  monthDetailPrimaryButtonClass
+                                }`}
+                              >
+                                Eliminar
+                              </button>
+                            </div>
+                          </div>
+                        </article>
+                      );
+                    })
+                  ) : (
+                    <p className={`text-xs ${monthDetailMutedClass}`}>
+                      No hay horarios disponibles en este dia.
+                    </p>
+                  )}
+                </div>
+              </section>
+            </div>
+
+            <div className="mt-4 grid gap-4 lg:grid-cols-2">
+              <section
+                className={`rounded-2xl border p-4 ${
+                  monthDetailSectionClass
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-semibold uppercase tracking-wide">
+                    Bloqueados
+                  </h4>
+                  <span className="text-xs font-semibold">
+                    {monthDetailData.blockedSlots.length}
+                  </span>
+                </div>
+
+                <div className="mt-3 max-h-48 space-y-2 overflow-y-auto pr-1">
+                  {monthDetailData.blockedSlots.length ? (
+                    monthDetailData.blockedSlots.map((slot) => {
+                      const isPending = pendingSlotActionId === slot.id;
+                      return (
+                        <article
+                          key={slot.id}
+                          className={`rounded-xl border p-3 text-xs ${
+                            monthDetailCardClass
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <strong>{formatRangeLabel(slot.start, slot.end)}</strong>
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => handleSlotClick(slot.id, "blocked")}
+                                disabled={isPending}
+                                className={`rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-wide transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                                  monthDetailSecondaryButtonClass
+                                }`}
+                              >
+                                Habilitar
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteSlot(slot.id)}
+                                disabled={isPending}
+                                className={`rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-wide transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                                  monthDetailPrimaryButtonClass
+                                }`}
+                              >
+                                Eliminar
+                              </button>
+                            </div>
+                          </div>
+                        </article>
+                      );
+                    })
+                  ) : (
+                    <p className={`text-xs ${monthDetailMutedClass}`}>
+                      No hay horarios bloqueados en este dia.
+                    </p>
+                  )}
+                </div>
+              </section>
+
+              <section
+                className={`rounded-2xl border p-4 ${
+                  monthDetailSectionClass
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-semibold uppercase tracking-wide">
+                    Slots reservados
+                  </h4>
+                  <span className="text-xs font-semibold">
+                    {monthDetailData.bookedSlots.length}
+                  </span>
+                </div>
+                <div className="mt-3 max-h-48 space-y-2 overflow-y-auto pr-1">
+                  {monthDetailData.bookedSlots.length ? (
+                    monthDetailData.bookedSlots.map((slot) => (
+                      <article
+                        key={slot.id}
+                        className={`rounded-xl border p-3 text-xs ${
+                          monthDetailCardClass
+                        }`}
+                      >
+                        <strong>{formatRangeLabel(slot.start, slot.end)}</strong>
+                      </article>
+                    ))
+                  ) : (
+                    <p className={`text-xs ${monthDetailMutedClass}`}>
+                      No hay slots en estado reservado.
+                    </p>
+                  )}
+                </div>
+              </section>
             </div>
           </div>
         </div>
@@ -602,19 +1047,13 @@ export default function AdminAgendaPanel({
       <section
         className={`agenda-panel rounded-3xl border p-8 backdrop-blur transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
           isNight
-            ? "agenda-panel--night border-[#b45ed7]/35 bg-[#120a1d]/90 text-[#fdf2fb] shadow-[0_40px_90px_-55px_rgba(0,0,0,0.95)]"
-            : "border-accent/20 bg-white/70 text-fg shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)]"
+            ? "agenda-panel--night border-accent2/40 bg-bg/95 text-fg shadow-[0_40px_90px_-55px_rgba(0,0,0,0.95)]"
+            : "agenda-panel--day border-accent/20 bg-white/70 text-fg shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)]"
         }`}
       >
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1
-              className={`font-display text-3xl tracking-[0.08em] ${
-                isNight
-                  ? "text-white drop-shadow-[0_0_18px_rgba(255,102,206,0.45)] transition-colors duration-500"
-                  : "text-fg transition-colors duration-500"
-              }`}
-            >
+            <h1 className="font-display text-3xl tracking-[0.08em] text-fg transition-colors duration-500">
               Disponibilidad
             </h1>
           </div>
@@ -627,7 +1066,7 @@ export default function AdminAgendaPanel({
                 }
                 className={`inline-flex items-center justify-center rounded-full border px-4 py-2 text-[10px] font-semibold uppercase tracking-wide transition-all duration-500 ease-out ${
                   isNight
-                    ? "border-[#ffc1ec]/70 bg-[#ffb3e3] text-[#2f1138] shadow-[0_0_22px_-8px_rgba(255,124,220,0.95)] hover:bg-[#ffc8ef]"
+                    ? "border-accent2/50 bg-accent2 text-bg shadow-[0_10px_24px_-14px_rgba(0,0,0,0.8)] hover:bg-accent"
                     : "border-accent/35 bg-accent text-bg shadow-[0_10px_20px_-14px_rgba(139,13,90,0.9)] hover:bg-accent2"
                 }`}
                 aria-pressed={isNight}
@@ -642,7 +1081,7 @@ export default function AdminAgendaPanel({
           ref={calendarContainerRef}
           className={`agenda-calendar mt-6 relative overflow-hidden rounded-2xl border p-3 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
             isNight
-              ? "agenda-calendar--night border-[#c970ea]/25 bg-[#10081a]/85"
+              ? "agenda-calendar--night border-accent2/35 bg-bg/90"
               : "agenda-calendar--day border-accent/15 bg-white/80"
           }`}
         >
@@ -650,12 +1089,12 @@ export default function AdminAgendaPanel({
             <div
               className={`pointer-events-none absolute z-10 w-[260px] rounded-2xl border px-4 py-3 text-xs shadow-[0_18px_36px_-20px_rgba(0,0,0,0.35)] ${
                 isNight
-                  ? "border-[#de83dc]/45 bg-[#1a0f28]/95 text-[#f3e4f5] shadow-[0_26px_48px_-24px_rgba(0,0,0,0.95)]"
+                  ? "border-accent2/40 bg-bg/95 text-muted shadow-[0_26px_48px_-24px_rgba(0,0,0,0.95)]"
                   : "border-accent/20 bg-bg/95 text-muted"
               }`}
               style={{ left: selectedBooking.x, top: selectedBooking.y }}
             >
-              <div className={`text-sm font-semibold ${isNight ? "text-white" : "text-fg"}`}>
+              <div className="text-sm font-semibold text-fg">
                 {selectedBooking.booking.title}
               </div>
               <div>{selectedBooking.booking.email}</div>
@@ -677,6 +1116,54 @@ export default function AdminAgendaPanel({
             select={handleSelect}
             events={combinedEvents}
             displayEventTime={false}
+            eventClassNames={(arg) => {
+              const props = arg.event.extendedProps as {
+                type?: "slot" | "booking" | "month-counter";
+                counterKind?: MonthCounterKind;
+              };
+              if (props.type !== "month-counter") {
+                return [];
+              }
+              return [
+                "agenda-month-counter-event",
+                props.counterKind === "booked"
+                  ? "agenda-month-counter-event--booked"
+                  : "agenda-month-counter-event--available",
+              ];
+            }}
+            eventContent={(arg) => {
+              const props = arg.event.extendedProps as {
+                type?: "slot" | "booking" | "month-counter";
+                counterKind?: MonthCounterKind;
+                count?: number;
+                chipBg?: string;
+                chipText?: string;
+              };
+              if (props.type !== "month-counter") {
+                return undefined;
+              }
+              const count =
+                typeof props.count === "number"
+                  ? props.count
+                  : Number(arg.event.title || 0);
+              const counterLabel =
+                props.counterKind === "booked" ? "Reservados" : "Disponibles";
+
+              return (
+                <span
+                  className={`agenda-month-counter-chip ${
+                    count === 0 ? "agenda-month-counter-chip--zero" : ""
+                  }`}
+                  title={`${counterLabel}: ${count}`}
+                  style={{
+                    backgroundColor: props.chipBg,
+                    color: props.chipText,
+                  }}
+                >
+                  {count}
+                </span>
+              );
+            }}
             datesSet={(arg) => {
               const currentStart =
                 arg.view.currentStart instanceof Date
@@ -703,36 +1190,30 @@ export default function AdminAgendaPanel({
             }}
             dateClick={() => {
               setSelectedBooking(null);
+              setMonthDetailDayKey(null);
             }}
             eventClick={(info) => {
               const props = info.event.extendedProps as {
-                type?: "slot" | "booking";
+                type?: "slot" | "booking" | "month-counter";
                 dayKey?: string;
-                isSummary?: boolean;
+                counterKind?: MonthCounterKind;
+                count?: number;
                 status?: SlotStatus;
               } & Partial<BookingItem>;
+
+              if (props.type === "month-counter") {
+                const dayKey = props.dayKey || getDateKey(info.event.startStr);
+                setSelectedBooking(null);
+                setMonthDetailDayKey(dayKey);
+                return;
+              }
+
               if (props.type === "booking") {
-                if (props.isSummary) {
-                  const dayKey =
-                    props.dayKey || getDateKey(info.event.startStr);
-                  const bookingForDay = bookings
-                    .filter(
-                      (booking) => getDateKey(booking.start) === dayKey
-                    )
-                    .sort(
-                      (a, b) =>
-                        new Date(a.start).getTime() -
-                        new Date(b.start).getTime()
-                    )[0];
-                  if (bookingForDay) {
-                    openBookingPopover(bookingForDay, info.el, info.jsEvent);
-                  }
-                  return;
-                }
                 openBookingPopover(props as BookingItem, info.el, info.jsEvent);
                 return;
               }
 
+              setMonthDetailDayKey(null);
               setSelectedBooking(null);
               if (availabilityView !== "timeGridDay" || !props.status) {
                 return;
@@ -771,7 +1252,7 @@ export default function AdminAgendaPanel({
             disabled={!visibleRange || status === "saving"}
             className={`inline-flex items-center justify-center rounded-full border px-4 py-2 text-[10px] font-semibold uppercase tracking-wide transition disabled:cursor-not-allowed disabled:opacity-60 ${
               isNight
-                ? "border-[#d87fdc]/55 bg-white/8 text-[#fdf2fb] hover:border-[#f1b8eb] hover:bg-white/14"
+                ? monthDetailSecondaryButtonClass
                 : "border-accent/35 bg-accent/10 text-accent hover:border-accent hover:bg-accent/20"
             }`}
           >
@@ -779,11 +1260,7 @@ export default function AdminAgendaPanel({
           </button>
         </div>
 
-        <div
-          className={`mt-4 flex flex-wrap gap-3 text-xs font-semibold uppercase tracking-wide transition-colors duration-500 ${
-            isNight ? "text-[#f3e4f5]" : "text-muted"
-          }`}
-        >
+        <div className="mt-4 flex flex-wrap gap-3 text-xs font-semibold uppercase tracking-wide text-muted transition-colors duration-500">
           <span className="flex items-center gap-2">
             <span
               className="h-3 w-3 rounded-full"
@@ -810,6 +1287,3 @@ export default function AdminAgendaPanel({
     </div>
   );
 }
-
-
-

@@ -189,12 +189,16 @@ export default function BookingForm({
 
   const inputClass = (invalid: boolean) =>
     [
-      "rounded-2xl border px-4 py-3 text-sm outline-none transition focus:border-accent",
+      "rounded-2xl border px-4 py-3 text-sm text-fg placeholder:text-muted outline-none transition focus:border-accent",
       invalid ? "border-accent bg-accent/10" : "border-accent/20 bg-white",
     ].join(" ");
 
   return (
-    <form className="mt-6 grid gap-4" onSubmit={handleSubmit} noValidate>
+    <form
+      className="booking-form mt-6 grid gap-4"
+      onSubmit={handleSubmit}
+      noValidate
+    >
       {apiError && (
         <div
           className="rounded-2xl border border-accent/40 bg-accent/10 px-4 py-3 text-sm text-accent"
@@ -239,7 +243,7 @@ export default function BookingForm({
         <p className="text-xs text-muted">
           Podés elegir más de un horario para reservar varias horas.
         </p>
-        <div className="overflow-hidden rounded-2xl border border-accent/15 bg-white/80 p-3">
+        <div className="booking-calendar overflow-hidden rounded-2xl border border-accent/15 bg-white/80 p-3">
           <FullCalendar
             plugins={[dayGridPlugin, interactionPlugin]}
             locales={[esLocale]}
@@ -270,7 +274,7 @@ export default function BookingForm({
           />
         </div>
         {selectedDate && (
-          <div className="rounded-2xl border border-accent/15 bg-bg px-4 py-3 text-sm text-muted">
+          <div className="booking-note rounded-2xl border border-accent/15 bg-bg px-4 py-3 text-sm text-muted">
             Horarios para{" "}
             <span className="font-semibold text-fg">
               {humanDateFormatter.format(
@@ -280,7 +284,7 @@ export default function BookingForm({
           </div>
         )}
         {selectedDate && selectedSlots.length === 0 && (
-          <div className="rounded-2xl border border-accent/15 bg-bg px-4 py-3 text-sm text-muted">
+          <div className="booking-note rounded-2xl border border-accent/15 bg-bg px-4 py-3 text-sm text-muted">
             No hay horarios disponibles para este día.
           </div>
         )}
@@ -300,7 +304,7 @@ export default function BookingForm({
                         : [...prev, slot.id]
                     )
                   }
-                  className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
+                  className={`booking-slot-button rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
                     isSelected
                       ? "border-accent bg-accent/10 text-accent"
                       : "border-accent/20 bg-white text-fg hover:border-accent"
@@ -317,7 +321,7 @@ export default function BookingForm({
         )}
       </div>
 
-      <div className="grid gap-2 rounded-2xl border border-accent/15 bg-white/80 px-4 py-4">
+      <div className="booking-extras grid gap-2 rounded-2xl border border-accent/15 bg-white/80 px-4 py-4">
         <p className="text-xs font-semibold uppercase tracking-wide text-muted">
           Extras (+${extraPrice.toLocaleString("es-AR")} c/u)
         </p>
@@ -339,7 +343,7 @@ export default function BookingForm({
         )}
       </div>
 
-      <div className="rounded-2xl border border-accent/15 bg-bg px-4 py-3 text-sm">
+      <div className="booking-summary rounded-2xl border border-accent/15 bg-bg px-4 py-3 text-sm">
         <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-muted">
           <span>Base</span>
           <span>
@@ -376,7 +380,7 @@ export default function BookingForm({
       </div>
 
       <button
-        className="mt-2 inline-flex items-center justify-center rounded-full bg-accent px-6 py-3 text-sm font-semibold uppercase tracking-wide text-bg transition hover:bg-accent2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2 disabled:cursor-not-allowed disabled:opacity-70"
+        className="booking-submit mt-2 inline-flex items-center justify-center rounded-full bg-accent px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white transition hover:bg-accent2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2 disabled:cursor-not-allowed disabled:opacity-70"
         type="submit"
         disabled={
           status === "loading" ||

@@ -4,6 +4,7 @@ import path from "path";
 import { getSessionFromCookies } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getStudioContent, updateStudioContent } from "@/lib/studio-content";
+import { studio } from "@/content/studio";
 import type { StudioContent } from "@/content/studio";
 
 export const runtime = "nodejs";
@@ -21,6 +22,20 @@ const getBaseUrl = (request: NextRequest) => {
 
 const toText = (value: FormDataEntryValue | null) =>
   String(value ?? "").trim();
+
+const normalizeSiteUrl = (value: string, fallback: string) => {
+  const candidate = value.trim();
+  if (!candidate) return fallback;
+  const withProtocol = /^https?:\/\//i.test(candidate)
+    ? candidate
+    : `https://${candidate}`;
+  try {
+    const parsed = new URL(withProtocol);
+    return parsed.toString().replace(/\/$/, "");
+  } catch {
+    return fallback;
+  }
+};
 
 const parseList = (value: FormDataEntryValue | null, fallback: string[]) => {
   const lines = String(value ?? "")
@@ -85,16 +100,17 @@ export async function POST(request: NextRequest) {
   ) as StudioContent;
 
   nextContent.name = toText(formData.get("name")) || current.name;
-  nextContent.siteUrl = toText(formData.get("siteUrl")) || current.siteUrl;
-  nextContent.logo.src = toText(formData.get("logoSrc")) || current.logo.src;
-  nextContent.logo.wordmarkSrc =
-    toText(formData.get("wordmarkSrc")) || current.logo.wordmarkSrc;
+  nextContent.siteUrl = normalizeSiteUrl(
+    toText(formData.get("siteUrl")),
+    current.siteUrl || studio.siteUrl
+  );
+  nextContent.logo.src = current.logo.src;
+  nextContent.logo.wordmarkSrc = current.logo.wordmarkSrc;
   nextContent.logo.alt = toText(formData.get("logoAlt")) || current.logo.alt;
   nextContent.seo.title = toText(formData.get("seoTitle")) || current.seo.title;
   nextContent.seo.description =
     toText(formData.get("seoDescription")) || current.seo.description;
-  nextContent.seo.ogImage =
-    toText(formData.get("seoOgImage")) || current.seo.ogImage;
+  nextContent.seo.ogImage = current.seo.ogImage;
   nextContent.hero.title =
     toText(formData.get("heroTitle")) || current.hero.title;
   nextContent.hero.subtitle =
@@ -167,6 +183,11 @@ export async function POST(request: NextRequest) {
   const heroFile = getFile(formData.get("heroImage"));
   if (heroFile) {
     nextContent.hero.image.src = await saveUpload(heroFile);
+  }
+
+  const seoOgFile = getFile(formData.get("seoOgImageFile"));
+  if (seoOgFile) {
+    nextContent.seo.ogImage = await saveUpload(seoOgFile);
   }
 
   const galleryOrderRaw = formData.get("galleryOrder");

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import BrandMark from "@/components/BrandMark";
 import Container from "@/components/Container";
 import LoginForm from "@/components/LoginForm";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -22,19 +23,14 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     : resolvedSearchParams?.registered;
 
   return (
-    <div className="min-h-screen bg-bg text-fg">
+    <div className="auth-page min-h-screen bg-bg text-fg">
       <header className="border-b border-accent/20 bg-bg/95">
         <Container className="flex items-center justify-between py-4">
-          <Link
-            className="font-display text-2xl uppercase tracking-[0.2em] text-fg"
-            href="/"
-          >
-            {studio.name}
-          </Link>
+          <BrandMark studio={studio} />
           <div className="flex items-center gap-4">
             <ThemeToggle />
             <Link
-              className="text-sm font-semibold uppercase tracking-wide text-fg/80 transition hover:text-fg"
+              className="inline-flex items-center justify-center rounded-full border border-accent/35 bg-accent/10 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2"
               href="/register"
             >
               Crear cuenta
@@ -59,7 +55,10 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
           <div className="mt-6 text-sm text-muted">
             No tienes cuenta?{" "}
-            <Link className="font-semibold text-fg" href="/register">
+            <Link
+              className="inline-flex items-center rounded-full border border-accent/35 bg-accent/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/20"
+              href="/register"
+            >
               Regístrate
             </Link>
           </div>

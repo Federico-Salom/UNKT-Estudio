@@ -26,11 +26,11 @@ export default async function ReservarPage() {
   }));
 
   return (
-    <div className="min-h-screen bg-bg text-fg">
+    <div className="booking-page min-h-screen bg-bg text-fg">
       <Header studio={studio} />
 
       <main className="flex min-h-[calc(100vh-80px)] items-center justify-center px-6 py-16">
-        <div className="w-full max-w-2xl rounded-3xl border border-accent/20 bg-white/70 p-8 shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)] backdrop-blur">
+        <div className="booking-card w-full max-w-2xl rounded-3xl border border-accent/20 bg-white/70 p-8 shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)] backdrop-blur">
           <h1 className="font-display text-3xl uppercase tracking-[0.2em]">
             Agendar sesión
           </h1>
@@ -39,7 +39,7 @@ export default async function ReservarPage() {
           </p>
           {slotOptions.length === 0 && (
             <div
-              className="mt-6 rounded-2xl border border-accent/20 bg-bg px-4 py-3 text-sm"
+              className="booking-note mt-6 rounded-2xl border border-accent/20 bg-bg px-4 py-3 text-sm"
               role="status"
             >
               No hay horarios disponibles. Vuelve más tarde o consulta por

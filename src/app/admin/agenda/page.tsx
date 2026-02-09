@@ -89,7 +89,7 @@ export default async function AdminAgendaPage() {
   });
 
   return (
-    <div className="min-h-screen bg-bg text-fg">
+    <div className="admin-dashboard min-h-screen bg-bg text-fg">
       <header className="border-b border-accent/20 bg-bg/95">
         <Container className="flex items-center justify-between py-4">
           <BrandMark studio={studio} />

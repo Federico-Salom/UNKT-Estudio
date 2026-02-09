@@ -94,7 +94,7 @@ export default function RegisterForm({ serverError }: RegisterFormProps) {
 
   const inputClass = (invalid: boolean) =>
     [
-      "rounded-2xl border px-4 py-3 text-sm outline-none transition focus:border-accent",
+      "rounded-2xl border px-4 py-3 text-sm text-fg outline-none transition placeholder:text-muted focus:border-accent",
       invalid ? "border-accent bg-accent/10" : "border-accent/20 bg-white",
     ].join(" ");
 
@@ -173,7 +173,7 @@ export default function RegisterForm({ serverError }: RegisterFormProps) {
         Mínimo 8 caracteres. Usa letras y números.
       </p>
       <button
-        className="mt-2 inline-flex items-center justify-center rounded-full bg-accent px-6 py-3 text-sm font-semibold uppercase tracking-wide text-bg transition hover:bg-accent2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2"
+        className="mt-2 inline-flex w-full items-center justify-center rounded-full border border-transparent bg-gradient-to-r from-accent to-accent2 px-6 py-3.5 text-sm font-semibold uppercase tracking-wide text-white shadow-[0_18px_34px_-20px_rgba(139,13,90,0.92)] transition hover:brightness-110 hover:shadow-[0_22px_42px_-20px_rgba(139,13,90,0.95)] active:scale-[0.995] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2 disabled:cursor-not-allowed disabled:opacity-70"
         type="submit"
         disabled={status === "loading"}
       >

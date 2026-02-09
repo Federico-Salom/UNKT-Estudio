@@ -119,6 +119,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
     end: Date;
     count: number;
     revenue: number;
+    totalRevenue: number;
   }[] = [];
 
   let periodTitle = "Ultimos 7 dias";
@@ -142,6 +143,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
         end: clampedEnd,
         count: 0,
         revenue: 0,
+        totalRevenue: 0,
       });
       cursor = clampedEnd;
       weekIndex += 1;
@@ -160,6 +162,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
         end: bucketEnd,
         count: 0,
         revenue: 0,
+        totalRevenue: 0,
       });
     }
   } else {
@@ -176,6 +179,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
         end: bucketEnd,
         count: 0,
         revenue: 0,
+        totalRevenue: 0,
       });
     }
   }
@@ -197,6 +201,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
     );
     if (!bucket) return;
     bucket.count += 1;
+    bucket.totalRevenue += booking.total;
     if (booking.status === "paid") {
       bucket.revenue += booking.total;
     }
@@ -204,8 +209,17 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
 
   const rangeBookingsTotal = buckets.reduce((sum, bucket) => sum + bucket.count, 0);
   const rangePaidRevenue = buckets.reduce((sum, bucket) => sum + bucket.revenue, 0);
+  const rangeTotalRevenue = buckets.reduce((sum, bucket) => sum + bucket.totalRevenue, 0);
+  const showTotalRevenueFallback = rangePaidRevenue === 0 && rangeTotalRevenue > 0;
+  const rangeRevenueDisplay = showTotalRevenueFallback ? rangeTotalRevenue : rangePaidRevenue;
+  const rangeRevenueLabel = showTotalRevenueFallback ? "Totales" : "Pagados";
   const maxCount = Math.max(1, ...buckets.map((bucket) => bucket.count));
-  const maxRevenue = Math.max(1, ...buckets.map((bucket) => bucket.revenue));
+  const maxRevenue = Math.max(
+    1,
+    ...buckets.map((bucket) =>
+      showTotalRevenueFallback ? bucket.totalRevenue : bucket.revenue
+    )
+  );
 return (
     <div className="admin-dashboard min-h-screen bg-bg text-fg">
       <header className="border-b border-accent/20 bg-bg/95">
@@ -251,38 +265,6 @@ return (
               </div>
             </div>
           )}
-
-          <div className="mt-8 rounded-3xl border border-accent/20 bg-white/70 p-4 shadow-[0_24px_50px_-40px_rgba(30,15,20,0.5)] backdrop-blur">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted">
-                Vista de datos
-              </p>
-              <div className="inline-flex items-center rounded-full border border-accent/25 bg-white/80 p-1">
-                {([
-                  { key: "week", label: "Semana" },
-                  { key: "month", label: "Mes" },
-                  { key: "year", label: "A\u00f1o" },
-                ] as { key: DashboardPeriod; label: string }[]).map((option) => {
-                  const active = selectedPeriod === option.key;
-                  const href =
-                    option.key === "week" ? "/admin" : `/admin?period=${option.key}`;
-                  return (
-                    <Link
-                      key={option.key}
-                      href={href}
-                      className={`rounded-full px-4 py-1.5 text-[10px] font-semibold uppercase tracking-wide transition ${
-                        active
-                          ? "bg-accent text-bg shadow-[0_8px_16px_-12px_rgba(139,13,90,0.9)]"
-                          : "text-muted hover:bg-accent/10"
-                      }`}
-                    >
-                      {option.label}
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
 
           <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
             <div className="rounded-2xl border border-accent/20 bg-white/70 p-5 shadow-[0_24px_50px_-40px_rgba(30,15,20,0.5)] backdrop-blur">
@@ -334,8 +316,40 @@ return (
             </div>
           </div>
 
+          <div className="mt-8 rounded-3xl border border-accent/20 bg-white/70 p-4 shadow-[0_24px_50px_-40px_rgba(30,15,20,0.5)] backdrop-blur">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted">
+                Vista de datos
+              </p>
+              <div className="inline-flex items-center rounded-full border border-accent/25 bg-white/80 p-1">
+                {([
+                  { key: "week", label: "Semana" },
+                  { key: "month", label: "Mes" },
+                  { key: "year", label: "A\u00f1o" },
+                ] as { key: DashboardPeriod; label: string }[]).map((option) => {
+                  const active = selectedPeriod === option.key;
+                  const href =
+                    option.key === "week" ? "/admin" : `/admin?period=${option.key}`;
+                  return (
+                    <Link
+                      key={option.key}
+                      href={href}
+                      className={`rounded-full px-4 py-1.5 text-[10px] font-semibold uppercase tracking-wide transition ${
+                        active
+                          ? "bg-accent text-bg shadow-[0_8px_16px_-12px_rgba(139,13,90,0.9)]"
+                          : "text-muted hover:bg-accent/10"
+                      }`}
+                    >
+                      {option.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
           <div className="mt-8 grid gap-4 lg:grid-cols-2">
-            <div className="rounded-3xl border border-accent/20 bg-white/70 p-6 shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)] backdrop-blur">
+            <div className="flex min-h-[24rem] flex-col rounded-3xl border border-accent/20 bg-white/70 p-6 shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)] backdrop-blur">
               <div className="flex items-baseline justify-between">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted">
@@ -348,14 +362,17 @@ return (
                 <span className="text-xs text-muted">{rangeBookingsTotal} total</span>
               </div>
               <div
-                className="mt-6 grid items-end gap-2"
+                className="mt-6 grid min-h-[12.5rem] flex-1 items-end gap-2"
                 style={{ gridTemplateColumns: `repeat(${buckets.length}, minmax(0, 1fr))` }}
               >
                 {buckets.map((bucket) => (
-                  <div key={`count-${bucket.key}`} className="group flex flex-col items-center gap-2">
-                    <div className="relative flex w-full items-end justify-center">
+                  <div
+                    key={`count-${bucket.key}`}
+                    className="group grid h-full grid-rows-[minmax(0,1fr)_auto] items-end gap-2"
+                  >
+                    <div className="relative flex h-full w-full items-end justify-center">
                       <div
-                        className="h-full w-full rounded-full bg-accent/80 transition hover:bg-accent"
+                        className="w-full rounded-full bg-accent/80 transition hover:bg-accent"
                         style={{ height: `${Math.max(10, (bucket.count / maxCount) * 140)}px` }}
                         title={`${bucket.count} reservas`}
                       />
@@ -370,7 +387,7 @@ return (
                 ))}
               </div>
             </div>
-            <div className="rounded-3xl border border-accent/20 bg-white/70 p-6 shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)] backdrop-blur">
+            <div className="flex min-h-[24rem] flex-col rounded-3xl border border-accent/20 bg-white/70 p-6 shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)] backdrop-blur">
               <div className="flex items-baseline justify-between">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted">
@@ -381,32 +398,41 @@ return (
                   </h3>
                 </div>
                 <span className="text-xs text-muted">
-                  Pagados: ${rangePaidRevenue.toLocaleString("es-AR")}
+                  {rangeRevenueLabel}: ${rangeRevenueDisplay.toLocaleString("es-AR")}
                 </span>
               </div>
               <div
-                className="mt-6 grid items-end gap-2"
+                className="mt-6 grid min-h-[12.5rem] flex-1 items-end gap-2"
                 style={{ gridTemplateColumns: `repeat(${buckets.length}, minmax(0, 1fr))` }}
               >
-                {buckets.map((bucket) => (
-                  <div key={`rev-${bucket.key}`} className="group flex flex-col items-center gap-2">
-                    <div className="relative flex w-full items-end justify-center">
-                      <div
-                        className="h-full w-full rounded-full bg-accent/50 transition hover:bg-accent/70"
-                        style={{
-                          height: `${Math.max(10, (bucket.revenue / maxRevenue) * 140)}px`,
-                        }}
-                        title={`$${bucket.revenue.toLocaleString("es-AR")}`}
-                      />
-                      <div className="pointer-events-none absolute -top-8 whitespace-nowrap rounded-full border border-accent/30 bg-bg/95 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-accent opacity-0 shadow-[0_10px_25px_-18px_rgba(0,0,0,0.45)] transition group-hover:opacity-100">
-                        ${bucket.revenue.toLocaleString("es-AR")} ingresos
+                {buckets.map((bucket) => {
+                  const bucketRevenue = showTotalRevenueFallback
+                    ? bucket.totalRevenue
+                    : bucket.revenue;
+
+                  return (
+                    <div
+                      key={`rev-${bucket.key}`}
+                      className="group grid h-full grid-rows-[minmax(0,1fr)_auto] items-end gap-2"
+                    >
+                      <div className="relative flex h-full w-full items-end justify-center">
+                        <div
+                          className="w-full rounded-full bg-accent/50 transition hover:bg-accent/70"
+                          style={{
+                            height: `${Math.max(10, (bucketRevenue / maxRevenue) * 140)}px`,
+                          }}
+                          title={`$${bucketRevenue.toLocaleString("es-AR")}`}
+                        />
+                        <div className="pointer-events-none absolute -top-8 whitespace-nowrap rounded-full border border-accent/30 bg-bg/95 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-accent opacity-0 shadow-[0_10px_25px_-18px_rgba(0,0,0,0.45)] transition group-hover:opacity-100">
+                          ${bucketRevenue.toLocaleString("es-AR")} ingresos
+                        </div>
                       </div>
+                      <span className="text-[10px] uppercase tracking-wide text-muted">
+                        {bucket.label}
+                      </span>
                     </div>
-                    <span className="text-[10px] uppercase tracking-wide text-muted">
-                      {bucket.label}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>

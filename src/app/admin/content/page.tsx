@@ -8,7 +8,6 @@ import ThemeToggle from "@/components/ThemeToggle";
 import { getSessionFromCookies } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getStudioContent } from "@/lib/studio-content";
-import { studio as fallbackStudio } from "@/content/studio";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +26,6 @@ export default async function AdminContentPage() {
   }
 
   const studio = await getStudioContent();
-  const gallery = studio.gallery.length ? studio.gallery : fallbackStudio.gallery;
   const createdAtLabel = user.createdAt.toLocaleString("es-AR");
 
   return (
@@ -57,7 +55,7 @@ export default async function AdminContentPage() {
 
       <main className="px-6 py-16">
         <Container>
-          <AdminContentForm studio={studio} gallery={gallery} />
+          <AdminContentForm studio={studio} gallery={studio.gallery} />
         </Container>
       </main>
     </div>
