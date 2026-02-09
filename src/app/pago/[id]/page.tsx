@@ -8,15 +8,18 @@ import { BOOKING_TIMEZONE } from "@/lib/booking";
 import { getStudioContent } from "@/lib/studio-content";
 import MercadoPagoButton from "@/components/MercadoPagoButton";
 import UserMenu from "@/components/UserMenu";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export const dynamic = "force-dynamic";
 
 type PagoPageProps = {
-  params: { id: string };
-  searchParams?: { status?: string | string[] };
+  params: Promise<{ id: string }>;
+  searchParams?: Promise<{ status?: string | string[] }>;
 };
 
 export default async function PagoPage({ params, searchParams }: PagoPageProps) {
+  const { id } = await params;
+  const resolvedSearchParams = await searchParams;
   const session = await getSessionFromCookies();
   if (!session) {
     redirect("/login");
@@ -31,7 +34,7 @@ export default async function PagoPage({ params, searchParams }: PagoPageProps) 
   }
 
   const booking = await prisma.booking.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: { slot: true, user: true },
   });
 
@@ -106,9 +109,9 @@ export default async function PagoPage({ params, searchParams }: PagoPageProps) 
         : "Estado";
   const hours = booking.hours || slots.length || 1;
 
-  const resolvedStatus = Array.isArray(searchParams?.status)
-    ? searchParams?.status[0]
-    : searchParams?.status;
+  const resolvedStatus = Array.isArray(resolvedSearchParams?.status)
+    ? resolvedSearchParams?.status[0]
+    : resolvedSearchParams?.status;
 
   return (
     <div className="min-h-screen bg-bg text-fg">
@@ -122,6 +125,7 @@ export default async function PagoPage({ params, searchParams }: PagoPageProps) 
             >
               Mi cuenta
             </Link>
+            <ThemeToggle />
             <UserMenu
               user={{
                 email: user.email,

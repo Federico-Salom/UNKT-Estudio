@@ -79,7 +79,10 @@ export default function Gallery({ studio }: GalleryProps) {
   const closePreview = () => setPreviewItem(null);
 
   return (
-    <section className="bg-bg py-14 md:py-20">
+    <section
+      id="galeria"
+      className="scroll-mt-24 overflow-x-hidden bg-bg py-14 md:py-20"
+    >
       <Container>
         <div className="mb-8 flex flex-wrap items-end justify-between gap-6">
           <div>
@@ -90,12 +93,9 @@ export default function Gallery({ studio }: GalleryProps) {
               Asi se ve el espacio
             </h2>
           </div>
-          <span className="hidden text-sm text-muted md:inline">
-            {gallery.length} imagenes
-          </span>
         </div>
 
-        <div className="relative">
+        <div className="gallery-stage relative overflow-visible">
           <div className="pointer-events-none absolute left-2 top-0 z-20 flex flex-col items-start gap-2 sm:left-4">
             <button
               type="button"
@@ -158,7 +158,7 @@ export default function Gallery({ studio }: GalleryProps) {
             type="button"
             aria-label="Imagen anterior"
             onClick={handlePrev}
-            className="absolute left-0 top-1/2 z-10 -translate-y-1/2 items-center justify-center rounded-full border border-accent/30 bg-bg/90 p-3 text-accent shadow-[0_10px_30px_-20px_rgba(0,0,0,0.4)] transition hover:border-accent hover:bg-bg md:inline-flex"
+            className="gallery-nav-btn absolute left-0 top-1/2 z-10 -translate-y-1/2 items-center justify-center rounded-full border border-accent/30 bg-bg/90 p-3 text-accent shadow-[0_10px_30px_-20px_rgba(0,0,0,0.4)] transition hover:border-accent hover:bg-bg md:inline-flex"
           >
             <svg
               aria-hidden="true"
@@ -177,7 +177,7 @@ export default function Gallery({ studio }: GalleryProps) {
           <div
             ref={containerRef}
             onScroll={handleScroll}
-            className="flex snap-x snap-mandatory gap-4 overflow-x-auto px-2 pb-4 pt-16 md:px-6"
+            className="gallery-scroll flex snap-x snap-mandatory gap-4 overflow-x-auto px-2 pb-4 pt-16 md:px-6"
           >
             {gallery.map((image, index) => (
               <div
@@ -185,14 +185,14 @@ export default function Gallery({ studio }: GalleryProps) {
                 ref={(el) => {
                   slideRefs.current[index] = el;
                 }}
-                className="relative flex-[0_0_82%] snap-center overflow-hidden rounded-3xl border border-accent/15 bg-muted/10 shadow-[0_24px_50px_-36px_rgba(0,0,0,0.6)] md:flex-[0_0_65%] lg:flex-[0_0_55%]"
+                className="gallery-slide relative flex-[0_0_82%] snap-center overflow-hidden rounded-3xl border border-accent/15 bg-muted/10 shadow-[0_24px_50px_-36px_rgba(0,0,0,0.6)] md:flex-[0_0_65%] lg:flex-[0_0_55%]"
               >
                 <div className="relative aspect-[4/3] w-full">
                   <Image
                     src={image.src}
                     alt={image.alt}
                     fill
-                    className="object-cover"
+                    className="gallery-image object-cover"
                     sizes="(min-width: 1024px) 50vw, (min-width: 768px) 65vw, 85vw"
                   />
                 </div>
@@ -204,7 +204,7 @@ export default function Gallery({ studio }: GalleryProps) {
             type="button"
             aria-label="Imagen siguiente"
             onClick={handleNext}
-            className="absolute right-0 top-1/2 z-10 -translate-y-1/2 items-center justify-center rounded-full border border-accent/30 bg-bg/90 p-3 text-accent shadow-[0_10px_30px_-20px_rgba(0,0,0,0.4)] transition hover:border-accent hover:bg-bg md:inline-flex"
+            className="gallery-nav-btn absolute right-0 top-1/2 z-10 -translate-y-1/2 items-center justify-center rounded-full border border-accent/30 bg-bg/90 p-3 text-accent shadow-[0_10px_30px_-20px_rgba(0,0,0,0.4)] transition hover:border-accent hover:bg-bg md:inline-flex"
           >
             <svg
               aria-hidden="true"

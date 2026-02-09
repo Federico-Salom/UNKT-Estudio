@@ -1,17 +1,18 @@
 import Link from "next/link";
 import Container from "@/components/Container";
 import RegisterForm from "@/components/RegisterForm";
+import ThemeToggle from "@/components/ThemeToggle";
 import { getStudioContent } from "@/lib/studio-content";
 
 type RegisterPageProps = {
-  searchParams?: {
+  searchParams?: Promise<{
     error?: string | string[];
-  };
+  }>;
 };
 
 export default async function RegisterPage({ searchParams }: RegisterPageProps) {
   const studio = await getStudioContent();
-  const resolvedSearchParams = await Promise.resolve(searchParams);
+  const resolvedSearchParams = await searchParams;
   const error = Array.isArray(resolvedSearchParams?.error)
     ? resolvedSearchParams?.error[0]
     : resolvedSearchParams?.error;
@@ -26,12 +27,15 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
           >
             {studio.name}
           </Link>
-          <Link
-            className="text-sm font-semibold uppercase tracking-wide text-fg/80 transition hover:text-fg"
-            href="/login"
-          >
-            Iniciar sesión
-          </Link>
+          <div className="flex items-center gap-4">
+            <ThemeToggle />
+            <Link
+              className="text-sm font-semibold uppercase tracking-wide text-fg/80 transition hover:text-fg"
+              href="/login"
+            >
+              Iniciar sesion
+            </Link>
+          </div>
         </Container>
       </header>
 
@@ -49,7 +53,7 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
           <div className="mt-6 text-sm text-muted">
             Ya tienes cuenta?{" "}
             <Link className="font-semibold text-fg" href="/login">
-              Inicia sesión
+              Inicia sesion
             </Link>
           </div>
         </div>

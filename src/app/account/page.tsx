@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import BrandMark from "@/components/BrandMark";
 import Container from "@/components/Container";
 import UserMenu from "@/components/UserMenu";
+import ThemeToggle from "@/components/ThemeToggle";
 import { getSessionFromCookies } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getStudioContent } from "@/lib/studio-content";
@@ -34,14 +35,17 @@ export default async function AccountPage() {
       <header className="border-b border-accent/20 bg-bg/95">
         <Container className="flex items-center justify-between py-4">
           <BrandMark studio={studio} />
-          <UserMenu
-            user={{
-              email: user.email,
-              roleLabel: "Usuario",
-              id: user.id,
-              createdAtLabel,
-            }}
-          />
+          <div className="flex items-center gap-4">
+            <ThemeToggle />
+            <UserMenu
+              user={{
+                email: user.email,
+                roleLabel: "Usuario",
+                id: user.id,
+                createdAtLabel,
+              }}
+            />
+          </div>
         </Container>
       </header>
 

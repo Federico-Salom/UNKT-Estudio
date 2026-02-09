@@ -1,18 +1,19 @@
 import Link from "next/link";
 import Container from "@/components/Container";
 import LoginForm from "@/components/LoginForm";
+import ThemeToggle from "@/components/ThemeToggle";
 import { getStudioContent } from "@/lib/studio-content";
 
 type LoginPageProps = {
-  searchParams?: {
+  searchParams?: Promise<{
     error?: string | string[];
     registered?: string | string[];
-  };
+  }>;
 };
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const studio = await getStudioContent();
-  const resolvedSearchParams = await Promise.resolve(searchParams);
+  const resolvedSearchParams = await searchParams;
   const error = Array.isArray(resolvedSearchParams?.error)
     ? resolvedSearchParams?.error[0]
     : resolvedSearchParams?.error;
@@ -30,12 +31,15 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           >
             {studio.name}
           </Link>
+          <div className="flex items-center gap-4">
+            <ThemeToggle />
             <Link
               className="text-sm font-semibold uppercase tracking-wide text-fg/80 transition hover:text-fg"
               href="/register"
             >
               Crear cuenta
             </Link>
+          </div>
         </Container>
       </header>
 

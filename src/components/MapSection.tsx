@@ -1,4 +1,4 @@
-import Container from "@/components/Container";
+﻿import Container from "@/components/Container";
 import type { StudioContent } from "@/content/studio";
 
 type MapSectionProps = {
@@ -32,24 +32,27 @@ const buildEmbedUrl = (locationUrl: string, fallbackQuery: string) => {
 
 export default function MapSection({ studio }: MapSectionProps) {
   const locationUrl = studio.contact.locationUrl || "";
-  const locationText =
-    studio.contact.locationText && studio.contact.locationText !== "(Sumar dirección)"
-      ? studio.contact.locationText
-      : studio.name;
-  const embedUrl = buildEmbedUrl(locationUrl, locationText);
+  const locationText = (studio.contact.locationText || "").trim();
+  const isPlaceholderText =
+    locationText === "(Sumar dirección)" || locationText === "(Sumar direcciÃ³n)";
+  const hasLocationText =
+    Boolean(locationText) &&
+    !isPlaceholderText &&
+    locationText.toLowerCase() !== studio.name.trim().toLowerCase();
+  const embedQuery = hasLocationText ? locationText : studio.name;
+  const embedUrl = buildEmbedUrl(locationUrl, embedQuery);
 
   return (
     <section className="bg-bg py-14 md:py-20">
       <Container>
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted">
-              Ubicacion
-            </p>
             <h2 className="font-display text-3xl uppercase tracking-[0.08em] text-fg">
               Donde estamos
             </h2>
-            <p className="mt-2 text-sm text-muted">{locationText}</p>
+            {hasLocationText ? (
+              <p className="mt-2 text-sm text-muted">{locationText}</p>
+            ) : null}
           </div>
           <a
             href={locationUrl}
@@ -61,16 +64,18 @@ export default function MapSection({ studio }: MapSectionProps) {
           </a>
         </div>
 
-        <div className="overflow-hidden rounded-3xl border border-accent/15 bg-bg shadow-[0_28px_60px_-40px_rgba(0,0,0,0.6)]">
+        <div className="map-embed-shell overflow-hidden rounded-3xl border border-accent/15 bg-bg shadow-[0_28px_60px_-40px_rgba(0,0,0,0.6)]">
           <iframe
             title="Mapa"
             src={embedUrl}
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
-            className="h-[420px] w-full"
+            className="map-embed-frame h-[420px] w-full"
           />
+          <div className="map-embed-overlay" aria-hidden="true" />
         </div>
       </Container>
     </section>
   );
 }
+

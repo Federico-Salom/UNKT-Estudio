@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
-import { Bebas_Neue, IBM_Plex_Sans } from "next/font/google";
+import { Lobster, Nunito } from "next/font/google";
 import "./globals.css";
 import { getStudioContent } from "@/lib/studio-content";
 import VisitTracker from "@/components/VisitTracker";
 
-const bodyFont = IBM_Plex_Sans({
+const bodyFont = Nunito({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-body",
 });
 
-const displayFont = Bebas_Neue({
+const displayFont = Lobster({
   subsets: ["latin"],
   weight: "400",
   variable: "--font-head",
@@ -43,7 +43,7 @@ export async function generateMetadata(): Promise<Metadata> {
       ],
     },
     icons: {
-      icon: studio.logo?.src || "/logo.png",
+      icon: studio.logo?.src || "/logo.jpg",
     },
   };
 }

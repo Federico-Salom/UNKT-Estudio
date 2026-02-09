@@ -3,13 +3,54 @@ import { redirect } from "next/navigation";
 import BrandMark from "@/components/BrandMark";
 import Container from "@/components/Container";
 import UserMenu from "@/components/UserMenu";
+import ThemeToggle from "@/components/ThemeToggle";
 import { getSessionFromCookies } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getStudioContent } from "@/lib/studio-content";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminPage() {
+type DashboardPeriod = "week" | "month" | "year";
+
+type AdminPageProps = {
+  searchParams?: Promise<{
+    period?: string | string[];
+  }>;
+};
+
+const startOfDay = (date: Date) => {
+  const next = new Date(date);
+  next.setHours(0, 0, 0, 0);
+  return next;
+};
+
+const startOfMonth = (date: Date) => {
+  const next = new Date(date);
+  next.setDate(1);
+  next.setHours(0, 0, 0, 0);
+  return next;
+};
+
+const addDays = (date: Date, amount: number) => {
+  const next = new Date(date);
+  next.setDate(next.getDate() + amount);
+  return next;
+};
+
+const addMonths = (date: Date, amount: number) => {
+  const next = new Date(date);
+  next.setMonth(next.getMonth() + amount);
+  return next;
+};
+
+export default async function AdminPage({ searchParams }: AdminPageProps) {
+  const resolvedSearchParams = await searchParams;
+  const periodParam = Array.isArray(resolvedSearchParams?.period)
+    ? resolvedSearchParams?.period[0]
+    : resolvedSearchParams?.period;
+  const selectedPeriod: DashboardPeriod =
+    periodParam === "month" || periodParam === "year" ? periodParam : "week";
+
   const session = await getSessionFromCookies();
   if (!session) {
     redirect("/login");
@@ -61,53 +102,126 @@ export default async function AdminPage() {
   const paidRevenueDisplay = paidRevenue || totalRevenue;
   const avgTicket = totalBookings ? Math.round(totalRevenue / totalBookings) : 0;
 
-  const rangeStart = new Date();
-  rangeStart.setHours(0, 0, 0, 0);
-  rangeStart.setDate(rangeStart.getDate() - 6);
-
-  const bookingsRange = await prisma.booking.findMany({
-    where: { createdAt: { gte: rangeStart } },
-    select: { createdAt: true, total: true },
-  });
-
-  const dayBuckets = Array.from({ length: 7 }, (_, index) => {
-    const date = new Date(rangeStart);
-    date.setDate(rangeStart.getDate() + index);
-    const key = date.toISOString().slice(0, 10);
-    return { date, key, count: 0, revenue: 0 };
-  });
-
-  const bucketMap = new Map(dayBuckets.map((bucket) => [bucket.key, bucket]));
-
-  bookingsRange.forEach((booking) => {
-    const key = booking.createdAt.toISOString().slice(0, 10);
-    const bucket = bucketMap.get(key);
-    if (!bucket) return;
-    bucket.count += 1;
-    bucket.revenue += booking.total;
-  });
-
-  const maxCount = Math.max(1, ...dayBuckets.map((bucket) => bucket.count));
-  const maxRevenue = Math.max(1, ...dayBuckets.map((bucket) => bucket.revenue));
+  const now = new Date();
   const dayLabel = new Intl.DateTimeFormat("es-AR", {
     weekday: "short",
     day: "2-digit",
     month: "2-digit",
   });
+  const monthLabel = new Intl.DateTimeFormat("es-AR", {
+    month: "short",
+  });
 
-  return (
+  const buckets: {
+    key: string;
+    label: string;
+    start: Date;
+    end: Date;
+    count: number;
+    revenue: number;
+  }[] = [];
+
+  let periodTitle = "Ultimos 7 dias";
+  let rangeStart: Date;
+  let rangeEnd: Date;
+
+  if (selectedPeriod === "month") {
+    periodTitle = "Mes actual";
+    rangeStart = startOfMonth(now);
+    rangeEnd = addMonths(rangeStart, 1);
+    let cursor = new Date(rangeStart);
+    let weekIndex = 1;
+    while (cursor < rangeEnd) {
+      const bucketStart = new Date(cursor);
+      const bucketEnd = addDays(bucketStart, 7);
+      const clampedEnd = bucketEnd < rangeEnd ? bucketEnd : rangeEnd;
+      buckets.push({
+        key: `${bucketStart.toISOString()}-${clampedEnd.toISOString()}`,
+        label: `Sem ${weekIndex}`,
+        start: bucketStart,
+        end: clampedEnd,
+        count: 0,
+        revenue: 0,
+      });
+      cursor = clampedEnd;
+      weekIndex += 1;
+    }
+  } else if (selectedPeriod === "year") {
+    periodTitle = "A\u00f1o actual";
+    rangeStart = new Date(now.getFullYear(), 0, 1, 0, 0, 0, 0);
+    rangeEnd = new Date(now.getFullYear() + 1, 0, 1, 0, 0, 0, 0);
+    for (let month = 0; month < 12; month += 1) {
+      const bucketStart = new Date(now.getFullYear(), month, 1, 0, 0, 0, 0);
+      const bucketEnd = new Date(now.getFullYear(), month + 1, 1, 0, 0, 0, 0);
+      buckets.push({
+        key: `${now.getFullYear()}-${String(month + 1).padStart(2, "0")}`,
+        label: monthLabel.format(bucketStart),
+        start: bucketStart,
+        end: bucketEnd,
+        count: 0,
+        revenue: 0,
+      });
+    }
+  } else {
+    periodTitle = "Ultimos 7 dias";
+    rangeEnd = addDays(startOfDay(now), 1);
+    rangeStart = addDays(rangeEnd, -7);
+    for (let index = 0; index < 7; index += 1) {
+      const bucketStart = addDays(rangeStart, index);
+      const bucketEnd = addDays(bucketStart, 1);
+      buckets.push({
+        key: bucketStart.toISOString().slice(0, 10),
+        label: dayLabel.format(bucketStart),
+        start: bucketStart,
+        end: bucketEnd,
+        count: 0,
+        revenue: 0,
+      });
+    }
+  }
+
+  const bookingsRange = await prisma.booking.findMany({
+    where: {
+      createdAt: {
+        gte: rangeStart,
+        lt: rangeEnd,
+      },
+    },
+    select: { createdAt: true, total: true, status: true },
+  });
+
+  bookingsRange.forEach((booking) => {
+    const time = booking.createdAt.getTime();
+    const bucket = buckets.find(
+      (item) => time >= item.start.getTime() && time < item.end.getTime()
+    );
+    if (!bucket) return;
+    bucket.count += 1;
+    if (booking.status === "paid") {
+      bucket.revenue += booking.total;
+    }
+  });
+
+  const rangeBookingsTotal = buckets.reduce((sum, bucket) => sum + bucket.count, 0);
+  const rangePaidRevenue = buckets.reduce((sum, bucket) => sum + bucket.revenue, 0);
+  const maxCount = Math.max(1, ...buckets.map((bucket) => bucket.count));
+  const maxRevenue = Math.max(1, ...buckets.map((bucket) => bucket.revenue));
+return (
     <div className="min-h-screen bg-bg text-fg">
       <header className="border-b border-accent/20 bg-bg/95">
         <Container className="flex items-center justify-between py-4">
           <BrandMark studio={studio} />
-          <UserMenu
-            user={{
-              email: user.email,
-              roleLabel,
-              id: user.id,
-              createdAtLabel,
-            }}
-          />
+          <div className="flex items-center gap-4">
+            <ThemeToggle />
+            <UserMenu
+              user={{
+                email: user.email,
+                roleLabel,
+                id: user.id,
+                createdAtLabel,
+              }}
+            />
+          </div>
         </Container>
       </header>
 
@@ -137,6 +251,38 @@ export default async function AdminPage() {
               </div>
             </div>
           )}
+
+          <div className="mt-8 rounded-3xl border border-accent/20 bg-white/70 p-4 shadow-[0_24px_50px_-40px_rgba(30,15,20,0.5)] backdrop-blur">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted">
+                Vista de datos
+              </p>
+              <div className="inline-flex items-center rounded-full border border-accent/25 bg-white/80 p-1">
+                {([
+                  { key: "week", label: "Semana" },
+                  { key: "month", label: "Mes" },
+                  { key: "year", label: "A\u00f1o" },
+                ] as { key: DashboardPeriod; label: string }[]).map((option) => {
+                  const active = selectedPeriod === option.key;
+                  const href =
+                    option.key === "week" ? "/admin" : `/admin?period=${option.key}`;
+                  return (
+                    <Link
+                      key={option.key}
+                      href={href}
+                      className={`rounded-full px-4 py-1.5 text-[10px] font-semibold uppercase tracking-wide transition ${
+                        active
+                          ? "bg-accent text-bg shadow-[0_8px_16px_-12px_rgba(139,13,90,0.9)]"
+                          : "text-muted hover:bg-accent/10"
+                      }`}
+                    >
+                      {option.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
 
           <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
             <div className="rounded-2xl border border-accent/20 bg-white/70 p-5 shadow-[0_24px_50px_-40px_rgba(30,15,20,0.5)] backdrop-blur">
@@ -196,13 +342,16 @@ export default async function AdminPage() {
                     Reservas
                   </p>
                   <h3 className="mt-2 font-display text-2xl uppercase tracking-[0.12em] text-fg">
-                    Ultimos 7 dias
+                    {periodTitle}
                   </h3>
                 </div>
-                <span className="text-xs text-muted">{totalBookings} total</span>
+                <span className="text-xs text-muted">{rangeBookingsTotal} total</span>
               </div>
-              <div className="mt-6 grid grid-cols-7 items-end gap-2">
-                {dayBuckets.map((bucket) => (
+              <div
+                className="mt-6 grid items-end gap-2"
+                style={{ gridTemplateColumns: `repeat(${buckets.length}, minmax(0, 1fr))` }}
+              >
+                {buckets.map((bucket) => (
                   <div key={`count-${bucket.key}`} className="group flex flex-col items-center gap-2">
                     <div className="relative flex w-full items-end justify-center">
                       <div
@@ -215,7 +364,7 @@ export default async function AdminPage() {
                       </div>
                     </div>
                     <span className="text-[10px] uppercase tracking-wide text-muted">
-                      {dayLabel.format(bucket.date)}
+                      {bucket.label}
                     </span>
                   </div>
                 ))}
@@ -228,15 +377,18 @@ export default async function AdminPage() {
                     Ingresos
                   </p>
                   <h3 className="mt-2 font-display text-2xl uppercase tracking-[0.12em] text-fg">
-                    Ultimos 7 dias
+                    {periodTitle}
                   </h3>
                 </div>
                 <span className="text-xs text-muted">
-                  Pagados: ${paidRevenueDisplay.toLocaleString("es-AR")}
+                  Pagados: ${rangePaidRevenue.toLocaleString("es-AR")}
                 </span>
               </div>
-              <div className="mt-6 grid grid-cols-7 items-end gap-2">
-                {dayBuckets.map((bucket) => (
+              <div
+                className="mt-6 grid items-end gap-2"
+                style={{ gridTemplateColumns: `repeat(${buckets.length}, minmax(0, 1fr))` }}
+              >
+                {buckets.map((bucket) => (
                   <div key={`rev-${bucket.key}`} className="group flex flex-col items-center gap-2">
                     <div className="relative flex w-full items-end justify-center">
                       <div
@@ -251,7 +403,7 @@ export default async function AdminPage() {
                       </div>
                     </div>
                     <span className="text-[10px] uppercase tracking-wide text-muted">
-                      {dayLabel.format(bucket.date)}
+                      {bucket.label}
                     </span>
                   </div>
                 ))}
@@ -263,3 +415,4 @@ export default async function AdminPage() {
     </div>
   );
 }
+

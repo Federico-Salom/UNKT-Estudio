@@ -4,6 +4,10 @@ export const EXTRA_PRICE = 15000;
 export const BOOKING_TIMEZONE =
   process.env.BOOKING_TIMEZONE || "America/Argentina/Buenos_Aires";
 export const BOOKING_TZ_OFFSET = process.env.BOOKING_TZ_OFFSET || "-03:00";
+export const BOOKING_MIN_LEAD_HOURS = Math.max(
+  0,
+  Number(process.env.BOOKING_MIN_LEAD_HOURS || "2")
+);
 
 export const buildDateTime = (date: string, time: string) => {
   return new Date(`${date}T${time}:00${BOOKING_TZ_OFFSET}`);

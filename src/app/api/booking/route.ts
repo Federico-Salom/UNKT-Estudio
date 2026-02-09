@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { AUTH_COOKIE, hashPassword, signSession, verifySession } from "@/lib/auth";
+import { autoBlockClosingSlots } from "@/lib/availability";
 import { BASE_PRICE, EXTRA_PRICE } from "@/lib/booking";
 import { randomUUID } from "crypto";
 
@@ -33,16 +34,19 @@ export async function POST(request: NextRequest) {
     : [];
 
   if (!name) return errorResponse("Escribe tu nombre.");
-  if (!phone) return errorResponse("Escribe tu teléfono.");
+  if (!phone) return errorResponse("Escribe tu telefono.");
+
   const selectedSlotIds = Array.from(
     new Set(slotIds.length ? slotIds : slotId ? [slotId] : [])
   );
+
   if (selectedSlotIds.length === 0) {
     return errorResponse("Selecciona un horario disponible.");
   }
+
   const normalizedPhone = normalizePhone(phone);
   if (!normalizedPhone) {
-    return errorResponse("Escribe un teléfono válido.");
+    return errorResponse("Escribe un telefono valido.");
   }
 
   const guestEmail = buildGuestEmail(normalizedPhone);
@@ -52,6 +56,7 @@ export async function POST(request: NextRequest) {
   const hours = selectedSlotIds.length;
   const totalPerHour = BASE_PRICE + extras.length * EXTRA_PRICE;
   const total = totalPerHour * hours;
+  const cutoff = await autoBlockClosingSlots();
 
   let result: { user: { id: string; email: string; role: string }; booking: { id: string } };
 
@@ -82,21 +87,31 @@ export async function POST(request: NextRequest) {
       });
 
       if (slots.length !== selectedSlotIds.length) {
-        throw new Error("Algún horario ya no está disponible.");
+        throw new Error("Algun horario ya no esta disponible.");
       }
 
-      const unavailable = slots.find((slot) => slot.status !== "available");
+      const unavailable = slots.find(
+        (slot) =>
+          slot.status !== "available" || slot.start.getTime() <= cutoff.getTime()
+      );
+
       if (unavailable) {
-        throw new Error("Algún horario ya no está disponible.");
+        throw new Error(
+          "Algun horario ya no esta disponible. Solo se puede reservar con 2 horas de anticipacion."
+        );
       }
 
       const updated = await tx.availabilitySlot.updateMany({
-        where: { id: { in: selectedSlotIds }, status: "available" },
+        where: {
+          id: { in: selectedSlotIds },
+          status: "available",
+          start: { gt: cutoff },
+        },
         data: { status: "booked" },
       });
 
       if (updated.count !== selectedSlotIds.length) {
-        throw new Error("Algún horario ya no está disponible.");
+        throw new Error("Algun horario ya no esta disponible.");
       }
 
       const booking = await tx.booking.create({

@@ -4,7 +4,9 @@ import AdminAgendaPanel from "@/components/AdminAgendaPanel";
 import BrandMark from "@/components/BrandMark";
 import Container from "@/components/Container";
 import UserMenu from "@/components/UserMenu";
+import ThemeToggle from "@/components/ThemeToggle";
 import { getSessionFromCookies } from "@/lib/auth";
+import { autoBlockClosingSlots } from "@/lib/availability";
 import { prisma } from "@/lib/prisma";
 import { getStudioContent } from "@/lib/studio-content";
 
@@ -26,6 +28,7 @@ export default async function AdminAgendaPage() {
 
   const studio = await getStudioContent();
   const createdAtLabel = user.createdAt.toLocaleString("es-AR");
+  await autoBlockClosingSlots();
 
   const slots = await prisma.availabilitySlot.findMany({
     orderBy: { start: "asc" },
@@ -92,11 +95,12 @@ export default async function AdminAgendaPage() {
           <BrandMark studio={studio} />
           <div className="flex items-center gap-6">
             <Link
-              className="text-sm font-semibold uppercase tracking-wide text-fg/80 transition hover:text-fg"
+              className="inline-flex items-center rounded-full border border-accent/35 bg-accent/10 px-4 py-2 text-sm font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/20"
               href="/admin"
             >
               Panel
             </Link>
+            <ThemeToggle />
             <UserMenu
               user={{
                 email: user.email,

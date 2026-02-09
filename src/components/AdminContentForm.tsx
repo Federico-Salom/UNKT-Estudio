@@ -37,7 +37,10 @@ export default function AdminContentForm({
   const [status, setStatus] = useState<Status>("idle");
   const [showToast, setShowToast] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [heroFileName, setHeroFileName] = useState("Ningun archivo seleccionado");
+  const [logoFileName, setLogoFileName] = useState("Ningun archivo seleccionado");
+  const [wordmarkFileName, setWordmarkFileName] = useState(
+    "Ningun archivo seleccionado"
+  );
   const [galleryItems, setGalleryItems] = useState<GalleryFormItem[]>(() =>
     gallery.slice(0, 10).map((item, index) => ({
       id: `existing-${index}-${Math.random().toString(36).slice(2, 8)}`,
@@ -137,9 +140,16 @@ export default function AdminContentForm({
     }
   };
 
-  const handleHeroFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    setHeroFileName(file ? file.name : "Ningún archivo seleccionado");
+    setLogoFileName(file ? file.name : "Ningun archivo seleccionado");
+  };
+
+  const handleWordmarkFileChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    setWordmarkFileName(file ? file.name : "Ningun archivo seleccionado");
   };
 
   const handleGalleryUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -196,7 +206,7 @@ export default function AdminContentForm({
           Contenido
         </h1>
         <p className="mt-2 text-sm text-muted">
-          Edita textos e imágenes principales de la landing.
+          Edita textos y contenidos visuales de la landing.
         </p>
 
         <div className="mt-8 grid gap-6">
@@ -205,19 +215,81 @@ export default function AdminContentForm({
             open
           >
             <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
+              Logo y wordmark
+            </summary>
+            <div className="mt-4 grid gap-5 md:grid-cols-2">
+              <div className="grid gap-3">
+                <div className="overflow-hidden rounded-2xl border border-accent/20 bg-bg p-3">
+                  <img
+                    className="h-20 w-20 rounded-full object-cover"
+                    src={studio.logo.src}
+                    alt={studio.logo.alt}
+                  />
+                </div>
+                <label className="grid gap-2 text-sm font-semibold">
+                  Logo (avatar)
+                  <div className="flex flex-wrap items-center gap-3">
+                    <label
+                      htmlFor="logoImage"
+                      className="inline-flex items-center justify-center rounded-full border border-accent/30 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10"
+                    >
+                      Seleccionar imagen
+                    </label>
+                    <span className="text-xs text-muted">{logoFileName}</span>
+                  </div>
+                  <input
+                    id="logoImage"
+                    type="file"
+                    name="logoImage"
+                    accept="image/*"
+                    className="sr-only"
+                    onChange={handleLogoFileChange}
+                  />
+                </label>
+              </div>
+              <div className="grid gap-3">
+                <div className="overflow-hidden rounded-2xl border border-accent/20 bg-bg p-3">
+                  <img
+                    className="h-20 w-full object-contain"
+                    src={studio.logo.wordmarkSrc}
+                    alt={studio.logo.alt}
+                  />
+                </div>
+                <label className="grid gap-2 text-sm font-semibold">
+                  Wordmark (texto del logo)
+                  <div className="flex flex-wrap items-center gap-3">
+                    <label
+                      htmlFor="wordmarkImage"
+                      className="inline-flex items-center justify-center rounded-full border border-accent/30 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10"
+                    >
+                      Seleccionar imagen
+                    </label>
+                    <span className="text-xs text-muted">{wordmarkFileName}</span>
+                  </div>
+                  <input
+                    id="wordmarkImage"
+                    type="file"
+                    name="wordmarkImage"
+                    accept="image/*"
+                    className="sr-only"
+                    onChange={handleWordmarkFileChange}
+                  />
+                </label>
+              </div>
+            </div>
+          </details>
+
+          <details
+            className="rounded-2xl border border-accent/15 bg-white/80 p-5"
+            open
+          >
+            <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
               Identidad y héroe
             </summary>
             <div className="mt-4 grid gap-4">
-              <label className="grid gap-2 text-sm font-semibold">
-                Nombre del estudio
-                <input
-                  className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-                  type="text"
-                  name="name"
-                  defaultValue={studio.name}
-                  required
-                />
-              </label>
+              <div className="rounded-2xl border border-accent/15 bg-bg/70 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted">
+                La identidad del estudio se maneja desde el logo wordmark.
+              </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <label className="grid gap-2 text-sm font-semibold">
                   Título principal
@@ -245,6 +317,87 @@ export default function AdminContentForm({
 
           <details className="rounded-2xl border border-accent/15 bg-white/80 p-5">
             <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
+              Marca, SEO y sitio
+            </summary>
+            <div className="mt-4 grid gap-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="grid gap-2 text-sm font-semibold">
+                  URL del sitio
+                  <input
+                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                    type="url"
+                    name="siteUrl"
+                    defaultValue={studio.siteUrl}
+                    required
+                  />
+                </label>
+                <label className="grid gap-2 text-sm font-semibold">
+                  Alt del logo
+                  <input
+                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                    type="text"
+                    name="logoAlt"
+                    defaultValue={studio.logo.alt}
+                    required
+                  />
+                </label>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="grid gap-2 text-sm font-semibold">
+                  Ruta logo (avatar)
+                  <input
+                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                    type="text"
+                    name="logoSrc"
+                    defaultValue={studio.logo.src}
+                    required
+                  />
+                </label>
+                <label className="grid gap-2 text-sm font-semibold">
+                  Ruta wordmark (texto)
+                  <input
+                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                    type="text"
+                    name="wordmarkSrc"
+                    defaultValue={studio.logo.wordmarkSrc}
+                    required
+                  />
+                </label>
+              </div>
+              <label className="grid gap-2 text-sm font-semibold">
+                SEO title
+                <input
+                  className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                  type="text"
+                  name="seoTitle"
+                  defaultValue={studio.seo.title}
+                  required
+                />
+              </label>
+              <label className="grid gap-2 text-sm font-semibold">
+                SEO description
+                <textarea
+                  className="min-h-[96px] rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                  name="seoDescription"
+                  defaultValue={studio.seo.description}
+                  required
+                />
+              </label>
+              <label className="grid gap-2 text-sm font-semibold">
+                SEO imagen (Open Graph)
+                <input
+                  className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                  type="text"
+                  name="seoOgImage"
+                  defaultValue={studio.seo.ogImage}
+                  required
+                />
+              </label>
+            </div>
+          </details>
+
+          <details className="rounded-2xl border border-accent/15 bg-white/80 p-5">
+            <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
               CTAs y WhatsApp
             </summary>
             <div className="mt-4 grid gap-4">
@@ -255,11 +408,7 @@ export default function AdminContentForm({
                     className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
                     type="text"
                     name="ctaPrimary"
-                    defaultValue={
-                      studio.ctas.primary
-                        .replace(/\s*por\s*whats?app/i, "")
-                        .trim() || "Reservar"
-                    }
+                    defaultValue={studio.ctas.primary}
                     required
                   />
                 </label>
@@ -274,6 +423,15 @@ export default function AdminContentForm({
                   />
                 </label>
               </div>
+              <label className="grid gap-2 text-sm font-semibold">
+                URL Instagram
+                <input
+                  className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                  type="url"
+                  name="contactInstagram"
+                  defaultValue={studio.contact.instagram}
+                />
+              </label>
               <div className="grid gap-4 md:grid-cols-2">
                 <label className="grid gap-2 text-sm font-semibold">
                   WhatsApp (E.164 sin +)
@@ -472,72 +630,21 @@ export default function AdminContentForm({
 
       <div className="rounded-3xl border border-accent/20 bg-white/70 p-8 shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)] backdrop-blur">
         <h2 className="font-display text-2xl uppercase tracking-[0.2em]">
-          Imágenes
+          Carrusel
         </h2>
         <p className="mt-2 text-sm text-muted">
-          Si no cargas una imagen, se mantiene la actual.
+          Gestiona las imagenes del carrusel del home.
         </p>
 
         <div className="mt-8 grid gap-6">
-          <details
-            className="rounded-2xl border border-accent/15 bg-white/80 p-5"
-            open
-          >
-            <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
-              Imagen principal
-            </summary>
-            <div className="mt-4 grid gap-4 md:grid-cols-[1fr_1.2fr]">
-              <div className="overflow-hidden rounded-2xl border border-accent/20 bg-bg">
-                <img
-                  className="h-full w-full object-cover"
-                  src={studio.hero.image.src}
-                  alt={studio.hero.image.alt}
-                />
-              </div>
-              <div className="grid gap-3">
-                <label className="grid gap-2 text-sm font-semibold">
-                  Imagen principal
-                  <div className="flex flex-wrap items-center gap-3">
-                    <label
-                      htmlFor="heroImage"
-                      className="inline-flex items-center justify-center rounded-full border border-accent/30 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10"
-                    >
-                      Seleccionar imagen
-                    </label>
-                    <span className="text-xs text-muted">{heroFileName}</span>
-                  </div>
-                  <input
-                    id="heroImage"
-                    type="file"
-                    name="heroImage"
-                    accept="image/*"
-                    className="sr-only"
-                    onChange={handleHeroFileChange}
-                  />
-                  <span className="text-xs text-muted">
-                    Si no cargás una imagen, se mantiene la actual.
-                  </span>
-                </label>
-                <label className="grid gap-2 text-sm font-semibold">
-                  Alt de imagen principal
-                  <input
-                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-                    type="text"
-                    name="heroImageAlt"
-                    defaultValue={studio.hero.image.alt}
-                  />
-                </label>
-              </div>
-            </div>
-          </details>
 
           <details className="rounded-2xl border border-accent/15 bg-white/80 p-5">
             <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
-              Galeria
+              Galeria del carrusel
             </summary>
             <div className="mt-4 grid gap-4">
               <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-semibold uppercase tracking-wide text-muted">
-                <span>La primera es la principal. Maximo 10 imagenes.</span>
+                <span>Hasta 10 imagenes. La nro 1 aparece primero en el carrusel del home.</span>
                 <span>{galleryItems.length}/10</span>
               </div>
 
@@ -586,7 +693,10 @@ export default function AdminContentForm({
                         setDragIndex(null);
                       }}
                     >
-                      <div className="overflow-hidden rounded-2xl border border-accent/15 bg-bg">
+                      <div className="relative overflow-hidden rounded-2xl border border-accent/15 bg-bg">
+                        <span className="absolute right-2 top-2 z-10 inline-flex h-6 min-w-6 items-center justify-center rounded-full border border-accent/30 bg-bg/90 px-1 text-[10px] font-semibold leading-none text-accent shadow-[0_8px_18px_-14px_rgba(0,0,0,0.45)]">
+                          {index + 1}
+                        </span>
                         {item.previewUrl || item.src ? (
                           <img
                             className="h-40 w-full object-cover"
@@ -612,7 +722,7 @@ export default function AdminContentForm({
                       </label>
                       <div className="flex items-center justify-between">
                         <span className="text-[10px] font-semibold uppercase tracking-wide text-muted">
-                          Arrastra para ordenar
+                          Orden {index + 1} del carrusel
                         </span>
                         <button
                           className="rounded-full border border-accent/30 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10"
@@ -667,3 +777,6 @@ export default function AdminContentForm({
     </form>
   );
 }
+
+
+

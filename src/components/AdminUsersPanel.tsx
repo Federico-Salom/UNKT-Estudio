@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 type Role = "admin" | "user";
@@ -129,12 +128,6 @@ export default function AdminUsersPanel({
             {users.length} usuario{users.length === 1 ? "" : "s"} en total.
           </p>
         </div>
-        <Link
-          className="inline-flex items-center justify-center rounded-full bg-accent px-5 py-2 text-xs font-semibold uppercase tracking-wide text-bg transition hover:bg-accent2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2"
-          href="/register"
-        >
-          Crear usuario
-        </Link>
       </div>
 
       <div className="mt-8 overflow-hidden rounded-2xl border border-accent/15">

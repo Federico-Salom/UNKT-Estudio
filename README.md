@@ -5,7 +5,8 @@ MVP de landing para alquiler de estudio fotográfico.
 ## Desarrollo
 
 - Instalar dependencias: `npm install`
-- Correr en local: `npm run dev`
+- Correr en local (webpack estable): `npm run dev`
+- Opcional Turbopack: `npm run dev:turbo`
 - Lint: `npm run lint`
 - Build: `npm run build`
 

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Container from "@/components/Container";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
 import type { StudioContent } from "@/content/studio";
@@ -8,9 +9,12 @@ type HeroProps = {
 
 export default function Hero({ studio }: HeroProps) {
   const bookingLink = "/reservar";
+  const floorPlanLink = "#galeria";
+  const floorPlanSrc = "/plano-estudio.svg";
   const primaryCta =
     studio.ctas.primary.replace(/\s*por\s*whats?app/i, "").trim() || "Reservar";
-  const instagramUrl = studio.contact.instagram;
+  const instagramUrl =
+    studio.contact.instagram || "https://www.instagram.com/unkt.estudio/";
   const whatsappUrl = buildWhatsAppLink(
     studio.contact.whatsapp.phone,
     "Hola, tengo una consulta sobre UNKT Estudio."
@@ -18,11 +22,8 @@ export default function Hero({ studio }: HeroProps) {
 
   return (
     <section className="relative overflow-hidden bg-bg py-16 md:py-24">
-      <Container className="grid items-center gap-10">
+      <Container className="grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)]">
         <div className="space-y-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted">
-            {studio.name}
-          </p>
           <h1 className="font-display text-4xl uppercase tracking-[0.08em] text-fg sm:text-5xl md:text-6xl">
             {studio.hero.title}
           </h1>
@@ -52,6 +53,30 @@ export default function Hero({ studio }: HeroProps) {
             </a>
           </div>
         </div>
+
+        <a
+          href={floorPlanLink}
+          className="group relative block overflow-hidden rounded-3xl border border-accent/20 bg-white/70 p-3 shadow-[0_26px_56px_-42px_rgba(30,15,20,0.65)] backdrop-blur transition hover:border-accent/40"
+          aria-label="Ver plano del lugar e ir a la galeria"
+        >
+          <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-accent/20 bg-bg">
+            <Image
+              src={floorPlanSrc}
+              alt="Plano del lugar"
+              fill
+              className="object-cover transition duration-500 group-hover:scale-[1.015]"
+              sizes="(min-width: 1024px) 360px, 100vw"
+            />
+          </div>
+          <div className="absolute inset-x-3 bottom-3 rounded-2xl border border-accent/20 bg-bg/90 px-4 py-3 backdrop-blur">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-accent">
+              Plano del lugar
+            </p>
+            <p className="mt-1 text-sm font-semibold text-fg">
+              Toca para ver la galeria
+            </p>
+          </div>
+        </a>
       </Container>
     </section>
   );

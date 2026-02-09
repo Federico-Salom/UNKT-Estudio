@@ -1,6 +1,7 @@
 import Container from "@/components/Container";
 import BrandMark from "@/components/BrandMark";
 import UserMenu from "@/components/UserMenu";
+import ThemeToggle from "@/components/ThemeToggle";
 import type { StudioContent } from "@/content/studio";
 import { getSessionFromCookies } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -25,6 +26,7 @@ async function HeaderActions() {
   if (!session) {
     return (
       <div className="flex items-center gap-4">
+        <ThemeToggle />
         <a
           className="inline-flex text-sm font-semibold uppercase tracking-wide text-fg/80 transition hover:text-fg"
           href="/login"
@@ -42,6 +44,7 @@ async function HeaderActions() {
   if (!user) {
     return (
       <div className="flex items-center gap-4">
+        <ThemeToggle />
         <a
           className="inline-flex text-sm font-semibold uppercase tracking-wide text-fg/80 transition hover:text-fg"
           href="/login"
@@ -55,11 +58,14 @@ async function HeaderActions() {
   const roleLabel = user.role === "admin" ? "Administrador" : "Usuario";
 
   return (
-    <UserMenu
-      user={{
-        email: user.email,
-        roleLabel,
-      }}
-    />
+    <div className="flex items-center gap-4">
+      <ThemeToggle />
+      <UserMenu
+        user={{
+          email: user.email,
+          roleLabel,
+        }}
+      />
+    </div>
   );
 }

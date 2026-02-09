@@ -56,7 +56,7 @@ export default function UserMenu({ user }: UserMenuProps) {
         aria-label="Cuenta"
         aria-expanded={open}
         onClick={() => setOpen((prev) => !prev)}
-        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-accent/30 bg-bg text-accent transition hover:border-accent hover:bg-accent/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2"
+        className="user-menu-trigger inline-flex h-10 w-10 items-center justify-center rounded-full border border-accent/30 bg-bg text-accent transition hover:border-accent hover:bg-accent/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2"
       >
         <svg
           aria-hidden="true"

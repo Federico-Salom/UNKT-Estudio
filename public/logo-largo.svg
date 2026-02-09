@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 220" role="img" aria-labelledby="title">
+  <title id="title">UNKT Estudio</title>
+  <defs>
+    <filter id="wordmark-shadow" x="-10%" y="-24%" width="120%" height="160%">
+      <feDropShadow dx="0" dy="4" stdDeviation="3" flood-color="#2b1120" flood-opacity="0.32" />
+    </filter>
+    <linearGradient id="wordmark-fill" x1="120" y1="34" x2="880" y2="186" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ff76b0" />
+      <stop offset="1" stop-color="#d43279" />
+    </linearGradient>
+  </defs>
+  <text
+    x="18"
+    y="152"
+    font-family="Brush Script MT, Segoe Script, Snell Roundhand, cursive"
+    font-size="164"
+    font-weight="700"
+    fill="none"
+    stroke="#6f2642"
+    stroke-width="14"
+    stroke-linejoin="round"
+    opacity="0.28"
+    letter-spacing="1"
+  >
+    UNKT Estudio
+  </text>
+  <text
+    x="18"
+    y="152"
+    font-family="Brush Script MT, Segoe Script, Snell Roundhand, cursive"
+    font-size="164"
+    font-weight="700"
+    fill="url(#wordmark-fill)"
+    stroke="#ffe7f1"
+    stroke-width="2.8"
+    paint-order="stroke"
+    filter="url(#wordmark-shadow)"
+    letter-spacing="1"
+  >
+    UNKT Estudio
+  </text>
+</svg>

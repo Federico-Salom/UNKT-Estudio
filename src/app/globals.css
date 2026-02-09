@@ -9,6 +9,15 @@
   color-scheme: light;
 }
 
+html[data-theme="dark"] {
+  --bg: #120a18;
+  --fg: #fdf1fb;
+  --accent: #ff4fc3;
+  --accent2: #c86cff;
+  --muted: #d2b1c5;
+  color-scheme: dark;
+}
+
 @theme inline {
   --color-bg: var(--bg);
   --color-fg: var(--fg);
@@ -23,6 +32,13 @@ body {
   color: var(--fg);
   min-height: 100vh;
   background-color: var(--bg);
+  overflow-x: hidden;
+}
+
+.font-display {
+  letter-spacing: 0.03em !important;
+  text-transform: none !important;
+  font-weight: 400;
 }
 
 .min-h-screen.bg-bg,
@@ -46,12 +62,124 @@ section.bg-bg {
   background-attachment: fixed;
 }
 
+html[data-theme="dark"] .min-h-screen.bg-bg,
+html[data-theme="dark"] section.bg-bg,
+html[data-theme="dark"] footer.bg-bg {
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(
+      rgba(18, 10, 24, 0.9),
+      rgba(18, 10, 24, 0.9)
+    ),
+    radial-gradient(
+      circle at 18% -6%,
+      rgba(255, 79, 195, 0.2),
+      transparent 42%
+    ),
+    radial-gradient(
+      circle at 84% 2%,
+      rgba(200, 108, 255, 0.16),
+      transparent 38%
+    ),
+    url("/patron-flores-soft.png");
+}
+
 @media (max-width: 768px) {
   .min-h-screen.bg-bg,
   section.bg-bg {
     background-size: 1100px auto;
     background-attachment: scroll;
   }
+}
+
+.gallery-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.gallery-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+html[data-theme="dark"] .gallery-slide {
+  border-color: color-mix(in srgb, var(--accent2) 36%, transparent);
+  background: color-mix(in srgb, var(--bg) 82%, #2a1435 18%);
+  box-shadow: 0 24px 56px -36px rgba(0, 0, 0, 0.88);
+}
+
+html[data-theme="dark"] .gallery-image {
+  filter: saturate(0.82) brightness(0.78) contrast(1.06);
+}
+
+html[data-theme="dark"] .gallery-nav-btn {
+  border-color: color-mix(in srgb, var(--accent2) 64%, transparent);
+  background: color-mix(in srgb, var(--bg) 82%, #321745 18%);
+  color: color-mix(in srgb, var(--accent2) 70%, #ffd2ef 30%);
+  box-shadow: 0 14px 28px -18px rgba(0, 0, 0, 0.9);
+}
+
+html[data-theme="dark"] .gallery-nav-btn:hover {
+  border-color: color-mix(in srgb, var(--accent2) 90%, transparent);
+  background: color-mix(in srgb, var(--bg) 68%, var(--accent2) 32%);
+  color: #fff1fc;
+}
+
+html[data-theme="dark"] .theme-toggle-btn {
+  border-color: color-mix(in srgb, var(--accent2) 62%, transparent);
+  background: color-mix(in srgb, var(--bg) 74%, #3a1f4d 26%);
+  color: var(--fg);
+}
+
+html[data-theme="dark"] .theme-toggle-btn:hover {
+  border-color: color-mix(in srgb, var(--accent2) 86%, transparent);
+  background: color-mix(in srgb, var(--bg) 66%, var(--accent2) 34%);
+}
+
+html[data-theme="dark"] .user-menu-trigger {
+  border-color: color-mix(in srgb, var(--accent2) 58%, transparent);
+  background: color-mix(in srgb, var(--bg) 78%, #311a43 22%);
+  color: var(--fg);
+}
+
+html[data-theme="dark"] .user-menu-trigger:hover {
+  border-color: color-mix(in srgb, var(--accent2) 82%, transparent);
+  background: color-mix(in srgb, var(--bg) 70%, var(--accent2) 30%);
+}
+
+.map-embed-shell {
+  position: relative;
+  isolation: isolate;
+}
+
+.map-embed-frame {
+  transition: filter 300ms ease;
+}
+
+.map-embed-overlay {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+
+html[data-theme="dark"] .map-embed-frame {
+  filter: grayscale(0.22) saturate(0.72) brightness(0.7) contrast(1.1);
+}
+
+html[data-theme="dark"] .map-embed-overlay {
+  opacity: 1;
+  background:
+    radial-gradient(
+      ellipse at 18% 0%,
+      color-mix(in srgb, #ff88d8 14%, transparent) 0 38%,
+      transparent 72%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, #180c22 44%, transparent),
+      color-mix(in srgb, #180c22 56%, transparent)
+    );
 }
 
 .fc {
@@ -70,8 +198,8 @@ section.bg-bg {
 
 .fc .fc-toolbar-title {
   font-family: var(--font-head);
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
+  text-transform: none;
+  letter-spacing: 0.04em;
   font-size: 0.95rem;
 }
 
@@ -88,4 +216,365 @@ section.bg-bg {
 
 .fc .fc-selected-day .fc-daygrid-day-frame {
   border-radius: 16px;
+}
+
+.agenda-panel {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  transition:
+    background-color 520ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 520ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 520ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.agenda-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Legacy day-editor modal fallback: keep it compact and scrollable. */
+.fixed.inset-0.z-50.flex.items-center.justify-center.px-4
+  > .relative.w-full.max-w-2xl.rounded-3xl {
+  width: min(52rem, calc(100vw - 1.5rem));
+  max-height: calc(100dvh - 1.5rem);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.fixed.inset-0.z-50.flex.items-center.justify-center.px-4
+  > .relative.w-full.max-w-2xl.rounded-3xl
+  > .mt-6.grid.gap-4 {
+  min-height: 0;
+  max-height: calc(100dvh - 12rem);
+  overflow-y: auto;
+  padding-right: 0.35rem;
+}
+
+.agenda-panel::before {
+  content: "";
+  position: absolute;
+  inset: -35% -18% auto;
+  height: 72%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    radial-gradient(
+      ellipse at 18% 32%,
+      color-mix(in srgb, #ff66ce 48%, transparent) 0 120px,
+      transparent 340px
+    ),
+    radial-gradient(
+      ellipse at 82% 18%,
+      color-mix(in srgb, #c86cff 38%, transparent) 0 95px,
+      transparent 280px
+    );
+  filter: blur(22px);
+  transform: translate3d(0, 10px, 0) scale(0.98);
+  transition:
+    opacity 520ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 520ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.agenda-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      120deg,
+      color-mix(in srgb, #ffe1f3 7%, transparent),
+      transparent 26%,
+      color-mix(in srgb, #ffc2e8 8%, transparent) 44%,
+      transparent 62%
+    ),
+    radial-gradient(
+      ellipse at 10% 82%,
+      color-mix(in srgb, #ffd7ef 10%, transparent) 0 42%,
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse at 90% 18%,
+      color-mix(in srgb, #f7c6e8 12%, transparent) 0 36%,
+      transparent 68%
+    );
+  opacity: 0;
+  transform: translate3d(0, 4px, 0);
+  transition:
+    opacity 520ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.agenda-panel--night::before {
+  opacity: 0.95;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+.agenda-panel--night::after {
+  opacity: 0.36;
+  transform: translate3d(0, 0, 0);
+}
+
+.agenda-calendar {
+  isolation: isolate;
+  transition:
+    background-color 520ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 520ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.agenda-calendar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.78;
+  background:
+    radial-gradient(
+      circle at 10% 10%,
+      color-mix(in srgb, #ffd37c 35%, transparent) 0 120px,
+      transparent 190px
+    ),
+    radial-gradient(
+      ellipse at 80% 0%,
+      color-mix(in srgb, #ffeec7 30%, transparent) 0 260px,
+      transparent 420px
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, #fff4cf 60%, transparent),
+      color-mix(in srgb, #fff 82%, transparent)
+    );
+  transition:
+    opacity 520ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.agenda-calendar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    radial-gradient(
+      ellipse at 32% 58%,
+      color-mix(in srgb, #b85fff 24%, transparent) 0 210px,
+      transparent 370px
+    ),
+    radial-gradient(
+      ellipse at 84% 34%,
+      color-mix(in srgb, #ff5fc9 18%, transparent) 0 190px,
+      transparent 340px
+    ),
+    radial-gradient(
+      ellipse at 78% 6%,
+      color-mix(in srgb, #ffc3eb 42%, transparent) 0 90px,
+      transparent 210px
+    ),
+    radial-gradient(
+      circle at 12% 84%,
+      color-mix(in srgb, #d47aff 20%, transparent) 0 160px,
+      transparent 320px
+    ),
+    radial-gradient(
+      circle at 76% 68%,
+      color-mix(in srgb, #ff86d5 10%, transparent) 0 170px,
+      transparent 330px
+    ),
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, #ffd8ef 4%, transparent) 0 34%,
+      transparent 62%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, #130a1d 96%, transparent),
+      color-mix(in srgb, #201133 92%, transparent)
+    );
+  transform: translate3d(0, 8px, 0) scale(1.02);
+  filter: saturate(0.95);
+  transition:
+    opacity 520ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 520ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.agenda-calendar .fc {
+  position: relative;
+  z-index: 1;
+}
+
+.agenda-calendar .fc .fc-toolbar-title,
+.agenda-calendar .fc .fc-col-header-cell-cushion,
+.agenda-calendar .fc .fc-daygrid-day-number,
+.agenda-calendar .fc .fc-timegrid-slot-label-cushion,
+.agenda-calendar .fc .fc-timegrid-axis-cushion {
+  transition:
+    color 520ms cubic-bezier(0.22, 1, 0.36, 1),
+    text-shadow 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.agenda-calendar .fc .fc-button,
+.agenda-calendar .fc .fc-scrollgrid,
+.agenda-calendar .fc .fc-timegrid-slots td,
+.agenda-calendar .fc .fc-timegrid-axis,
+.agenda-calendar .fc .fc-col-header-cell,
+.agenda-calendar .fc .fc-timegrid-divider,
+.agenda-calendar .fc .fc-event {
+  transition:
+    background-color 520ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 520ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 520ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 520ms cubic-bezier(0.22, 1, 0.36, 1),
+    background 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.agenda-calendar--night {
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #ffd7ef 16%, transparent),
+    inset 0 -80px 130px -105px color-mix(in srgb, #ff90dd 55%, transparent);
+}
+
+.agenda-calendar--night::before {
+  opacity: 0.22;
+  transform: scale(1.01);
+}
+
+.agenda-calendar--night::after {
+  opacity: 0.94;
+  transform: translate3d(0, 0, 0) scale(1);
+  filter: saturate(1.03) contrast(1.02);
+  animation: night-aurora-drift 24s ease-in-out infinite;
+}
+
+.agenda-calendar--night .fc {
+  --fc-border-color: color-mix(in srgb, #d27aff 36%, transparent);
+  --fc-page-bg-color: transparent;
+  --fc-neutral-bg-color: color-mix(in srgb, #f29adf 10%, transparent);
+  --fc-today-bg-color: color-mix(in srgb, #ffc0e8 18%, transparent);
+  --fc-button-bg-color: color-mix(in srgb, #ffc3eb 18%, #1d102b);
+  --fc-button-border-color: color-mix(in srgb, #f4b6e6 30%, transparent);
+  --fc-button-hover-bg-color: color-mix(in srgb, #ffd2f0 35%, #251238);
+  --fc-button-hover-border-color: color-mix(in srgb, #ffd2f0 44%, transparent);
+  --fc-button-active-bg-color: #ffd2f0;
+  --fc-button-active-border-color: #ffd2f0;
+  --fc-button-text-color: #fff0fb;
+}
+
+.agenda-calendar--night .fc .fc-toolbar-title,
+.agenda-calendar--night .fc .fc-col-header-cell-cushion,
+.agenda-calendar--night .fc .fc-daygrid-day-number,
+.agenda-calendar--night .fc .fc-timegrid-slot-label-cushion,
+.agenda-calendar--night .fc .fc-timegrid-axis-cushion {
+  color: #ffeefe;
+  text-shadow: 0 0 14px color-mix(in srgb, #ffbce7 22%, transparent);
+}
+
+.agenda-calendar--night .fc .fc-button {
+  border-color: color-mix(in srgb, #f1b1e5 34%, transparent);
+  background: color-mix(in srgb, #ffc3eb 16%, #1c102b);
+  color: #fff0fb;
+}
+
+.agenda-calendar--night .fc .fc-button:not(:disabled):hover {
+  background: color-mix(in srgb, #ffd2f0 28%, #2a1440);
+  border-color: color-mix(in srgb, #ffd9f3 56%, transparent);
+}
+
+.agenda-calendar--night .fc .fc-button-primary:not(:disabled).fc-button-active {
+  color: #2a1136;
+}
+
+.agenda-calendar--night .fc .fc-scrollgrid,
+.agenda-calendar--night .fc .fc-timegrid-slots td,
+.agenda-calendar--night .fc .fc-timegrid-axis,
+.agenda-calendar--night .fc .fc-col-header-cell,
+.agenda-calendar--night .fc .fc-timegrid-divider {
+  border-color: color-mix(in srgb, #d988e8 32%, transparent);
+}
+
+.agenda-calendar--night .fc .fc-event {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, #fff 14%, transparent),
+    0 12px 28px -18px rgba(0, 0, 0, 0.9);
+}
+
+@keyframes night-aurora-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(-2%, 1.5%, 0) scale(1.05);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agenda-panel,
+  .agenda-calendar,
+  .agenda-panel::before,
+  .agenda-panel::after,
+  .agenda-calendar::before,
+  .agenda-calendar::after,
+  .agenda-calendar .fc .fc-toolbar-title,
+  .agenda-calendar .fc .fc-col-header-cell-cushion,
+  .agenda-calendar .fc .fc-daygrid-day-number,
+  .agenda-calendar .fc .fc-timegrid-slot-label-cushion,
+  .agenda-calendar .fc .fc-timegrid-axis-cushion,
+  .agenda-calendar .fc .fc-button,
+  .agenda-calendar .fc .fc-scrollgrid,
+  .agenda-calendar .fc .fc-timegrid-slots td,
+  .agenda-calendar .fc .fc-timegrid-axis,
+  .agenda-calendar .fc .fc-col-header-cell,
+  .agenda-calendar .fc .fc-timegrid-divider,
+  .agenda-calendar .fc .fc-event {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+.agenda-calendar .fc-timegrid-axis {
+  width: 5.4rem;
+  min-width: 5.4rem;
+}
+
+.agenda-calendar .fc-timegrid-axis-cushion {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
+.agenda-calendar .fc-timegrid-slot-label-frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-right: 0;
+}
+
+@media (max-width: 768px) {
+  .agenda-calendar .fc-timegrid-axis {
+    width: 4.6rem;
+    min-width: 4.6rem;
+  }
+
+  .agenda-calendar .fc-timegrid-axis-cushion {
+    font-size: 0.72rem;
+    letter-spacing: 0.02em;
+  }
 }

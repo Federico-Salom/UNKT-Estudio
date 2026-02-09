@@ -85,6 +85,16 @@ export async function POST(request: NextRequest) {
   ) as StudioContent;
 
   nextContent.name = toText(formData.get("name")) || current.name;
+  nextContent.siteUrl = toText(formData.get("siteUrl")) || current.siteUrl;
+  nextContent.logo.src = toText(formData.get("logoSrc")) || current.logo.src;
+  nextContent.logo.wordmarkSrc =
+    toText(formData.get("wordmarkSrc")) || current.logo.wordmarkSrc;
+  nextContent.logo.alt = toText(formData.get("logoAlt")) || current.logo.alt;
+  nextContent.seo.title = toText(formData.get("seoTitle")) || current.seo.title;
+  nextContent.seo.description =
+    toText(formData.get("seoDescription")) || current.seo.description;
+  nextContent.seo.ogImage =
+    toText(formData.get("seoOgImage")) || current.seo.ogImage;
   nextContent.hero.title =
     toText(formData.get("heroTitle")) || current.hero.title;
   nextContent.hero.subtitle =
@@ -98,6 +108,8 @@ export async function POST(request: NextRequest) {
   nextContent.contact.whatsapp.message =
     toText(formData.get("whatsappMessage")) ||
     current.contact.whatsapp.message;
+  nextContent.contact.instagram =
+    toText(formData.get("contactInstagram")) || current.contact.instagram;
   nextContent.contact.email =
     toText(formData.get("contactEmail")) || current.contact.email;
   nextContent.contact.locationText =
@@ -140,6 +152,16 @@ export async function POST(request: NextRequest) {
   const heroAlt = toText(formData.get("heroImageAlt"));
   if (heroAlt) {
     nextContent.hero.image.alt = heroAlt;
+  }
+
+  const logoFile = getFile(formData.get("logoImage"));
+  if (logoFile) {
+    nextContent.logo.src = await saveUpload(logoFile);
+  }
+
+  const wordmarkFile = getFile(formData.get("wordmarkImage"));
+  if (wordmarkFile) {
+    nextContent.logo.wordmarkSrc = await saveUpload(wordmarkFile);
   }
 
   const heroFile = getFile(formData.get("heroImage"));
