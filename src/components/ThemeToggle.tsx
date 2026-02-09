@@ -50,7 +50,7 @@ export default function ThemeToggle({ className = "" }: ThemeToggleProps) {
       aria-label="Cambiar tema"
       title="Cambiar tema"
     >
-      Tema
+      <span className="button-label">Tema</span>
     </button>
   );
 }

@@ -41,6 +41,17 @@ body {
   font-weight: 400;
 }
 
+.theme-toggle-btn,
+.user-menu-trigger,
+button,
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+a[class*="inline-flex"][class*="justify-center"],
+.booking-slot-button {
+  font-family: var(--font-controls), "Nunito Sans", "Segoe UI", sans-serif;
+}
+
 /* Gayathri has tall vertical metrics; normalize control labels centering. */
 button,
 input[type="button"],
@@ -50,6 +61,29 @@ a[class*="inline-flex"][class*="justify-center"],
 .booking-slot-button {
   line-height: 1;
   text-align: center;
+}
+
+/* Optical compensation for Gayathri uppercase labels inside pills/buttons. */
+button[class*="uppercase"],
+a[class*="inline-flex"][class*="uppercase"],
+.booking-slot-button {
+  line-height: 1;
+}
+
+.button-label {
+  --button-label-shift: 0;
+  display: inline-block;
+  line-height: 1;
+  transform: translateY(var(--button-label-shift));
+}
+
+.theme-toggle-btn {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.theme-toggle-btn .button-label {
+  --button-label-shift: 0;
 }
 
 .min-h-screen.bg-bg,

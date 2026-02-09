@@ -71,7 +71,7 @@ export default function Hero({ studio }: HeroProps) {
               className="inline-flex items-center justify-center rounded-full bg-accent px-6 py-3 text-sm font-semibold uppercase tracking-wide text-bg shadow-[0_12px_24px_-12px_rgba(0,0,0,0.6)] transition hover:bg-accent2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2"
               href={bookingLink}
             >
-              {primaryCta}
+              <span className="button-label">{primaryCta}</span>
             </a>
             <a
               className="inline-flex items-center justify-center rounded-full border border-accent/40 bg-bg px-6 py-3 text-sm font-semibold uppercase tracking-wide text-accent shadow-[0_12px_24px_-18px_rgba(0,0,0,0.4)] transition hover:border-accent hover:bg-accent/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2"
@@ -79,7 +79,7 @@ export default function Hero({ studio }: HeroProps) {
               target="_blank"
               rel="noreferrer"
             >
-              Instagram
+              <span className="button-label">Instagram</span>
             </a>
             <a
               className="inline-flex items-center justify-center rounded-full border border-accent/40 bg-bg px-6 py-3 text-sm font-semibold uppercase tracking-wide text-accent shadow-[0_12px_24px_-18px_rgba(0,0,0,0.4)] transition hover:border-accent hover:bg-accent/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2"
@@ -87,7 +87,7 @@ export default function Hero({ studio }: HeroProps) {
               target="_blank"
               rel="noreferrer"
             >
-              WhatsApp
+              <span className="button-label">WhatsApp</span>
             </a>
           </div>
         </div>
@@ -117,7 +117,7 @@ export default function Hero({ studio }: HeroProps) {
                 rel="noreferrer"
                 className="inline-flex items-center justify-center rounded-full border border-accent/35 bg-bg px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10"
               >
-                Abrir
+                <span className="button-label">Abrir</span>
               </a>
             </div>
           </div>

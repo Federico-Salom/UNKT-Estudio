@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Gayathri } from "next/font/google";
+import { Gayathri, Nunito_Sans } from "next/font/google";
 import "./globals.css";
 import { getStudioContent } from "@/lib/studio-content";
 import VisitTracker from "@/components/VisitTracker";
@@ -30,6 +30,12 @@ const displayFont = Gayathri({
   subsets: ["latin"],
   weight: ["100", "400", "700"],
   variable: "--font-head",
+});
+
+const controlFont = Nunito_Sans({
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
+  variable: "--font-controls",
 });
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -97,7 +103,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${bodyFont.variable} ${displayFont.variable} font-sans antialiased`}
+        className={`${bodyFont.variable} ${displayFont.variable} ${controlFont.variable} font-sans antialiased`}
       >
         <VisitTracker />
         {children}

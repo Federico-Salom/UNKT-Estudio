@@ -19,7 +19,7 @@ export default function WhatsAppButton({ studio }: WhatsAppButtonProps) {
       rel="noopener noreferrer"
       aria-label="WhatsApp"
     >
-      WhatsApp
+      <span className="button-label">WhatsApp</span>
     </a>
   );
 }

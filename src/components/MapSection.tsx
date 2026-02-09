@@ -14,7 +14,7 @@ export default function MapSection({ studio }: MapSectionProps) {
   return (
     <section className="bg-bg py-14 md:py-20">
       <Container>
-        <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+        <div className="mb-6">
           <div>
             <h2 className="font-display text-3xl uppercase tracking-[0.08em] text-fg">
               Plano del lugar
@@ -23,12 +23,6 @@ export default function MapSection({ studio }: MapSectionProps) {
               Toca el plano para ir a la galeria.
             </p>
           </div>
-          <a
-            href={floorPlanLink}
-            className="inline-flex items-center justify-center rounded-full border border-accent/30 bg-bg px-5 py-2 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10"
-          >
-            Ver galeria
-          </a>
         </div>
 
         <a
