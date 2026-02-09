@@ -7,17 +7,17 @@ export const studio = {
     alt: "Logo UNKT Estudio",
   },
   seo: {
-    title: "UNKT Estudio | Alquiler de estudio fotográfico",
+    title: "UNKT Estudio | Alquiler de estudio fotografico",
     description:
-      "Alquiler de estudio fotográfico listo para producir. Luces, difusores y fondos incluidos. Reservá online.",
+      "Alquiler de estudio fotografico listo para producir. Luces, difusores y fondos incluidos. Reserva online.",
     ogImage: "/logo.jpg",
   },
   hero: {
     title: "Un estudio listo para producir",
-    subtitle: "Entrás, prendés las luces y trabajás.",
+    subtitle: "Entras, prendes las luces y trabajas.",
     image: {
       src: "/hero-placeholder.svg",
-      alt: "Vista del estudio fotográfico con fondo y luces.",
+      alt: "Vista del estudio fotografico con fondo y luces.",
     },
   },
   floorPlan: {
@@ -27,50 +27,30 @@ export const studio = {
   gallery: [
     {
       src: "/gallery-1.svg",
-      alt: "Área principal con fondo crema y luz suave.",
-    },
-    {
-      src: "/gallery-2.svg",
-      alt: "Equipo de iluminación y difusores en el set.",
-    },
-    {
-      src: "/gallery-3.svg",
-      alt: "Rincón con sillón y accesorios.",
-    },
-    {
-      src: "/gallery-4.svg",
-      alt: "Vista general del estudio con fondos.",
-    },
-    {
-      src: "/gallery-5.svg",
-      alt: "Detalle de accesorios de acero.",
-    },
-    {
-      src: "/gallery-6.svg",
-      alt: "Zona de trabajo con espacio despejado.",
+      alt: "Area principal del estudio.",
     },
   ],
   included: {
     title: "Incluido",
-    subtitle: "Llegás y ya está armado.",
+    subtitle: "Llegas y ya esta armado.",
     items: ["Luces", "Difusores", "Fondos"],
   },
   extras: {
     title: "Extras",
-    subtitle: "Sumalos si los necesitás.",
-    items: ["Sillón", "Accesorios de acero"],
+    subtitle: "Sumalos si los necesitas.",
+    items: ["Sillon", "Accesorios de acero"],
   },
   howToBook: {
-    title: "Cómo reservar",
+    title: "Como reservar",
     steps: [
-      "Elegí el horario disponible.",
-      "Completá tus datos y seleccioná extras.",
-      "Pagá para confirmar la reserva.",
+      "Elegi el horario disponible.",
+      "Completa tus datos y selecciona extras.",
+      "Paga para confirmar la reserva.",
     ],
   },
   contact: {
-    title: "Reservá ahora",
-    note: "Elegí horario, completá tus datos y confirmá el pago.",
+    title: "Reserva ahora",
+    note: "Elegi horario, completa tus datos y confirma el pago.",
     whatsapp: {
       phone: "5491158524000",
       message:
@@ -78,7 +58,7 @@ export const studio = {
     },
     instagram: "https://www.instagram.com/unkt.estudio/",
     email: "hola@unktestudio.com",
-    locationText: "(Sumar dirección)",
+    locationText: "(Sumar direccion)",
     locationUrl: "https://maps.google.com/?q=UNKT+Estudio",
     hours: "(Sumar horarios)",
   },
@@ -87,7 +67,7 @@ export const studio = {
     secondary: "Consultar disponibilidad",
   },
   footer: {
-    text: "UNKT Estudio. Alquiler de estudio fotográfico.",
+    text: "UNKT Estudio. Alquiler de estudio fotografico.",
   },
 };
 

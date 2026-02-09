@@ -46,7 +46,7 @@ export default function ThemeToggle({ className = "" }: ThemeToggleProps) {
     <button
       type="button"
       onClick={toggleTheme}
-      className={`theme-toggle-btn inline-flex items-center justify-center rounded-full border border-accent/35 bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-fg transition hover:border-accent hover:bg-accent/10 ${className}`.trim()}
+      className={`theme-toggle-btn inline-flex h-10 items-center justify-center rounded-full border border-accent/35 bg-white/70 px-3 text-[11px] font-semibold uppercase tracking-wide text-fg transition hover:border-accent hover:bg-accent/10 md:px-4 md:text-xs ${className}`.trim()}
       aria-label="Cambiar tema"
       title="Cambiar tema"
     >

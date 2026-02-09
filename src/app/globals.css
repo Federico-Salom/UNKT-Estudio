@@ -2,19 +2,19 @@
 
 :root {
   --bg: #f7efe0;
-  --fg: #1e0f14;
-  --accent: #8b0d5a;
-  --accent2: #b01374;
-  --muted: #6e5a4a;
+  --fg: #241317;
+  --accent: #b62450;
+  --accent2: #8f1c3f;
+  --muted: #6f4d58;
   color-scheme: light;
 }
 
 html[data-theme="dark"] {
-  --bg: #120a18;
-  --fg: #fdf1fb;
-  --accent: #ff4fc3;
-  --accent2: #c86cff;
-  --muted: #d2b1c5;
+  --bg: #130a0f;
+  --fg: #f9edf1;
+  --accent: #cf3f69;
+  --accent2: #e0658b;
+  --muted: #d4b3be;
   color-scheme: dark;
 }
 
@@ -39,6 +39,17 @@ body {
   letter-spacing: 0.03em !important;
   text-transform: none !important;
   font-weight: 400;
+}
+
+/* Gayathri has tall vertical metrics; normalize control labels centering. */
+button,
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+a[class*="inline-flex"][class*="justify-center"],
+.booking-slot-button {
+  line-height: 1;
+  text-align: center;
 }
 
 .min-h-screen.bg-bg,
@@ -103,7 +114,7 @@ html[data-theme="dark"] footer.bg-bg {
 
 html[data-theme="dark"] .gallery-slide {
   border-color: color-mix(in srgb, var(--accent2) 36%, transparent);
-  background: color-mix(in srgb, var(--bg) 82%, #2a1435 18%);
+  background: color-mix(in srgb, var(--bg) 82%, #29131a 18%);
   box-shadow: 0 24px 56px -36px rgba(0, 0, 0, 0.88);
 }
 
@@ -175,22 +186,22 @@ html[data-theme="dark"] .user-menu-trigger:hover {
 }
 
 html[data-theme="dark"] .admin-dashboard .bg-white\/70 {
-  background: color-mix(in srgb, var(--bg) 82%, #2c1438 18%) !important;
+  background: color-mix(in srgb, var(--bg) 82%, #2b121a 18%) !important;
   border-color: color-mix(in srgb, var(--accent2) 34%, transparent) !important;
   box-shadow: 0 24px 56px -40px rgba(0, 0, 0, 0.82);
 }
 
 html[data-theme="dark"] .admin-dashboard .bg-white\/80 {
-  background: color-mix(in srgb, var(--bg) 78%, #341846 22%) !important;
+  background: color-mix(in srgb, var(--bg) 78%, #331520 22%) !important;
   border-color: color-mix(in srgb, var(--accent2) 36%, transparent) !important;
 }
 
 html[data-theme="dark"] .admin-dashboard .text-muted {
-  color: color-mix(in srgb, var(--fg) 76%, #f2b9e7 24%) !important;
+  color: color-mix(in srgb, var(--fg) 76%, #f2becd 24%) !important;
 }
 
 html[data-theme="dark"] .admin-dashboard .text-fg\/80 {
-  color: color-mix(in srgb, var(--fg) 88%, #f6c6ec 12%) !important;
+  color: color-mix(in srgb, var(--fg) 88%, #f6ccd9 12%) !important;
 }
 
 html[data-theme="dark"] .admin-dashboard .bg-accent\/10 {
@@ -198,13 +209,13 @@ html[data-theme="dark"] .admin-dashboard .bg-accent\/10 {
 }
 
 html[data-theme="dark"] .admin-content-editor .bg-white\/70 {
-  background: color-mix(in srgb, var(--bg) 82%, #2c1438 18%) !important;
+  background: color-mix(in srgb, var(--bg) 82%, #2b121a 18%) !important;
   border-color: color-mix(in srgb, var(--accent2) 34%, transparent) !important;
   box-shadow: 0 24px 56px -40px rgba(0, 0, 0, 0.84);
 }
 
 html[data-theme="dark"] .admin-content-editor .bg-white\/80 {
-  background: color-mix(in srgb, var(--bg) 78%, #341846 22%) !important;
+  background: color-mix(in srgb, var(--bg) 78%, #331520 22%) !important;
   border-color: color-mix(in srgb, var(--accent2) 36%, transparent) !important;
 }
 
@@ -212,27 +223,27 @@ html[data-theme="dark"] .admin-content-editor .bg-bg,
 html[data-theme="dark"] .admin-content-editor .bg-bg\/70,
 html[data-theme="dark"] .admin-content-editor .bg-bg\/80,
 html[data-theme="dark"] .admin-content-editor .bg-bg\/90 {
-  background: color-mix(in srgb, var(--bg) 88%, #251436 12%) !important;
+  background: color-mix(in srgb, var(--bg) 88%, #24121a 12%) !important;
 }
 
 html[data-theme="dark"] .admin-content-editor input,
 html[data-theme="dark"] .admin-content-editor textarea {
-  background: color-mix(in srgb, var(--bg) 76%, #3a1d4d 24%) !important;
+  background: color-mix(in srgb, var(--bg) 76%, #3a1925 24%) !important;
   border-color: color-mix(in srgb, var(--accent2) 34%, transparent) !important;
   color: var(--fg) !important;
 }
 
 html[data-theme="dark"] .admin-content-editor input::placeholder,
 html[data-theme="dark"] .admin-content-editor textarea::placeholder {
-  color: color-mix(in srgb, var(--fg) 46%, #c29cb5 54%);
+  color: color-mix(in srgb, var(--fg) 46%, #c3a2ad 54%);
 }
 
 html[data-theme="dark"] .admin-content-editor .text-muted {
-  color: color-mix(in srgb, var(--fg) 76%, #f2b9e7 24%) !important;
+  color: color-mix(in srgb, var(--fg) 76%, #f2becd 24%) !important;
 }
 
 html[data-theme="dark"] .admin-content-editor .text-fg\/80 {
-  color: color-mix(in srgb, var(--fg) 88%, #f6c6ec 12%) !important;
+  color: color-mix(in srgb, var(--fg) 88%, #f6ccd9 12%) !important;
 }
 
 html[data-theme="dark"] .admin-content-editor .bg-accent\/10 {
@@ -240,17 +251,17 @@ html[data-theme="dark"] .admin-content-editor .bg-accent\/10 {
 }
 
 html[data-theme="dark"] .auth-page .bg-white\/70 {
-  background: color-mix(in srgb, var(--bg) 84%, #2f1640 16%) !important;
-  border-color: color-mix(in srgb, #d88ce7 34%, transparent) !important;
+  background: color-mix(in srgb, var(--bg) 84%, #2e141d 16%) !important;
+  border-color: color-mix(in srgb, #d98ea8 34%, transparent) !important;
   box-shadow: 0 28px 60px -40px rgba(0, 0, 0, 0.86);
 }
 
 html[data-theme="dark"] .auth-page .text-muted {
-  color: color-mix(in srgb, var(--fg) 82%, #f4c4ea 18%) !important;
+  color: color-mix(in srgb, var(--fg) 82%, #f4cad6 18%) !important;
 }
 
 html[data-theme="dark"] .auth-page .text-fg\/80 {
-  color: color-mix(in srgb, var(--fg) 90%, #f8d1ef 10%) !important;
+  color: color-mix(in srgb, var(--fg) 90%, #f8d8e2 10%) !important;
 }
 
 html[data-theme="dark"] .auth-page .bg-accent\/10 {
@@ -259,30 +270,30 @@ html[data-theme="dark"] .auth-page .bg-accent\/10 {
 
 html[data-theme="dark"] .auth-page input,
 html[data-theme="dark"] .auth-page textarea {
-  background: color-mix(in srgb, var(--bg) 76%, #3a1b4c 24%) !important;
-  border-color: color-mix(in srgb, #d58ce4 36%, transparent) !important;
+  background: color-mix(in srgb, var(--bg) 76%, #391824 24%) !important;
+  border-color: color-mix(in srgb, #d68ca6 36%, transparent) !important;
   color: var(--fg) !important;
 }
 
 html[data-theme="dark"] .auth-page input::placeholder,
 html[data-theme="dark"] .auth-page textarea::placeholder {
-  color: color-mix(in srgb, var(--fg) 46%, #c29cb5 54%);
+  color: color-mix(in srgb, var(--fg) 46%, #c3a2ad 54%);
 }
 
 html[data-theme="dark"] .booking-page .booking-card {
-  background: color-mix(in srgb, var(--bg) 84%, #2f1640 16%) !important;
-  border-color: color-mix(in srgb, #d88ce7 34%, transparent) !important;
+  background: color-mix(in srgb, var(--bg) 84%, #2e141d 16%) !important;
+  border-color: color-mix(in srgb, #d98ea8 34%, transparent) !important;
   box-shadow: 0 28px 60px -40px rgba(0, 0, 0, 0.86);
 }
 
 html[data-theme="dark"] .booking-page .text-muted {
-  color: color-mix(in srgb, var(--fg) 82%, #f4c4ea 18%) !important;
+  color: color-mix(in srgb, var(--fg) 82%, #f4cad6 18%) !important;
 }
 
 html[data-theme="dark"] .booking-page .booking-form input:not([type="checkbox"]),
 html[data-theme="dark"] .booking-page .booking-form textarea {
-  background: color-mix(in srgb, var(--bg) 76%, #3a1b4c 24%) !important;
-  border-color: color-mix(in srgb, #d58ce4 36%, transparent) !important;
+  background: color-mix(in srgb, var(--bg) 76%, #391824 24%) !important;
+  border-color: color-mix(in srgb, #d68ca6 36%, transparent) !important;
   color: var(--fg) !important;
 }
 
@@ -291,19 +302,19 @@ html[data-theme="dark"]
   .booking-form
   input:not([type="checkbox"])::placeholder,
 html[data-theme="dark"] .booking-page .booking-form textarea::placeholder {
-  color: color-mix(in srgb, var(--fg) 46%, #c29cb5 54%);
+  color: color-mix(in srgb, var(--fg) 46%, #c3a2ad 54%);
 }
 
 html[data-theme="dark"] .booking-page .booking-note,
 html[data-theme="dark"] .booking-page .booking-summary {
-  background: color-mix(in srgb, var(--bg) 88%, #241434 12%) !important;
-  border-color: color-mix(in srgb, #cf8ee4 30%, transparent) !important;
+  background: color-mix(in srgb, var(--bg) 88%, #231219 12%) !important;
+  border-color: color-mix(in srgb, #cf8ca3 30%, transparent) !important;
 }
 
 html[data-theme="dark"] .booking-page .booking-extras,
 html[data-theme="dark"] .booking-page .booking-calendar {
-  background: color-mix(in srgb, var(--bg) 82%, #2e1640 18%) !important;
-  border-color: color-mix(in srgb, #d58ce4 34%, transparent) !important;
+  background: color-mix(in srgb, var(--bg) 82%, #2d151e 18%) !important;
+  border-color: color-mix(in srgb, #d68ca6 34%, transparent) !important;
 }
 
 html[data-theme="dark"] .booking-page .booking-calendar .fc {
@@ -342,17 +353,17 @@ html[data-theme="dark"] .booking-page .booking-calendar .fc .fc-daygrid-event {
 html[data-theme="dark"]
   .booking-page
   .booking-slot-button.border-accent\/20.bg-white.text-fg {
-  background: color-mix(in srgb, var(--bg) 78%, #351c49) !important;
-  border-color: color-mix(in srgb, #d88ce7 34%, transparent) !important;
+  background: color-mix(in srgb, var(--bg) 78%, #341925) !important;
+  border-color: color-mix(in srgb, #d98ea8 34%, transparent) !important;
   color: #fdf1fb !important;
 }
 
 html[data-theme="dark"]
   .booking-page
   .booking-slot-button.border-accent.bg-accent\/10.text-accent {
-  background: color-mix(in srgb, var(--accent) 22%, #2b153b) !important;
-  border-color: color-mix(in srgb, #ff83d8 58%, transparent) !important;
-  color: #ffe8f8 !important;
+  background: color-mix(in srgb, var(--accent) 22%, #2b141d) !important;
+  border-color: color-mix(in srgb, #e77fa3 58%, transparent) !important;
+  color: #fcecf2 !important;
 }
 
 html[data-theme="dark"] .booking-page .booking-submit {
@@ -389,13 +400,13 @@ html[data-theme="dark"] .map-embed-overlay {
   background:
     radial-gradient(
       ellipse at 18% 0%,
-      color-mix(in srgb, #ff88d8 14%, transparent) 0 38%,
+      color-mix(in srgb, #ec7fa5 14%, transparent) 0 38%,
       transparent 72%
     ),
     linear-gradient(
       180deg,
-      color-mix(in srgb, #180c22 44%, transparent),
-      color-mix(in srgb, #180c22 56%, transparent)
+      color-mix(in srgb, #170b11 44%, transparent),
+      color-mix(in srgb, #170b11 56%, transparent)
     );
 }
 
@@ -481,12 +492,12 @@ html[data-theme="dark"] .map-embed-overlay {
   background:
     radial-gradient(
       ellipse at 18% 32%,
-      color-mix(in srgb, #ff66ce 48%, transparent) 0 120px,
+      color-mix(in srgb, #e65681 48%, transparent) 0 120px,
       transparent 340px
     ),
     radial-gradient(
       ellipse at 82% 18%,
-      color-mix(in srgb, #c86cff 38%, transparent) 0 95px,
+      color-mix(in srgb, #de6289 38%, transparent) 0 95px,
       transparent 280px
     );
   filter: blur(22px);
@@ -506,9 +517,9 @@ html[data-theme="dark"] .map-embed-overlay {
   background:
     linear-gradient(
       120deg,
-      color-mix(in srgb, #ffe1f3 7%, transparent),
+      color-mix(in srgb, #fbe4eb 7%, transparent),
       transparent 26%,
-      color-mix(in srgb, #ffc2e8 8%, transparent) 44%,
+      color-mix(in srgb, #f7c5d4 8%, transparent) 44%,
       transparent 62%
     ),
     radial-gradient(
@@ -518,7 +529,7 @@ html[data-theme="dark"] .map-embed-overlay {
     ),
     radial-gradient(
       ellipse at 90% 18%,
-      color-mix(in srgb, #f7c6e8 12%, transparent) 0 36%,
+      color-mix(in srgb, #f3c8d3 12%, transparent) 0 36%,
       transparent 68%
     );
   opacity: 0;
@@ -539,8 +550,8 @@ html[data-theme="dark"] .map-embed-overlay {
 }
 
 html[data-theme="dark"] .agenda-panel--day {
-  background: color-mix(in srgb, var(--bg) 84%, #2a1738 16%) !important;
-  border-color: color-mix(in srgb, #d58ce3 34%, transparent) !important;
+  background: color-mix(in srgb, var(--bg) 84%, #29141d 16%) !important;
+  border-color: color-mix(in srgb, #d68ca6 34%, transparent) !important;
   box-shadow: 0 34px 72px -48px rgba(0, 0, 0, 0.9);
 }
 
@@ -595,38 +606,38 @@ html[data-theme="dark"] .agenda-panel--day::after {
   background:
     radial-gradient(
       ellipse at 32% 58%,
-      color-mix(in srgb, #b85fff 24%, transparent) 0 210px,
+      color-mix(in srgb, #c45a83 24%, transparent) 0 210px,
       transparent 370px
     ),
     radial-gradient(
       ellipse at 84% 34%,
-      color-mix(in srgb, #ff5fc9 18%, transparent) 0 190px,
+      color-mix(in srgb, #df537d 18%, transparent) 0 190px,
       transparent 340px
     ),
     radial-gradient(
       ellipse at 78% 6%,
-      color-mix(in srgb, #ffc3eb 42%, transparent) 0 90px,
+      color-mix(in srgb, #f4bfd0 42%, transparent) 0 90px,
       transparent 210px
     ),
     radial-gradient(
       circle at 12% 84%,
-      color-mix(in srgb, #d47aff 20%, transparent) 0 160px,
+      color-mix(in srgb, #cf6a93 20%, transparent) 0 160px,
       transparent 320px
     ),
     radial-gradient(
       circle at 76% 68%,
-      color-mix(in srgb, #ff86d5 10%, transparent) 0 170px,
+      color-mix(in srgb, #ea7ca1 10%, transparent) 0 170px,
       transparent 330px
     ),
     linear-gradient(
       135deg,
-      color-mix(in srgb, #ffd8ef 4%, transparent) 0 34%,
+      color-mix(in srgb, #f8dbe5 4%, transparent) 0 34%,
       transparent 62%
     ),
     linear-gradient(
       180deg,
-      color-mix(in srgb, #130a1d 96%, transparent),
-      color-mix(in srgb, #201133 92%, transparent)
+      color-mix(in srgb, #12090f 96%, transparent),
+      color-mix(in srgb, #1f1117 92%, transparent)
     );
   transform: translate3d(0, 8px, 0) scale(1.02);
   filter: saturate(0.95);
@@ -722,11 +733,11 @@ html[data-theme="dark"] .agenda-panel--day::after {
 }
 
 html[data-theme="dark"] .agenda-calendar--day {
-  border-color: color-mix(in srgb, #d186e0 34%, transparent) !important;
-  background: color-mix(in srgb, var(--bg) 90%, #241533 10%) !important;
+  border-color: color-mix(in srgb, #d1849f 34%, transparent) !important;
+  background: color-mix(in srgb, var(--bg) 90%, #23131a 10%) !important;
   box-shadow:
-    inset 0 1px 0 color-mix(in srgb, #ffd9f1 12%, transparent),
-    inset 0 -70px 120px -102px color-mix(in srgb, #ff9fdf 28%, transparent);
+    inset 0 1px 0 color-mix(in srgb, #f9dde7 12%, transparent),
+    inset 0 -70px 120px -102px color-mix(in srgb, #ee95b5 28%, transparent);
 }
 
 html[data-theme="dark"] .agenda-calendar--day::before {
@@ -734,18 +745,18 @@ html[data-theme="dark"] .agenda-calendar--day::before {
   background:
     radial-gradient(
       circle at 12% 12%,
-      color-mix(in srgb, #ff9ddf 16%, transparent) 0 120px,
+      color-mix(in srgb, #ee93b3 16%, transparent) 0 120px,
       transparent 210px
     ),
     radial-gradient(
       ellipse at 84% 2%,
-      color-mix(in srgb, #ffd1ef 11%, transparent) 0 240px,
+      color-mix(in srgb, #f7d2e0 11%, transparent) 0 240px,
       transparent 410px
     ),
     linear-gradient(
       180deg,
-      color-mix(in srgb, #29183a 62%, transparent),
-      color-mix(in srgb, #1a1028 78%, transparent)
+      color-mix(in srgb, #28151e 62%, transparent),
+      color-mix(in srgb, #1a0f15 78%, transparent)
     );
 }
 
@@ -801,7 +812,7 @@ html[data-theme="dark"] .agenda-calendar--day .fc .fc-timegrid-divider {
 .agenda-calendar--night {
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, #ffd7ef 16%, transparent),
-    inset 0 -80px 130px -105px color-mix(in srgb, #ff90dd 55%, transparent);
+    inset 0 -80px 130px -105px color-mix(in srgb, #ea87ab 55%, transparent);
 }
 
 .agenda-calendar--night::before {

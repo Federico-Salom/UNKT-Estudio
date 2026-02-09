@@ -8,6 +8,14 @@ const DEFAULT_LOGO_SRC = "/logo.jpg";
 const DEFAULT_WORDMARK_SRC = "/logo-largo.svg";
 const DEFAULT_FLOOR_PLAN_SRC = "/plano-estudio.svg";
 const DEFAULT_FLOOR_PLAN_ALT = "Plano del lugar";
+const DEFAULT_GALLERY = studio.gallery.slice(0, 1);
+const LEGACY_GALLERY_PLACEHOLDERS = new Set([
+  "/gallery-2.svg",
+  "/gallery-3.svg",
+  "/gallery-4.svg",
+  "/gallery-5.svg",
+  "/gallery-6.svg",
+]);
 
 const serializeContent = (data: StudioContent) => {
   return JSON.stringify(data);
@@ -66,6 +74,19 @@ const normalizeAssetPaths = (content: StudioContent): StudioContent => {
     content.seo.ogImage === LEGACY_LOGO_SRC
       ? DEFAULT_LOGO_SRC
       : content.seo.ogImage;
+  const fallbackGalleryItem = DEFAULT_GALLERY[0];
+  const normalizedGallery = content.gallery
+    .map((item) => {
+      const normalizedSrc = LEGACY_GALLERY_PLACEHOLDERS.has(item.src)
+        ? fallbackGalleryItem.src
+        : item.src;
+      return {
+        ...item,
+        src: normalizedSrc || fallbackGalleryItem.src,
+        alt: item.alt || fallbackGalleryItem.alt,
+      };
+    })
+    .filter((item) => Boolean(item.src?.trim()));
 
   return {
     ...content,
@@ -83,6 +104,7 @@ const normalizeAssetPaths = (content: StudioContent): StudioContent => {
       src: content.floorPlan.src || DEFAULT_FLOOR_PLAN_SRC,
       alt: content.floorPlan.alt || DEFAULT_FLOOR_PLAN_ALT,
     },
+    gallery: normalizedGallery.length ? normalizedGallery : DEFAULT_GALLERY,
   };
 };
 

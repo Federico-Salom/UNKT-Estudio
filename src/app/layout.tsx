@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Lobster, Nunito } from "next/font/google";
+import { Gayathri } from "next/font/google";
 import "./globals.css";
 import { getStudioContent } from "@/lib/studio-content";
 import VisitTracker from "@/components/VisitTracker";
@@ -20,15 +20,15 @@ const resolveSafeSiteUrl = (value: string) => {
   }
 };
 
-const bodyFont = Nunito({
+const bodyFont = Gayathri({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["100", "400", "700"],
   variable: "--font-body",
 });
 
-const displayFont = Lobster({
+const displayFont = Gayathri({
   subsets: ["latin"],
-  weight: "400",
+  weight: ["100", "400", "700"],
   variable: "--font-head",
 });
 
