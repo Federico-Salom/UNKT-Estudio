@@ -307,7 +307,7 @@ export default function BookingForm({
                   className={`booking-slot-button rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
                     isSelected
                       ? "border-accent bg-accent/10 text-accent"
-                      : "border-accent/20 bg-white text-fg hover:border-accent"
+                      : "border-accent/20 bg-white text-fg hover:border-accent hover:bg-accent/5"
                   }`}
                 >
                   {label}
@@ -380,7 +380,7 @@ export default function BookingForm({
       </div>
 
       <button
-        className="booking-submit mt-2 inline-flex items-center justify-center rounded-full bg-accent px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white transition hover:bg-accent2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2 disabled:cursor-not-allowed disabled:opacity-70"
+        className="booking-submit mt-2 inline-flex items-center justify-center rounded-full bg-accent px-6 py-3 text-sm font-semibold uppercase tracking-wide text-bg transition hover:bg-accent2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2 disabled:cursor-not-allowed disabled:opacity-70"
         type="submit"
         disabled={
           status === "loading" ||
