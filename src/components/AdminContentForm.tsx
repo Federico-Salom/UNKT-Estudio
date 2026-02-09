@@ -44,6 +44,9 @@ export default function AdminContentForm({
   const [seoOgFileName, setSeoOgFileName] = useState(
     "Ningun archivo seleccionado"
   );
+  const [floorPlanFileName, setFloorPlanFileName] = useState(
+    "Ningun archivo seleccionado"
+  );
   const [galleryItems, setGalleryItems] = useState<GalleryFormItem[]>(() =>
     gallery.slice(0, 10).map((item, index) => ({
       id: `existing-${index}-${Math.random().toString(36).slice(2, 8)}`,
@@ -158,6 +161,13 @@ export default function AdminContentForm({
   const handleSeoOgFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     setSeoOgFileName(file ? file.name : "Ningun archivo seleccionado");
+  };
+
+  const handleFloorPlanFileChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    setFloorPlanFileName(file ? file.name : "Ningun archivo seleccionado");
   };
 
   const handleGalleryUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -283,6 +293,60 @@ export default function AdminContentForm({
                     name="heroSubtitle"
                     defaultValue={studio.hero.subtitle}
                     required
+                  />
+                </label>
+              </div>
+            </div>
+          </details>
+
+          <details className="rounded-2xl border border-accent/15 bg-white/80 p-5">
+            <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
+              Plano del lugar
+            </summary>
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <div className="grid gap-3">
+                <div className="overflow-hidden rounded-2xl border border-accent/20 bg-bg p-3">
+                  <img
+                    className="h-48 w-full rounded-xl object-contain"
+                    src={studio.floorPlan.src}
+                    alt={studio.floorPlan.alt}
+                  />
+                </div>
+                <span className="text-xs font-semibold uppercase tracking-wide text-muted">
+                  Plano actual en el home
+                </span>
+              </div>
+
+              <div className="grid gap-4">
+                <label className="grid gap-2 text-sm font-semibold">
+                  Alt del plano
+                  <input
+                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                    type="text"
+                    name="floorPlanAlt"
+                    defaultValue={studio.floorPlan.alt}
+                    required
+                  />
+                </label>
+
+                <label className="grid gap-2 text-sm font-semibold">
+                  Reemplazar plano
+                  <div className="flex flex-wrap items-center gap-3">
+                    <label
+                      htmlFor="floorPlanImage"
+                      className="inline-flex items-center justify-center rounded-full border border-accent/30 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10"
+                    >
+                      Seleccionar imagen
+                    </label>
+                    <span className="text-xs text-muted">{floorPlanFileName}</span>
+                  </div>
+                  <input
+                    id="floorPlanImage"
+                    type="file"
+                    name="floorPlanImage"
+                    accept="image/*"
+                    className="sr-only"
+                    onChange={handleFloorPlanFileChange}
                   />
                 </label>
               </div>

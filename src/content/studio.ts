@@ -20,6 +20,10 @@ export const studio = {
       alt: "Vista del estudio fotográfico con fondo y luces.",
     },
   },
+  floorPlan: {
+    src: "/plano-estudio.svg",
+    alt: "Plano del lugar",
+  },
   gallery: [
     {
       src: "/gallery-1.svg",

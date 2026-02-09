@@ -6,6 +6,8 @@ const DEFAULT_ID = "main";
 const LEGACY_LOGO_SRC = "/logo.svg";
 const DEFAULT_LOGO_SRC = "/logo.jpg";
 const DEFAULT_WORDMARK_SRC = "/logo-largo.svg";
+const DEFAULT_FLOOR_PLAN_SRC = "/plano-estudio.svg";
+const DEFAULT_FLOOR_PLAN_ALT = "Plano del lugar";
 
 const serializeContent = (data: StudioContent) => {
   return JSON.stringify(data);
@@ -75,6 +77,11 @@ const normalizeAssetPaths = (content: StudioContent): StudioContent => {
     seo: {
       ...content.seo,
       ogImage: normalizedOgImage || normalizedLogoSrc || DEFAULT_LOGO_SRC,
+    },
+    floorPlan: {
+      ...content.floorPlan,
+      src: content.floorPlan.src || DEFAULT_FLOOR_PLAN_SRC,
+      alt: content.floorPlan.alt || DEFAULT_FLOOR_PLAN_ALT,
     },
   };
 };

@@ -1,57 +1,6 @@
 <svg width="1600" height="1100" viewBox="0 0 1600 1100" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect width="1600" height="1100" fill="#F7EFE0"/>
-
-  <g stroke="#8B6A78" stroke-width="3">
-    <rect x="110" y="120" width="1380" height="300"/>
-    <rect x="130" y="140" width="140" height="210"/>
-    <rect x="280" y="140" width="90" height="170"/>
-    <rect x="380" y="140" width="130" height="190"/>
-    <rect x="530" y="140" width="250" height="250"/>
-    <rect x="800" y="140" width="320" height="250"/>
-    <rect x="1135" y="140" width="335" height="250"/>
-    <path d="M270 350L370 430L540 430L540 500L1020 500L1020 560L1420 560L1420 520L1490 520"/>
-
-    <path d="M620 390C620 350 670 350 700 390"/>
-    <path d="M760 390C760 350 710 350 680 390"/>
-    <path d="M840 390C840 350 890 350 920 390"/>
-    <path d="M1120 390C1120 350 1170 350 1200 390"/>
-    <path d="M1300 560C1340 560 1360 520 1360 500"/>
-  </g>
-
-  <g font-family="Arial, sans-serif" fill="#8B6A78" text-anchor="middle">
-    <text x="200" y="270" font-size="46" font-weight="600">COCINA</text>
-    <text x="200" y="315" font-size="40">6.5 m2</text>
-
-    <text x="325" y="250" font-size="38" font-weight="600">TOILET</text>
-    <text x="325" y="292" font-size="34">1.5 m2</text>
-
-    <text x="445" y="250" font-size="44" font-weight="600">BANO</text>
-    <text x="445" y="295" font-size="40">4.0 m2</text>
-
-    <text x="655" y="270" font-size="52" font-weight="600">PRIVADO</text>
-
-    <text x="960" y="270" font-size="52" font-weight="600">SALA</text>
-    <text x="960" y="325" font-size="48">15.5 m2</text>
-
-    <text x="1300" y="270" font-size="52" font-weight="600">ESTUDIO</text>
-    <text x="1300" y="325" font-size="48">14 m2</text>
-
-    <text x="700" y="485" font-size="54" font-weight="600">PASILLO</text>
-    <text x="220" y="620" text-anchor="start" font-size="66" font-weight="600">PLANTA 1</text>
-  </g>
-
-  <g stroke="#8B6A78" stroke-width="3" stroke-dasharray="8 8">
-    <path d="M110 700H1510V1030H1080V970H520L350 840H110V700Z"/>
-  </g>
-  <g stroke="#8B6A78" stroke-width="3">
-    <path d="M1080 1030H1320V910H1450V1030H1510"/>
-    <path d="M1240 910V1030"/>
-    <path d="M1210 910V1030"/>
-    <path d="M1180 910V1030"/>
-    <path d="M1150 910V1030"/>
-  </g>
-  <g font-family="Arial, sans-serif" fill="#8B6A78">
-    <text x="220" y="1090" text-anchor="start" font-size="66" font-weight="600">PLANTA AZOTEA</text>
-    <text x="820" y="900" text-anchor="middle" font-size="52">100 m2</text>
-  </g>
+  <rect x="100" y="110" width="1400" height="880" rx="30" fill="#EFE7D8" stroke="#8B6A78" stroke-width="3"/>
+  <rect x="135" y="145" width="1330" height="810" rx="20" fill="none" stroke="#8B6A78" stroke-width="2" stroke-dasharray="10 10"/>
+  <text x="800" y="575" text-anchor="middle" font-family="Arial, sans-serif" font-size="170" font-weight="700" fill="#8B6A78" letter-spacing="12">PLANO</text>
 </svg>

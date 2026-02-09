@@ -169,6 +169,10 @@ export async function POST(request: NextRequest) {
   if (heroAlt) {
     nextContent.hero.image.alt = heroAlt;
   }
+  const floorPlanAlt = toText(formData.get("floorPlanAlt"));
+  if (floorPlanAlt) {
+    nextContent.floorPlan.alt = floorPlanAlt;
+  }
 
   const logoFile = getFile(formData.get("logoImage"));
   if (logoFile) {
@@ -183,6 +187,10 @@ export async function POST(request: NextRequest) {
   const heroFile = getFile(formData.get("heroImage"));
   if (heroFile) {
     nextContent.hero.image.src = await saveUpload(heroFile);
+  }
+  const floorPlanFile = getFile(formData.get("floorPlanImage"));
+  if (floorPlanFile) {
+    nextContent.floorPlan.src = await saveUpload(floorPlanFile);
   }
 
   const seoOgFile = getFile(formData.get("seoOgImageFile"));

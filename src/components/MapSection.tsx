@@ -8,8 +8,8 @@ type MapSectionProps = {
 
 export default function MapSection({ studio }: MapSectionProps) {
   const floorPlanLink = "#galeria";
-  const floorPlanSrc = "/plano-estudio.svg";
-  const floorPlanAlt = studio.hero.image.alt || "Plano del lugar";
+  const floorPlanSrc = studio.floorPlan.src || "/plano-estudio.svg";
+  const floorPlanAlt = studio.floorPlan.alt || "Plano del lugar";
 
   return (
     <section className="bg-bg py-14 md:py-20">
