@@ -207,7 +207,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   const maxCount = Math.max(1, ...buckets.map((bucket) => bucket.count));
   const maxRevenue = Math.max(1, ...buckets.map((bucket) => bucket.revenue));
 return (
-    <div className="min-h-screen bg-bg text-fg">
+    <div className="admin-dashboard min-h-screen bg-bg text-fg">
       <header className="border-b border-accent/20 bg-bg/95">
         <Container className="flex items-center justify-between py-4">
           <BrandMark studio={studio} />

@@ -146,6 +146,71 @@ html[data-theme="dark"] .user-menu-trigger:hover {
   background: color-mix(in srgb, var(--bg) 70%, var(--accent2) 30%);
 }
 
+html[data-theme="dark"] .admin-dashboard .bg-white\/70 {
+  background: color-mix(in srgb, var(--bg) 82%, #2c1438 18%) !important;
+  border-color: color-mix(in srgb, var(--accent2) 34%, transparent) !important;
+  box-shadow: 0 24px 56px -40px rgba(0, 0, 0, 0.82);
+}
+
+html[data-theme="dark"] .admin-dashboard .bg-white\/80 {
+  background: color-mix(in srgb, var(--bg) 78%, #341846 22%) !important;
+  border-color: color-mix(in srgb, var(--accent2) 36%, transparent) !important;
+}
+
+html[data-theme="dark"] .admin-dashboard .text-muted {
+  color: color-mix(in srgb, var(--fg) 76%, #f2b9e7 24%) !important;
+}
+
+html[data-theme="dark"] .admin-dashboard .text-fg\/80 {
+  color: color-mix(in srgb, var(--fg) 88%, #f6c6ec 12%) !important;
+}
+
+html[data-theme="dark"] .admin-dashboard .bg-accent\/10 {
+  background: color-mix(in srgb, var(--accent) 20%, transparent) !important;
+}
+
+html[data-theme="dark"] .admin-content-editor .bg-white\/70 {
+  background: color-mix(in srgb, var(--bg) 82%, #2c1438 18%) !important;
+  border-color: color-mix(in srgb, var(--accent2) 34%, transparent) !important;
+  box-shadow: 0 24px 56px -40px rgba(0, 0, 0, 0.84);
+}
+
+html[data-theme="dark"] .admin-content-editor .bg-white\/80 {
+  background: color-mix(in srgb, var(--bg) 78%, #341846 22%) !important;
+  border-color: color-mix(in srgb, var(--accent2) 36%, transparent) !important;
+}
+
+html[data-theme="dark"] .admin-content-editor .bg-bg,
+html[data-theme="dark"] .admin-content-editor .bg-bg\/70,
+html[data-theme="dark"] .admin-content-editor .bg-bg\/80,
+html[data-theme="dark"] .admin-content-editor .bg-bg\/90 {
+  background: color-mix(in srgb, var(--bg) 88%, #251436 12%) !important;
+}
+
+html[data-theme="dark"] .admin-content-editor input,
+html[data-theme="dark"] .admin-content-editor textarea {
+  background: color-mix(in srgb, var(--bg) 76%, #3a1d4d 24%) !important;
+  border-color: color-mix(in srgb, var(--accent2) 34%, transparent) !important;
+  color: var(--fg) !important;
+}
+
+html[data-theme="dark"] .admin-content-editor input::placeholder,
+html[data-theme="dark"] .admin-content-editor textarea::placeholder {
+  color: color-mix(in srgb, var(--fg) 46%, #c29cb5 54%);
+}
+
+html[data-theme="dark"] .admin-content-editor .text-muted {
+  color: color-mix(in srgb, var(--fg) 76%, #f2b9e7 24%) !important;
+}
+
+html[data-theme="dark"] .admin-content-editor .text-fg\/80 {
+  color: color-mix(in srgb, var(--fg) 88%, #f6c6ec 12%) !important;
+}
+
+html[data-theme="dark"] .admin-content-editor .bg-accent\/10 {
+  background: color-mix(in srgb, var(--accent) 20%, transparent) !important;
+}
+
 .map-embed-shell {
   position: relative;
   isolation: isolate;
