@@ -3,7 +3,6 @@ import Gallery from "@/components/Gallery";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import MapSection from "@/components/MapSection";
-import WhatsAppButton from "@/components/WhatsAppButton";
 import { getStudioContent } from "@/lib/studio-content";
 
 export const dynamic = "force-dynamic";
@@ -20,7 +19,6 @@ export default async function Home() {
         <MapSection studio={studio} />
       </main>
       <Footer studio={studio} />
-      <WhatsAppButton studio={studio} />
     </div>
   );
 }

@@ -77,23 +77,16 @@ a[class*="inline-flex"][class*="uppercase"],
   transform: translateY(var(--button-label-shift));
 }
 
-.theme-toggle-btn {
-  padding-top: 0;
-  padding-bottom: 0;
-}
-
 .theme-toggle-btn .button-label {
   --button-label-shift: 0;
 }
 
 .min-h-screen.bg-bg,
-section.bg-bg,
 footer.bg-bg {
   background-image: none;
 }
 
-.min-h-screen.bg-bg,
-section.bg-bg {
+.min-h-screen.bg-bg {
   background-color: var(--bg);
   background-image:
     linear-gradient(
@@ -107,8 +100,13 @@ section.bg-bg {
   background-attachment: fixed;
 }
 
+/* Keep section backgrounds transparent so the page texture remains continuous. */
+section.bg-bg {
+  background-color: transparent;
+  background-image: none;
+}
+
 html[data-theme="dark"] .min-h-screen.bg-bg,
-html[data-theme="dark"] section.bg-bg,
 html[data-theme="dark"] footer.bg-bg {
   background-color: var(--bg);
   background-image:
@@ -129,9 +127,13 @@ html[data-theme="dark"] footer.bg-bg {
     url("/patron-flores-soft.png");
 }
 
+html[data-theme="dark"] section.bg-bg {
+  background-color: transparent;
+  background-image: none;
+}
+
 @media (max-width: 768px) {
-  .min-h-screen.bg-bg,
-  section.bg-bg {
+  .min-h-screen.bg-bg {
     background-size: 1100px auto;
     background-attachment: scroll;
   }
@@ -144,6 +146,95 @@ html[data-theme="dark"] footer.bg-bg {
 
 .gallery-scroll::-webkit-scrollbar {
   display: none;
+}
+
+.gallery-slide {
+  flex: 0 0 calc(100% - 1.5rem);
+}
+
+@media (min-width: 768px) {
+  .gallery-slide {
+    flex-basis: calc(100% - 5rem);
+  }
+}
+
+@media (min-width: 1280px) {
+  .gallery-slide {
+    flex-basis: calc(100% - 8rem);
+  }
+}
+
+.gallery-swipe-hint-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  background: color-mix(in srgb, var(--bg) 88%, #ffffff 12%);
+  padding: 0.4rem 0.78rem;
+  box-shadow: 0 12px 28px -20px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  animation: gallery-hint-fade-in 320ms ease-out;
+}
+
+.gallery-swipe-hint-text {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.gallery-swipe-hint-arrows {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.18rem;
+  color: var(--accent);
+  animation: gallery-hint-swipe 1.3s ease-in-out infinite;
+}
+
+.gallery-swipe-hint-arrows svg {
+  width: 0.82rem;
+  height: 0.82rem;
+  opacity: 0.86;
+}
+
+html[data-theme="dark"] .gallery-swipe-hint-pill {
+  border-color: color-mix(in srgb, var(--accent2) 58%, transparent);
+  background: color-mix(in srgb, var(--bg) 80%, #2f1520 20%);
+  box-shadow: 0 14px 30px -18px rgba(0, 0, 0, 0.88);
+}
+
+html[data-theme="dark"] .gallery-swipe-hint-text,
+html[data-theme="dark"] .gallery-swipe-hint-arrows {
+  color: color-mix(in srgb, var(--fg) 90%, var(--accent2) 10%);
+}
+
+@keyframes gallery-hint-swipe {
+  0%,
+  100% {
+    transform: translateX(0);
+    opacity: 0.76;
+  }
+  30% {
+    transform: translateX(-8px);
+    opacity: 1;
+  }
+  68% {
+    transform: translateX(8px);
+    opacity: 1;
+  }
+}
+
+@keyframes gallery-hint-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 html[data-theme="dark"] .gallery-slide {
@@ -166,56 +257,6 @@ html[data-theme="dark"] .gallery-nav-btn {
 html[data-theme="dark"] .gallery-nav-btn:hover {
   border-color: color-mix(in srgb, var(--accent2) 90%, transparent);
   background: color-mix(in srgb, var(--bg) 68%, var(--accent2) 32%);
-  color: var(--fg);
-}
-
-html[data-theme="dark"] .theme-toggle-btn {
-  border-color: color-mix(in srgb, var(--accent2) 45%, transparent);
-  background:
-    linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--bg) 84%, var(--accent) 16%),
-      color-mix(in srgb, var(--bg) 80%, var(--accent2) 20%)
-    );
-  color: var(--fg);
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, #ffffff 55%, transparent),
-    0 14px 28px -20px rgba(0, 0, 0, 0.9);
-}
-
-html[data-theme="dark"] .theme-toggle-btn:hover {
-  border-color: color-mix(in srgb, var(--accent2) 58%, transparent);
-  background:
-    linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--bg) 74%, var(--accent) 26%),
-      color-mix(in srgb, var(--bg) 70%, var(--accent2) 30%)
-    );
-  color: var(--fg);
-}
-
-html[data-theme="dark"] .user-menu-trigger {
-  border-color: color-mix(in srgb, var(--accent2) 60%, transparent);
-  background:
-    radial-gradient(
-      circle at 32% 20%,
-      color-mix(in srgb, var(--accent2) 20%, transparent) 0 55%,
-      transparent 82%
-    ),
-    color-mix(in srgb, var(--bg) 80%, var(--accent2) 20%);
-  color: color-mix(in srgb, var(--fg) 86%, var(--accent2) 14%);
-  box-shadow: 0 12px 24px -18px rgba(0, 0, 0, 0.85);
-}
-
-html[data-theme="dark"] .user-menu-trigger:hover {
-  border-color: color-mix(in srgb, var(--accent2) 74%, transparent);
-  background:
-    radial-gradient(
-      circle at 30% 18%,
-      color-mix(in srgb, var(--accent2) 28%, transparent) 0 56%,
-      transparent 82%
-    ),
-    color-mix(in srgb, var(--bg) 68%, var(--accent2) 32%);
   color: var(--fg);
 }
 
@@ -944,7 +985,9 @@ html[data-theme="dark"] .agenda-calendar--day .fc .fc-timegrid-divider {
   .agenda-calendar .fc .fc-timegrid-axis,
   .agenda-calendar .fc .fc-col-header-cell,
   .agenda-calendar .fc .fc-timegrid-divider,
-  .agenda-calendar .fc .fc-event {
+  .agenda-calendar .fc .fc-event,
+  .gallery-swipe-hint-pill,
+  .gallery-swipe-hint-arrows {
     transition: none !important;
     animation: none !important;
   }

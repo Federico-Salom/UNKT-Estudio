@@ -12,12 +12,12 @@ type HeaderProps = {
 
 export default async function Header({ studio }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-50 border-b border-accent/20 bg-bg/95 backdrop-blur">
-      <Container className="flex items-center justify-between gap-3 py-3 md:py-4">
-        <div className="md:hidden">
-          <BrandMark studio={studio} size={40} showText={false} />
+    <header className="relative z-50 border-b border-accent/20 bg-bg/95 backdrop-blur">
+      <Container className="flex items-center justify-between gap-3 px-4 py-3 sm:px-6 md:py-4">
+        <div className="flex items-center md:hidden">
+          <BrandMark studio={studio} size={30} />
         </div>
-        <div className="hidden md:block">
+        <div className="hidden items-center md:flex">
           <BrandMark studio={studio} />
         </div>
         <HeaderActions />
@@ -36,7 +36,8 @@ async function HeaderActions() {
           className="inline-flex text-xs font-semibold uppercase tracking-wide text-fg/80 transition hover:text-fg md:text-sm"
           href="/login"
         >
-          Iniciar sesion
+          <span className="md:hidden">Entrar</span>
+          <span className="hidden md:inline">Iniciar sesion</span>
         </a>
       </div>
     );
@@ -54,7 +55,8 @@ async function HeaderActions() {
           className="inline-flex text-xs font-semibold uppercase tracking-wide text-fg/80 transition hover:text-fg md:text-sm"
           href="/login"
         >
-          Iniciar sesion
+          <span className="md:hidden">Entrar</span>
+          <span className="hidden md:inline">Iniciar sesion</span>
         </a>
       </div>
     );

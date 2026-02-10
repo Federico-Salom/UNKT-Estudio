@@ -56,12 +56,12 @@ export default function UserMenu({ user }: UserMenuProps) {
         aria-label="Cuenta"
         aria-expanded={open}
         onClick={() => setOpen((prev) => !prev)}
-        className="user-menu-trigger inline-flex h-10 w-10 items-center justify-center rounded-full border border-accent/30 bg-bg text-accent transition hover:border-accent hover:bg-accent/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2"
+        className="user-menu-trigger inline-flex h-10 w-10 items-center justify-center rounded-full border border-accent/30 bg-bg/90 text-accent shadow-[0_12px_26px_-18px_rgba(0,0,0,0.45)] transition hover:border-accent hover:bg-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2"
       >
         <svg
           aria-hidden="true"
           viewBox="0 0 24 24"
-          className="h-5 w-5"
+          className="h-4 w-4"
           fill="none"
           stroke="currentColor"
           strokeWidth="1.6"
@@ -74,7 +74,7 @@ export default function UserMenu({ user }: UserMenuProps) {
       </button>
 
       {open ? (
-        <div className="absolute right-0 top-full z-30 mt-3 w-72 rounded-2xl border border-accent/20 bg-bg/95 p-4 text-left shadow-[0_24px_50px_-32px_rgba(0,0,0,0.6)] backdrop-blur">
+        <div className="absolute right-0 top-full z-30 mt-3 w-72 rounded-2xl border border-accent/20 bg-bg p-4 text-left shadow-[0_24px_50px_-32px_rgba(0,0,0,0.6)]">
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted">
             Cuenta
           </p>
