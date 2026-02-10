@@ -18,7 +18,7 @@ type BookingFormProps = {
   slots: SlotOption[];
   extras: string[];
   basePrice: number;
-  extraPrice: number;
+  extraPrices: Record<string, number>;
 };
 
 const dateKeyFormatter = new Intl.DateTimeFormat("en-CA", {
@@ -51,12 +51,21 @@ const getDateKeyFromDate = (value: Date) => dateKeyFormatter.format(value);
 const formatTime = (value: string) => timeFormatter.format(toDate(value));
 const formatRangeLabel = (start: string, end: string) =>
   `${formatTime(start)} - ${formatTime(end)}`;
+const getSlotStartTime = (slot: SlotOption) => toDate(slot.start).getTime();
+const getSlotEndTime = (slot: SlotOption) => toDate(slot.end).getTime();
+const sortSlotsByStart = (slotA: SlotOption, slotB: SlotOption) =>
+  getSlotStartTime(slotA) - getSlotStartTime(slotB);
+const areConsecutiveSlots = (selectedSlots: SlotOption[]) =>
+  selectedSlots.every((slot, index) => {
+    if (index === 0) return true;
+    return getSlotEndTime(selectedSlots[index - 1]) === getSlotStartTime(slot);
+  });
 
 export default function BookingForm({
   slots,
   extras,
   basePrice,
-  extraPrice,
+  extraPrices,
 }: BookingFormProps) {
   const router = useRouter();
   const [name, setName] = useState("");
@@ -68,11 +77,17 @@ export default function BookingForm({
   const [apiError, setApiError] = useState("");
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
-  const total = useMemo(
+  const extrasTotal = useMemo(
     () =>
-      (basePrice + selectedExtras.length * extraPrice) *
-      Math.max(selectedSlotIds.length, 1),
-    [basePrice, extraPrice, selectedExtras.length, selectedSlotIds.length]
+      selectedExtras.reduce(
+        (total, extra) => total + (extraPrices[extra] ?? 0),
+        0
+      ),
+    [extraPrices, selectedExtras]
+  );
+  const total = useMemo(
+    () => basePrice * Math.max(selectedSlotIds.length, 1) + extrasTotal,
+    [basePrice, extrasTotal, selectedSlotIds.length]
   );
 
   const groupedSlots = useMemo(() => {
@@ -84,9 +99,7 @@ export default function BookingForm({
       map.set(key, list);
     });
     map.forEach((list, key) => {
-      list.sort(
-        (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()
-      );
+      list.sort(sortSlotsByStart);
       map.set(key, list);
     });
     return map;
@@ -105,12 +118,21 @@ export default function BookingForm({
     ? groupedSlots.get(selectedDate) ?? []
     : [];
 
+  const slotById = useMemo(
+    () => new Map(slots.map((slot) => [slot.id, slot])),
+    [slots]
+  );
+
   const selectedSlotCount = selectedSlotIds.length;
-  const selectedSlotsForLabel = slots
-    .filter((slot) => selectedSlotIds.includes(slot.id))
-    .sort(
-      (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()
-    );
+  const selectedSlotsForLabel = useMemo(
+    () =>
+      selectedSlotIds
+        .map((slotId) => slotById.get(slotId))
+        .filter((slot): slot is SlotOption => Boolean(slot))
+        .sort(sortSlotsByStart),
+    [selectedSlotIds, slotById]
+  );
+  const isSelectionConsecutive = areConsecutiveSlots(selectedSlotsForLabel);
   const selectedRangeLabel =
     selectedSlotsForLabel.length > 0
       ? formatRangeLabel(
@@ -131,10 +153,36 @@ export default function BookingForm({
 
   const getPhoneError = () => (!phone ? "Escribe tu teléfono." : null);
 
-  const getSlotError = () =>
-    selectedSlotIds.length > 0
-      ? null
-      : "Selecciona al menos un horario disponible.";
+  const getSlotError = () => {
+    if (selectedSlotIds.length === 0) {
+      return "Selecciona horarios disponibles.";
+    }
+    if (selectedSlotIds.length < 2) {
+      return "La reserva mínima es de 2 horas consecutivas.";
+    }
+    if (!isSelectionConsecutive) {
+      return "Las horas seleccionadas deben ser consecutivas.";
+    }
+    return null;
+  };
+
+  const toggleSlotSelection = (slotId: string) => {
+    const nextSlotIds = selectedSlotIds.includes(slotId)
+      ? selectedSlotIds.filter((item) => item !== slotId)
+      : [...selectedSlotIds, slotId];
+    const nextSelectedSlots = nextSlotIds
+      .map((id) => slotById.get(id))
+      .filter((slot): slot is SlotOption => Boolean(slot))
+      .sort(sortSlotsByStart);
+
+    if (!areConsecutiveSlots(nextSelectedSlots)) {
+      setApiError("Las horas seleccionadas deben ser consecutivas.");
+      return;
+    }
+
+    setApiError("");
+    setSelectedSlotIds(nextSlotIds);
+  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -241,7 +289,8 @@ export default function BookingForm({
       <div className="grid gap-3">
         <p className="text-sm font-semibold">Seleccioná un día</p>
         <p className="text-xs text-muted">
-          Podés elegir más de un horario para reservar varias horas.
+          La reserva mínima es de 2 horas consecutivas. Además, se bloquea 1
+          hora posterior para mantenimiento.
         </p>
         <div className="booking-calendar overflow-hidden rounded-2xl border border-accent/15 bg-white/80 p-3">
           <FullCalendar
@@ -260,10 +309,12 @@ export default function BookingForm({
               const dateKey = getDateKey(info.dateStr);
               setSelectedDate(dateKey);
               setSelectedSlotIds([]);
+              setApiError("");
             }}
             eventClick={(info) => {
               setSelectedDate(info.event.id);
               setSelectedSlotIds([]);
+              setApiError("");
             }}
             headerToolbar={{
               left: "prev,next today",
@@ -297,13 +348,7 @@ export default function BookingForm({
                 <button
                   key={slot.id}
                   type="button"
-                  onClick={() =>
-                    setSelectedSlotIds((prev) =>
-                      prev.includes(slot.id)
-                        ? prev.filter((item) => item !== slot.id)
-                        : [...prev, slot.id]
-                    )
-                  }
+                  onClick={() => toggleSlotSelection(slot.id)}
                   className={`booking-slot-button rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
                     isSelected
                       ? "border-accent bg-accent/10 text-accent"
@@ -323,7 +368,7 @@ export default function BookingForm({
 
       <div className="booking-extras grid gap-2 rounded-2xl border border-accent/15 bg-white/80 px-4 py-4">
         <p className="text-xs font-semibold uppercase tracking-wide text-muted">
-          Extras (+${extraPrice.toLocaleString("es-AR")} c/u)
+          Extras (se cobran una sola vez)
         </p>
         {extras.length === 0 ? (
           <p className="text-sm text-muted">No hay extras configurados.</p>
@@ -337,6 +382,9 @@ export default function BookingForm({
                   onChange={() => toggleExtra(extra)}
                 />
                 {extra}
+                <span className="text-xs text-muted">
+                  (+${(extraPrices[extra] ?? 0).toLocaleString("es-AR")})
+                </span>
               </label>
             ))}
           </div>
@@ -352,13 +400,10 @@ export default function BookingForm({
         </div>
         <div className="mt-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-muted">
           <span>Extras</span>
-          <span>
-            ${(selectedExtras.length * extraPrice).toLocaleString("es-AR")} x{" "}
-            {selectedSlotCount || 1}
-          </span>
+          <span>${extrasTotal.toLocaleString("es-AR")}</span>
         </div>
         <div className="mt-3 flex items-center justify-between text-sm font-semibold uppercase tracking-wide text-fg">
-          <span>{selectedSlotCount > 0 ? "Total" : "Total por hora"}</span>
+          <span>Total</span>
           <span>${total.toLocaleString("es-AR")}</span>
         </div>
         {selectedRangeLabel && (
@@ -369,12 +414,17 @@ export default function BookingForm({
             </span>
           </div>
         )}
-        {selectedSlotCount > 1 && (
+        {selectedSlotCount > 0 && (
           <div className="mt-1 text-xs text-muted">
             Horas seleccionadas:{" "}
             <span className="font-semibold text-fg">
               {selectedSlotCount}
             </span>
+          </div>
+        )}
+        {selectedSlotCount > 1 && (
+          <div className="mt-1 text-xs text-muted">
+            Se bloquea 1 hora posterior para mantenimiento (no se cobra).
           </div>
         )}
       </div>
@@ -385,7 +435,8 @@ export default function BookingForm({
         disabled={
           status === "loading" ||
           slots.length === 0 ||
-          selectedSlotIds.length === 0
+          selectedSlotIds.length < 2 ||
+          !isSelectionConsecutive
         }
       >
         {status === "loading" ? "Procesando..." : "Reservar y pagar"}

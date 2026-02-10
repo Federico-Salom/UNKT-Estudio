@@ -1,6 +1,6 @@
 import Header from "@/components/Header";
 import BookingForm from "@/components/BookingForm";
-import { BASE_PRICE, EXTRA_PRICE } from "@/lib/booking";
+import { BASE_PRICE, buildExtraPriceMap } from "@/lib/booking";
 import { autoBlockClosingSlots } from "@/lib/availability";
 import { prisma } from "@/lib/prisma";
 import { getStudioContent } from "@/lib/studio-content";
@@ -51,7 +51,7 @@ export default async function ReservarPage() {
             slots={slotOptions}
             extras={studio.extras.items}
             basePrice={BASE_PRICE}
-            extraPrice={EXTRA_PRICE}
+            extraPrices={buildExtraPriceMap(studio.extras.items)}
           />
         </div>
       </main>

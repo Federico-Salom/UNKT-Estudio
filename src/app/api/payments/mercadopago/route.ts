@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionFromCookies } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { BASE_PRICE, EXTRA_PRICE } from "@/lib/booking";
+import { BASE_PRICE, dedupeExtras, getExtraPrice } from "@/lib/booking";
 
 export const runtime = "nodejs";
 
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
 
   const extras = (() => {
     try {
-      return JSON.parse(booking.extras || "[]") as string[];
+      return dedupeExtras(JSON.parse(booking.extras || "[]") as string[]);
     } catch {
       return [];
     }
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
       })();
 
   const baseUrl = process.env.APP_URL || getBaseUrl(request);
-  const paymentItems = [
+  const breakdownItems = [
     {
       title: "Reserva UNKT Estudio (hora)",
       quantity: hours,
@@ -87,11 +87,26 @@ export async function POST(request: NextRequest) {
     },
     ...extras.map((extra) => ({
       title: `Extra: ${extra}`,
-      quantity: hours,
+      quantity: 1,
       currency_id: "ARS",
-      unit_price: EXTRA_PRICE,
+      unit_price: getExtraPrice(extra),
     })),
   ];
+  const breakdownTotal = breakdownItems.reduce(
+    (total, item) => total + item.quantity * item.unit_price,
+    0
+  );
+  const paymentItems =
+    breakdownTotal === booking.total
+      ? breakdownItems
+      : [
+          {
+            title: "Reserva UNKT Estudio",
+            quantity: 1,
+            currency_id: "ARS",
+            unit_price: booking.total,
+          },
+        ];
 
   const preferencePayload = {
     items: paymentItems,

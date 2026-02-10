@@ -120,7 +120,7 @@ export default async function PagoPage({ params, searchParams }: PagoPageProps) 
           <BrandMark studio={studio} />
           <div className="flex items-center gap-6">
             <Link
-              className="text-sm font-semibold uppercase tracking-wide text-fg/80 transition hover:text-fg"
+              className="inline-flex items-center rounded-full border border-accent/35 bg-accent/10 px-4 py-2 text-sm font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/20"
               href="/account"
             >
               Mi cuenta

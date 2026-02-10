@@ -26,12 +26,28 @@ export default function BrandMark({
   const logoSrc = studio.logo?.src || "/logo.jpg";
   const logoAlt = studio.logo?.alt || studio.name;
   const wordmarkSrc = studio.logo?.wordmarkSrc || "/logo-largo.svg";
+  const isDefaultWordmark = wordmarkSrc === "/logo-largo.svg";
+  const [brandCoreRaw, ...brandTailParts] = (studio.name || "UNKT Estudio")
+    .trim()
+    .split(/\s+/);
+  const brandCore = (brandCoreRaw || "UNKT").toUpperCase();
+  const brandTail = brandTailParts.join(" ") || "Estudio";
   const clampedWordmarkScale = Math.min(Math.max(wordmarkScale, 0.65), 1.2);
   const wordmarkHeight = Math.max(
     Math.round(size * 1.15 * clampedWordmarkScale),
     20
   );
   const wordmarkWidth = Math.max(Math.round(wordmarkHeight * 4.45), 90);
+  const defaultWordmarkOffsetY =
+    (size <= 40 ? 1.6 : 2.15) * clampedWordmarkScale;
+  const brandCoreSize = Math.max(
+    Math.round(size * 0.64 * clampedWordmarkScale),
+    15
+  );
+  const brandTailSize = Math.max(
+    Math.round(size * 0.31 * clampedWordmarkScale),
+    9
+  );
 
   return (
     <Link
@@ -48,20 +64,52 @@ export default function BrandMark({
         priority
       />
       {showText ? (
-        <Image
-          src={wordmarkSrc}
-          alt=""
-          aria-hidden
-          width={wordmarkWidth}
-          height={wordmarkHeight}
-          className="block h-auto min-w-0 shrink object-contain"
-          style={{
-            width: wordmarkWidth,
-            height: wordmarkHeight,
-            transform: `translateY(${wordmarkOffsetY}px)`,
-          }}
-          priority
-        />
+        isDefaultWordmark ? (
+          <span
+            className="inline-flex min-w-0 shrink items-center gap-2 whitespace-nowrap text-accent"
+            style={{
+              transform: `translateY(${wordmarkOffsetY + defaultWordmarkOffsetY}px)`,
+            }}
+            aria-label={studio.name}
+          >
+            <span
+              className="font-display leading-none font-semibold uppercase tracking-[0.085em]"
+              style={{
+                fontSize: brandCoreSize,
+              }}
+            >
+              {brandCore}
+            </span>
+            <span
+              aria-hidden
+              className="h-1 w-1 shrink-0 self-center rounded-full bg-accent/45"
+            />
+            <span
+              className="leading-none font-semibold uppercase tracking-[0.16em] text-accent/82"
+              style={{
+                fontSize: brandTailSize,
+                fontFamily: "var(--font-controls), 'Nunito Sans', sans-serif",
+              }}
+            >
+              {brandTail.toUpperCase()}
+            </span>
+          </span>
+        ) : (
+          <Image
+            src={wordmarkSrc}
+            alt=""
+            aria-hidden
+            width={wordmarkWidth}
+            height={wordmarkHeight}
+            className="block h-auto min-w-0 shrink object-contain"
+            style={{
+              width: wordmarkWidth,
+              height: wordmarkHeight,
+              transform: `translateY(${wordmarkOffsetY}px)`,
+            }}
+            priority
+          />
+        )
       ) : (
         <span className="sr-only">{studio.name}</span>
       )}

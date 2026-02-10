@@ -9,6 +9,58 @@ type GalleryProps = {
   studio: StudioContent;
 };
 
+const stripAccents = (value: string) =>
+  value.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+const buildMapEmbedUrl = (locationUrl: string, fallbackQuery: string) => {
+  if (!locationUrl) {
+    return `https://maps.google.com/maps?q=${encodeURIComponent(
+      fallbackQuery
+    )}&output=embed`;
+  }
+
+  if (locationUrl.includes("output=embed")) {
+    return locationUrl;
+  }
+
+  if (
+    locationUrl.includes("google.com/maps") ||
+    locationUrl.includes("maps.google.com") ||
+    locationUrl.includes("maps.app.goo.gl")
+  ) {
+    const joiner = locationUrl.includes("?") ? "&" : "?";
+    return `${locationUrl}${joiner}output=embed`;
+  }
+
+  return `https://maps.google.com/maps?q=${encodeURIComponent(
+    locationUrl
+  )}&output=embed`;
+};
+
+const buildMapOpenUrl = (locationUrl: string, fallbackQuery: string) => {
+  if (!locationUrl) {
+    return `https://maps.google.com/?q=${encodeURIComponent(fallbackQuery)}`;
+  }
+
+  try {
+    const parsedUrl = new URL(locationUrl);
+    if (parsedUrl.searchParams.get("output") === "embed") {
+      parsedUrl.searchParams.delete("output");
+    }
+    return parsedUrl.toString();
+  } catch {
+    try {
+      const parsedUrl = new URL(`https://${locationUrl}`);
+      if (parsedUrl.searchParams.get("output") === "embed") {
+        parsedUrl.searchParams.delete("output");
+      }
+      return parsedUrl.toString();
+    } catch {
+      return `https://maps.google.com/?q=${encodeURIComponent(locationUrl)}`;
+    }
+  }
+};
+
 export default function Gallery({ studio }: GalleryProps) {
   const gallery = studio.gallery ?? [];
   const bookingLink = "/reservar";
@@ -16,6 +68,17 @@ export default function Gallery({ studio }: GalleryProps) {
     studio.ctas.primary.replace(/\s*por\s*whats?app/i, "").trim() || "Reservar";
   const floorPlanSrc = studio.floorPlan.src || "/plano-estudio.svg";
   const floorPlanAlt = studio.floorPlan.alt || "Plano del lugar";
+  const locationUrl = studio.contact.locationUrl || "";
+  const locationText = (studio.contact.locationText || "").trim();
+  const normalizedLocation = stripAccents(locationText.toLowerCase());
+  const isPlaceholderText = normalizedLocation.includes("(sumar direccion");
+  const hasLocationText =
+    Boolean(locationText) &&
+    !isPlaceholderText &&
+    locationText.toLowerCase() !== studio.name.trim().toLowerCase();
+  const locationQuery = hasLocationText ? locationText : studio.name;
+  const mapEmbedUrl = buildMapEmbedUrl(locationUrl, locationQuery);
+  const mapOpenUrl = buildMapOpenUrl(locationUrl, locationQuery);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
   const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -23,11 +86,12 @@ export default function Gallery({ studio }: GalleryProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showSwipeHint, setShowSwipeHint] = useState(false);
   const [isPlanOpen, setIsPlanOpen] = useState(false);
+  const [isLocationOpen, setIsLocationOpen] = useState(false);
   const [planZoom, setPlanZoom] = useState(1);
-  const [activePanel, setActivePanel] = useState<"included" | "extras" | null>(
-    null
-  );
-  const [previewItem, setPreviewItem] = useState<{
+  const [activeCatalogModal, setActiveCatalogModal] = useState<
+    "included" | "extras" | null
+  >(null);
+  const [selectedCatalogItem, setSelectedCatalogItem] = useState<{
     label: string;
     type: "included" | "extras";
   } | null>(null);
@@ -116,18 +180,26 @@ export default function Gallery({ studio }: GalleryProps) {
     return null;
   }
 
-  const togglePanel = (panel: "included" | "extras") => {
-    setActivePanel((prev) => (prev === panel ? null : panel));
+  const openCatalogModal = (type: "included" | "extras") => {
+    setActiveCatalogModal(type);
+    setSelectedCatalogItem((currentItem) =>
+      currentItem?.type === type ? currentItem : null
+    );
+    setIsPlanOpen(false);
+    setIsLocationOpen(false);
   };
 
-  const openPreview = (label: string, type: "included" | "extras") => {
-    setPreviewItem({ label, type });
-    setActivePanel(null);
+  const closeCatalogModal = () => {
+    setActiveCatalogModal(null);
+  };
+
+  const selectCatalogItem = (label: string, type: "included" | "extras") => {
+    setSelectedCatalogItem({ label, type });
   };
 
   const openPlanModal = () => {
-    setPreviewItem(null);
-    setActivePanel(null);
+    setActiveCatalogModal(null);
+    setIsLocationOpen(false);
     setPlanZoom(1);
     setIsPlanOpen(true);
   };
@@ -136,11 +208,24 @@ export default function Gallery({ studio }: GalleryProps) {
     setIsPlanOpen(false);
   };
 
+  const openLocationModal = () => {
+    setActiveCatalogModal(null);
+    setIsPlanOpen(false);
+    setIsLocationOpen(true);
+  };
+
+  const closeLocationModal = () => {
+    setIsLocationOpen(false);
+  };
+
   const updatePlanZoom = (nextZoom: number) => {
     setPlanZoom(Math.min(3, Math.max(1, nextZoom)));
   };
 
-  const closePreview = () => setPreviewItem(null);
+  const topActionButtonClass =
+    "inline-flex h-9 w-full items-center justify-center rounded-full border border-accent/30 bg-bg/90 px-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-accent shadow-[0_12px_26px_-18px_rgba(0,0,0,0.45)] transition hover:border-accent hover:bg-bg sm:px-3 md:h-11 md:px-5 md:text-[13px] md:tracking-[0.12em]";
+  const bookingActionButtonClass =
+    "inline-flex h-9 w-full items-center justify-center rounded-full border border-accent bg-accent px-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-bg shadow-[0_16px_34px_-18px_rgba(0,0,0,0.55)] transition hover:border-accent2 hover:bg-accent2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2 sm:px-3 md:h-11 md:px-5 md:text-[13px] md:tracking-[0.12em]";
 
   return (
     <section
@@ -149,73 +234,51 @@ export default function Gallery({ studio }: GalleryProps) {
     >
       <Container>
         <div className="mb-5 flex flex-col items-center gap-4 md:mb-6 md:gap-5">
-          <div className="grid w-full grid-cols-3 items-stretch gap-2 sm:gap-4 md:gap-6">
-            <div className="relative w-full">
-            <button
-              type="button"
-              onClick={() => togglePanel("extras")}
-              className="w-full rounded-full border border-accent/30 bg-bg/90 px-2 py-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-accent shadow-[0_12px_26px_-18px_rgba(0,0,0,0.45)] transition hover:border-accent hover:bg-bg sm:px-3"
-            >
-              <span className="button-label">Extras</span>
-            </button>
-            {activePanel === "extras" ? (
-              <div className="absolute left-0 top-full z-30 mt-2 w-64 rounded-2xl border border-accent/20 bg-bg/95 p-4 text-left text-sm text-fg shadow-[0_20px_40px_-28px_rgba(0,0,0,0.5)]">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">
-                  {studio.extras.title}
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {studio.extras.items.map((item) => (
-                    <button
-                      type="button"
-                      key={item}
-                      onClick={() => openPreview(item, "extras")}
-                      className="rounded-full border border-accent/25 bg-bg px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-fg transition hover:border-accent"
-                    >
-                      <span className="button-label">{item}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ) : null}
+          <div className="grid w-full max-w-5xl grid-cols-2 items-stretch gap-2 sm:grid-cols-5 sm:gap-4 md:gap-5">
+            <div className="w-full">
+              <button
+                type="button"
+                onClick={() => openCatalogModal("extras")}
+                className={topActionButtonClass}
+              >
+                <span className="button-label">Extras</span>
+              </button>
             </div>
 
             <div className="w-full">
               <button
                 type="button"
                 onClick={openPlanModal}
-                className="w-full rounded-full border border-accent/30 bg-bg/90 px-2 py-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-accent shadow-[0_12px_26px_-18px_rgba(0,0,0,0.45)] transition hover:border-accent hover:bg-bg sm:px-3"
+                className={topActionButtonClass}
               >
                 <span className="button-label">Plano</span>
               </button>
             </div>
 
-            <div className="relative w-full">
-            <button
-              type="button"
-              onClick={() => togglePanel("included")}
-              className="w-full rounded-full border border-accent/30 bg-bg/90 px-2 py-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-accent shadow-[0_12px_26px_-18px_rgba(0,0,0,0.45)] transition hover:border-accent hover:bg-bg sm:px-3"
-            >
-              <span className="button-label">Incluidos</span>
-            </button>
-            {activePanel === "included" ? (
-              <div className="absolute right-0 top-full z-30 mt-2 w-64 rounded-2xl border border-accent/20 bg-bg/95 p-4 text-left text-sm text-fg shadow-[0_20px_40px_-28px_rgba(0,0,0,0.5)]">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">
-                  {studio.included.title}
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {studio.included.items.map((item) => (
-                    <button
-                      type="button"
-                      key={item}
-                      onClick={() => openPreview(item, "included")}
-                      className="rounded-full border border-accent/25 bg-bg px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-fg transition hover:border-accent"
-                    >
-                      <span className="button-label">{item}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ) : null}
+            <div className="w-full">
+              <button
+                type="button"
+                onClick={openLocationModal}
+                className={topActionButtonClass}
+              >
+                <span className="button-label">Ubicacion</span>
+              </button>
+            </div>
+
+            <div className="w-full">
+              <button
+                type="button"
+                onClick={() => openCatalogModal("included")}
+                className={topActionButtonClass}
+              >
+                <span className="button-label">Incluidos</span>
+              </button>
+            </div>
+
+            <div className="w-full">
+              <a href={bookingLink} className={bookingActionButtonClass}>
+                <span className="button-label">{primaryCta}</span>
+              </a>
             </div>
           </div>
         </div>
@@ -344,51 +407,97 @@ export default function Gallery({ studio }: GalleryProps) {
           ))}
         </div>
 
-        <div className="mt-3 flex items-center justify-center">
-          <a
-            className="inline-flex w-full max-w-xl items-center justify-center rounded-full bg-accent px-6 py-3 text-sm font-semibold uppercase tracking-wide text-bg shadow-[0_12px_24px_-12px_rgba(0,0,0,0.6)] transition hover:bg-accent2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2"
-            href={bookingLink}
-          >
-            <span className="button-label">{primaryCta}</span>
-          </a>
-        </div>
       </Container>
 
-      {previewItem ? (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
+      {activeCatalogModal ? (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 px-4 py-4 backdrop-blur-[2px]">
           <button
             type="button"
-            aria-label="Cerrar"
-            onClick={closePreview}
+            aria-label="Cerrar seleccion"
+            onClick={closeCatalogModal}
             className="absolute inset-0 h-full w-full cursor-default"
           />
-          <div className="relative z-10 w-full max-w-md rounded-3xl border border-accent/20 bg-bg p-6 text-left shadow-[0_30px_60px_-40px_rgba(0,0,0,0.6)]">
-            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted">
-              {previewItem.type === "included" ? "Incluido" : "Extra"}
-            </p>
-            <h3 className="mt-3 font-display text-2xl uppercase tracking-[0.08em] text-fg">
-              {previewItem.label}
-            </h3>
-            <p className="mt-2 text-sm text-muted">
-              {previewItem.type === "included"
-                ? studio.included.subtitle
-                : studio.extras.subtitle}
-            </p>
-            <div className="mt-5 flex items-center justify-end">
-              <button
-                type="button"
-                onClick={closePreview}
-                className="rounded-full border border-accent/30 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10"
+          <div className="relative z-10 w-full max-w-3xl rounded-3xl border border-accent/20 bg-bg p-4 shadow-[0_30px_60px_-40px_rgba(0,0,0,0.75)] md:p-6">
+            <button
+              type="button"
+              onClick={closeCatalogModal}
+              className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full border border-accent/20 text-accent/70 transition hover:border-accent/40 hover:text-accent"
+              aria-label="Cerrar modal de seleccion"
+            >
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               >
-                <span className="button-label">Cerrar</span>
-              </button>
+                <path d="M18 6L6 18" />
+                <path d="M6 6l12 12" />
+              </svg>
+            </button>
+
+            <div className="flex items-center justify-between gap-3 pr-8">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted">
+                {activeCatalogModal === "included" ? "Incluidos" : "Extras"}
+              </p>
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              {(activeCatalogModal === "included"
+                ? studio.included.items
+                : studio.extras.items
+              ).map((item) => {
+                const isSelected =
+                  selectedCatalogItem?.type === activeCatalogModal &&
+                  selectedCatalogItem.label === item;
+
+                return (
+                  <button
+                    type="button"
+                    key={item}
+                    onClick={() => selectCatalogItem(item, activeCatalogModal)}
+                    className={`rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-wide transition ${
+                      isSelected
+                        ? "border-accent bg-accent text-bg"
+                        : "border-accent/25 bg-bg text-fg hover:border-accent"
+                    }`}
+                  >
+                    <span className="button-label">{item}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="mt-5 rounded-2xl border border-accent/20 bg-bg/80 p-4">
+              {selectedCatalogItem?.type === activeCatalogModal ? (
+                <>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">
+                    {activeCatalogModal === "included" ? "Incluido" : "Extra"}
+                  </p>
+                  <h3 className="mt-2 font-display text-2xl uppercase tracking-[0.08em] text-fg">
+                    {selectedCatalogItem.label}
+                  </h3>
+                  <p className="mt-2 text-sm text-muted">
+                    {activeCatalogModal === "included"
+                      ? studio.included.subtitle
+                      : studio.extras.subtitle}
+                  </p>
+                </>
+              ) : (
+                <p className="text-sm text-muted">
+                  Elegi una opcion para visualizar su detalle.
+                </p>
+              )}
             </div>
           </div>
         </div>
       ) : null}
 
       {isPlanOpen ? (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/55 px-4 py-4">
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 px-4 py-4 backdrop-blur-[2px]">
           <button
             type="button"
             aria-label="Cerrar plano"
@@ -454,6 +563,67 @@ export default function Gallery({ studio }: GalleryProps) {
             <p className="mt-3 text-xs text-muted">
               Usa los botones de zoom y desliza para recorrer el plano.
             </p>
+          </div>
+        </div>
+      ) : null}
+
+      {isLocationOpen ? (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 px-4 py-4 backdrop-blur-[2px]">
+          <button
+            type="button"
+            aria-label="Cerrar ubicacion"
+            onClick={closeLocationModal}
+            className="absolute inset-0 h-full w-full cursor-default"
+          />
+          <div className="relative z-10 w-full max-w-5xl rounded-3xl border border-accent/20 bg-bg p-4 shadow-[0_30px_60px_-40px_rgba(0,0,0,0.75)] md:p-6">
+            <button
+              type="button"
+              onClick={closeLocationModal}
+              className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full border border-accent/20 text-accent/70 transition hover:border-accent/40 hover:text-accent"
+              aria-label="Cerrar modal de ubicacion"
+            >
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M18 6L6 18" />
+                <path d="M6 6l12 12" />
+              </svg>
+            </button>
+
+            <div className="flex items-center justify-between gap-3 pr-8">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted">
+                Ubicacion
+              </p>
+            </div>
+
+            <div className="map-embed-shell mt-4 overflow-hidden rounded-2xl border border-accent/24 bg-bg/85">
+              <iframe
+                title={`Mapa de ${studio.name}`}
+                src={mapEmbedUrl}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                className="map-embed-frame h-[62dvh] min-h-[320px] w-full sm:h-[66dvh]"
+              />
+              <div className="map-embed-overlay" aria-hidden="true" />
+            </div>
+
+            <div className="mt-4 flex justify-end">
+              <a
+                href={mapOpenUrl}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="inline-flex h-9 items-center justify-center rounded-full border border-accent/30 px-4 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10"
+              >
+                <span className="button-label">Abrir</span>
+              </a>
+            </div>
           </div>
         </div>
       ) : null}

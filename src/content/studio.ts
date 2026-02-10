@@ -29,16 +29,24 @@ export const studio = {
       src: "/gallery-1.svg",
       alt: "Area principal del estudio.",
     },
+    {
+      src: "/hero-placeholder.svg",
+      alt: "Set secundario del estudio.",
+    },
   ],
   included: {
     title: "Incluido",
     subtitle: "Llegas y ya esta armado.",
-    items: ["Luces", "Difusores", "Fondos"],
+    items: ["Luces", "Difusores", "Fondos", "Sillon", "Accesorios de acero"],
   },
   extras: {
     title: "Extras",
-    subtitle: "Sumalos si los necesitas.",
-    items: ["Sillon", "Accesorios de acero"],
+    subtitle:
+      "Bajadas de fondos en rojo, negro y blanco. Se cobran una sola vez por reserva.",
+    items: [
+      "Bajada de fondo sin pisar - $20.000",
+      "Bajada de fondo pisando - $35.000",
+    ],
   },
   howToBook: {
     title: "Como reservar",
@@ -67,7 +75,7 @@ export const studio = {
     secondary: "Consultar disponibilidad",
   },
   footer: {
-    text: "UNKT Estudio. Alquiler de estudio fotografico.",
+    text: "Alquiler de estudio fotografico.",
   },
 };
 

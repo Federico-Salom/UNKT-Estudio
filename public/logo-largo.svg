@@ -1,13 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 220" role="img" aria-labelledby="title">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 240" role="img" aria-labelledby="title">
   <title id="title">UNKT Estudio</title>
   <text
-    x="18"
-    y="152"
+    x="20"
+    y="170"
     font-family="Brush Script MT, Segoe Script, Snell Roundhand, cursive"
-    font-size="164"
+    font-size="165"
     font-weight="700"
     fill="#B62450"
     letter-spacing="1"
+    textLength="1140"
+    lengthAdjust="spacingAndGlyphs"
   >
     UNKT Estudio
   </text>

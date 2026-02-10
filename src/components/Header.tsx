@@ -19,7 +19,7 @@ export default async function Header({ studio }: HeaderProps) {
             studio={studio}
             size={36}
             wordmarkScale={0.9}
-            wordmarkOffsetY={1.5}
+            wordmarkOffsetY={0.25}
             gapClassName="gap-2 sm:gap-2.5"
             className="max-w-[58vw] sm:max-w-full"
           />
@@ -40,7 +40,7 @@ async function HeaderActions() {
       <div className="flex shrink-0 items-center gap-2 md:gap-4">
         <ThemeToggle className="h-9 w-9 md:h-10 md:w-10" />
         <a
-          className="inline-flex text-xs font-semibold uppercase tracking-wide text-fg/80 transition hover:text-fg md:text-sm"
+          className="inline-flex h-9 items-center justify-center rounded-full border border-accent/35 bg-accent/10 px-4 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2 md:h-10 md:text-sm"
           href="/login"
         >
           <span className="md:hidden">Entrar</span>
@@ -59,7 +59,7 @@ async function HeaderActions() {
       <div className="flex shrink-0 items-center gap-2 md:gap-4">
         <ThemeToggle className="h-9 w-9 md:h-10 md:w-10" />
         <a
-          className="inline-flex text-xs font-semibold uppercase tracking-wide text-fg/80 transition hover:text-fg md:text-sm"
+          className="inline-flex h-9 items-center justify-center rounded-full border border-accent/35 bg-accent/10 px-4 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2 md:h-10 md:text-sm"
           href="/login"
         >
           <span className="md:hidden">Entrar</span>

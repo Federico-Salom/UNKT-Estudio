@@ -8,7 +8,30 @@ const DEFAULT_LOGO_SRC = "/logo.jpg";
 const DEFAULT_WORDMARK_SRC = "/logo-largo.svg";
 const DEFAULT_FLOOR_PLAN_SRC = "/plano-estudio.svg";
 const DEFAULT_FLOOR_PLAN_ALT = "Plano del lugar";
-const DEFAULT_GALLERY = studio.gallery.slice(0, 1);
+const DEFAULT_GALLERY = (() => {
+  const validItems = studio.gallery
+    .filter((item) => Boolean(item.src?.trim()))
+    .map((item) => ({
+      src: item.src,
+      alt: item.alt || "Vista del estudio.",
+    }));
+
+  if (!validItems.length) {
+    validItems.push({
+      src: "/gallery-1.svg",
+      alt: "Area principal del estudio.",
+    });
+  }
+
+  if (validItems.length === 1) {
+    validItems.push({
+      src: "/hero-placeholder.svg",
+      alt: "Set secundario del estudio.",
+    });
+  }
+
+  return validItems.slice(0, 10);
+})();
 const LEGACY_GALLERY_PLACEHOLDERS = new Set([
   "/gallery-2.svg",
   "/gallery-3.svg",
@@ -16,6 +39,25 @@ const LEGACY_GALLERY_PLACEHOLDERS = new Set([
   "/gallery-5.svg",
   "/gallery-6.svg",
 ]);
+const LEGACY_EXTRA_ITEMS = ["Sillon", "Accesorios de acero"];
+const normalizeListValue = (value: string) => value.trim().toLowerCase();
+const dedupeList = (items: string[]) => {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    const key = normalizeListValue(item);
+    if (!key || seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
+};
+const hasAnyLegacyExtra = (items: string[]) => {
+  const normalizedItems = new Set(items.map(normalizeListValue));
+  return LEGACY_EXTRA_ITEMS.some((item) =>
+    normalizedItems.has(normalizeListValue(item))
+  );
+};
 
 const serializeContent = (data: StudioContent) => {
   return JSON.stringify(data);
@@ -87,8 +129,16 @@ const normalizeAssetPaths = (content: StudioContent): StudioContent => {
       };
     })
     .filter((item) => Boolean(item.src?.trim()));
+  const hasLegacySingleDefaultGallery =
+    normalizedGallery.length === 1 &&
+    normalizedGallery[0].src === DEFAULT_GALLERY[0].src &&
+    normalizedGallery[0].alt === DEFAULT_GALLERY[0].alt;
+  const gallery =
+    normalizedGallery.length === 0 || hasLegacySingleDefaultGallery
+      ? DEFAULT_GALLERY
+      : normalizedGallery;
 
-  return {
+  const normalizedContent = {
     ...content,
     logo: {
       ...content.logo,
@@ -104,7 +154,28 @@ const normalizeAssetPaths = (content: StudioContent): StudioContent => {
       src: content.floorPlan.src || DEFAULT_FLOOR_PLAN_SRC,
       alt: content.floorPlan.alt || DEFAULT_FLOOR_PLAN_ALT,
     },
-    gallery: normalizedGallery.length ? normalizedGallery : DEFAULT_GALLERY,
+    gallery,
+  };
+
+  if (!hasAnyLegacyExtra(normalizedContent.extras.items)) {
+    return normalizedContent;
+  }
+
+  return {
+    ...normalizedContent,
+    included: {
+      ...normalizedContent.included,
+      items: dedupeList([
+        ...normalizedContent.included.items,
+        ...LEGACY_EXTRA_ITEMS,
+      ]),
+    },
+    extras: {
+      ...normalizedContent.extras,
+      title: studio.extras.title,
+      subtitle: studio.extras.subtitle,
+      items: [...studio.extras.items],
+    },
   };
 };
 
