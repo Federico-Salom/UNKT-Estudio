@@ -95,7 +95,7 @@ export default async function AdminAgendaPage() {
           <BrandMark studio={studio} />
           <div className="flex items-center gap-6">
             <Link
-              className="inline-flex items-center rounded-full border border-accent/35 bg-accent/10 px-4 py-2 text-sm font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/20"
+              className="inline-flex items-center justify-center rounded-full border border-accent/35 bg-accent/10 px-4 py-2 text-center text-sm font-semibold leading-none tracking-wide text-accent transition hover:border-accent hover:bg-accent/20"
               href="/admin"
             >
               Panel

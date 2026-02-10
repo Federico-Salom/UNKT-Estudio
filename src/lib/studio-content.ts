@@ -58,6 +58,23 @@ const hasAnyLegacyExtra = (items: string[]) => {
     normalizedItems.has(normalizeListValue(item))
   );
 };
+const buildCatalogImageAlt = (label: string) => `Imagen de ${label}`;
+const normalizeCatalogImages = (
+  items: string[],
+  images: StudioContent["included"]["images"]
+) =>
+  items.map((item, index) => {
+    const source = images[index];
+    const alt =
+      typeof source?.alt === "string" && source.alt.trim()
+        ? source.alt
+        : buildCatalogImageAlt(item);
+
+    return {
+      src: source?.src || "",
+      alt,
+    };
+  });
 
 const serializeContent = (data: StudioContent) => {
   return JSON.stringify(data);
@@ -154,6 +171,19 @@ const normalizeAssetPaths = (content: StudioContent): StudioContent => {
       src: content.floorPlan.src || DEFAULT_FLOOR_PLAN_SRC,
       alt: content.floorPlan.alt || DEFAULT_FLOOR_PLAN_ALT,
     },
+    included: {
+      ...content.included,
+      items: [...content.included.items],
+      images: normalizeCatalogImages(
+        content.included.items,
+        content.included.images
+      ),
+    },
+    extras: {
+      ...content.extras,
+      items: [...content.extras.items],
+      images: normalizeCatalogImages(content.extras.items, content.extras.images),
+    },
     gallery,
   };
 
@@ -161,20 +191,27 @@ const normalizeAssetPaths = (content: StudioContent): StudioContent => {
     return normalizedContent;
   }
 
+  const migratedIncludedItems = dedupeList([
+    ...normalizedContent.included.items,
+    ...LEGACY_EXTRA_ITEMS,
+  ]);
+
   return {
     ...normalizedContent,
     included: {
       ...normalizedContent.included,
-      items: dedupeList([
-        ...normalizedContent.included.items,
-        ...LEGACY_EXTRA_ITEMS,
-      ]),
+      items: migratedIncludedItems,
+      images: normalizeCatalogImages(
+        migratedIncludedItems,
+        normalizedContent.included.images
+      ),
     },
     extras: {
       ...normalizedContent.extras,
       title: studio.extras.title,
       subtitle: studio.extras.subtitle,
       items: [...studio.extras.items],
+      images: normalizeCatalogImages(studio.extras.items, studio.extras.images),
     },
   };
 };

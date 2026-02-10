@@ -13,21 +13,25 @@ type HeaderProps = {
 export default async function Header({ studio }: HeaderProps) {
   return (
     <header className="relative z-50 border-b border-accent/20 bg-bg/95 backdrop-blur">
-      <Container className="flex items-center justify-between gap-2.5 px-3 py-2.5 sm:px-6 md:gap-3 md:py-4">
-        <div className="min-w-0 flex flex-1 items-center md:hidden">
-          <BrandMark
-            studio={studio}
-            size={36}
-            wordmarkScale={0.9}
-            wordmarkOffsetY={0.25}
-            gapClassName="gap-2 sm:gap-2.5"
-            className="max-w-[58vw] sm:max-w-full"
-          />
+      <Container className="flex items-center justify-between gap-2.5 px-3 py-2.5 sm:px-6 md:py-4">
+        <div className="min-w-0 flex items-center">
+          <div className="md:hidden">
+            <BrandMark
+              studio={studio}
+              size={36}
+              wordmarkScale={0.9}
+              gapClassName="gap-2 sm:gap-2.5"
+              className="max-w-[58vw] sm:max-w-full"
+            />
+          </div>
+          <div className="hidden md:block">
+            <BrandMark studio={studio} />
+          </div>
         </div>
-        <div className="hidden min-w-0 items-center md:flex">
-          <BrandMark studio={studio} />
+
+        <div className="shrink-0">
+          <HeaderActions />
         </div>
-        <HeaderActions />
       </Container>
     </header>
   );

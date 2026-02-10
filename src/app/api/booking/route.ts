@@ -61,7 +61,10 @@ export async function POST(request: NextRequest) {
   const existingSession = request.cookies.get(AUTH_COOKIE)?.value;
   const sessionPayload = existingSession ? verifySession(existingSession) : null;
   const studio = await getStudioContent();
-  const extras = filterExtrasToAllowed(requestedExtras, studio.extras.items);
+  const extras = filterExtrasToAllowed(
+    requestedExtras,
+    studio.extras.items
+  ).slice(0, 1);
 
   const extrasTotal = getExtrasTotal(extras);
   const cutoff = await autoBlockClosingSlots();

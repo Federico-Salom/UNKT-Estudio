@@ -71,19 +71,15 @@ export default function BookingForm({
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [selectedSlotIds, setSelectedSlotIds] = useState<string[]>([]);
-  const [selectedExtras, setSelectedExtras] = useState<string[]>([]);
+  const [selectedExtra, setSelectedExtra] = useState<string | null>(null);
   const [attempted, setAttempted] = useState(false);
   const [status, setStatus] = useState<"idle" | "loading">("idle");
   const [apiError, setApiError] = useState("");
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   const extrasTotal = useMemo(
-    () =>
-      selectedExtras.reduce(
-        (total, extra) => total + (extraPrices[extra] ?? 0),
-        0
-      ),
-    [extraPrices, selectedExtras]
+    () => (selectedExtra ? extraPrices[selectedExtra] ?? 0 : 0),
+    [extraPrices, selectedExtra]
   );
   const total = useMemo(
     () => basePrice * Math.max(selectedSlotIds.length, 1) + extrasTotal,
@@ -140,14 +136,6 @@ export default function BookingForm({
           selectedSlotsForLabel[selectedSlotsForLabel.length - 1].end
         )
       : null;
-
-  const toggleExtra = (extra: string) => {
-    setSelectedExtras((prev) =>
-      prev.includes(extra)
-        ? prev.filter((item) => item !== extra)
-        : [...prev, extra]
-    );
-  };
 
   const getNameError = () => (!name ? "Escribe tu nombre." : null);
 
@@ -210,7 +198,7 @@ export default function BookingForm({
           name,
           phone,
           slotIds: selectedSlotIds,
-          extras: selectedExtras,
+          extras: selectedExtra ? [selectedExtra] : [],
         }),
       });
 
@@ -368,18 +356,32 @@ export default function BookingForm({
 
       <div className="booking-extras grid gap-2 rounded-2xl border border-accent/15 bg-white/80 px-4 py-4">
         <p className="text-xs font-semibold uppercase tracking-wide text-muted">
-          Extras (se cobran una sola vez)
+          Extras (elegi una sola variante)
         </p>
         {extras.length === 0 ? (
           <p className="text-sm text-muted">No hay extras configurados.</p>
         ) : (
-          <div className="grid gap-2">
+          <div
+            className="grid gap-2"
+            role="radiogroup"
+            aria-label="Seleccion de extra"
+          >
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="radio"
+                name="booking-extra"
+                checked={selectedExtra === null}
+                onChange={() => setSelectedExtra(null)}
+              />
+              Sin extra
+            </label>
             {extras.map((extra) => (
               <label key={extra} className="flex items-center gap-2 text-sm">
                 <input
-                  type="checkbox"
-                  checked={selectedExtras.includes(extra)}
-                  onChange={() => toggleExtra(extra)}
+                  type="radio"
+                  name="booking-extra"
+                  checked={selectedExtra === extra}
+                  onChange={() => setSelectedExtra(extra)}
                 />
                 {extra}
                 <span className="text-xs text-muted">

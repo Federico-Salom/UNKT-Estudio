@@ -144,24 +144,35 @@ html[data-theme="dark"] section.bg-bg {
   scrollbar-width: none;
 }
 
+.gallery-frame {
+  position: relative;
+  overflow: visible;
+  border-radius: 2rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+  background: color-mix(in srgb, var(--bg) 90%, #ffffff 10%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #ffffff 36%, transparent),
+    0 24px 54px -42px rgba(0, 0, 0, 0.58);
+  padding: 0.32rem 0 0.58rem;
+}
+
+.gallery-dots {
+  position: relative;
+  z-index: 1;
+}
+
+@media (min-width: 768px) {
+  .gallery-frame {
+    padding: 0.5rem 0 0.7rem;
+  }
+}
+
 .gallery-scroll::-webkit-scrollbar {
   display: none;
 }
 
 .gallery-slide {
-  flex: 0 0 calc(100% - 1.5rem);
-}
-
-@media (min-width: 768px) {
-  .gallery-slide {
-    flex-basis: calc(100% - 5rem);
-  }
-}
-
-@media (min-width: 1280px) {
-  .gallery-slide {
-    flex-basis: calc(100% - 8rem);
-  }
+  flex: 0 0 100%;
 }
 
 .gallery-swipe-hint-pill {
@@ -237,10 +248,18 @@ html[data-theme="dark"] .gallery-swipe-hint-arrows {
   }
 }
 
-html[data-theme="dark"] .gallery-slide {
+html[data-theme="dark"] .gallery-card {
   border-color: color-mix(in srgb, var(--accent2) 36%, transparent);
   background: color-mix(in srgb, var(--bg) 82%, #29131a 18%);
   box-shadow: 0 24px 56px -36px rgba(0, 0, 0, 0.88);
+}
+
+html[data-theme="dark"] .gallery-frame {
+  border-color: color-mix(in srgb, var(--accent2) 44%, transparent);
+  background: color-mix(in srgb, var(--bg) 84%, #2a131b 16%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #ffffff 8%, transparent),
+    0 28px 58px -42px rgba(0, 0, 0, 0.9);
 }
 
 html[data-theme="dark"] .gallery-image {
@@ -281,6 +300,47 @@ html[data-theme="dark"] .admin-dashboard .text-fg\/80 {
 
 html[data-theme="dark"] .admin-dashboard .bg-accent\/10 {
   background: color-mix(in srgb, var(--accent) 20%, transparent) !important;
+}
+
+html[data-theme="dark"] .admin-users-page .admin-users-panel {
+  background: color-mix(in srgb, var(--bg) 82%, #2b121a 18%) !important;
+  border-color: color-mix(in srgb, var(--accent2) 34%, transparent) !important;
+  box-shadow: 0 24px 56px -40px rgba(0, 0, 0, 0.82);
+}
+
+html[data-theme="dark"] .admin-users-page .admin-users-table {
+  border-color: color-mix(in srgb, var(--accent2) 36%, transparent) !important;
+}
+
+html[data-theme="dark"] .admin-users-page .admin-users-role-select {
+  background: color-mix(in srgb, var(--bg) 76%, #3a1924 24%) !important;
+  border-color: color-mix(in srgb, var(--accent2) 38%, transparent) !important;
+  color: var(--fg) !important;
+}
+
+html[data-theme="dark"] .admin-users-page .admin-users-role-select:focus {
+  border-color: color-mix(in srgb, var(--accent2) 72%, transparent) !important;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent2) 42%, transparent);
+}
+
+html[data-theme="dark"] .admin-users-page .admin-users-role-select:disabled {
+  background: color-mix(in srgb, var(--bg) 88%, #1a0d13 12%) !important;
+  color: color-mix(in srgb, var(--fg) 66%, #bc9ca6 34%) !important;
+  border-color: color-mix(in srgb, var(--accent2) 24%, transparent) !important;
+}
+
+html[data-theme="dark"] .admin-users-page .admin-users-save-button {
+  border-color: color-mix(in srgb, var(--accent2) 50%, transparent) !important;
+  background: color-mix(in srgb, var(--accent) 18%, transparent) !important;
+  color: color-mix(in srgb, var(--fg) 88%, #f6d5df 12%) !important;
+}
+
+html[data-theme="dark"]
+  .admin-users-page
+  .admin-users-save-button:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--accent2) 72%, transparent) !important;
+  background: color-mix(in srgb, var(--accent2) 34%, var(--bg) 66%) !important;
+  color: var(--fg) !important;
 }
 
 html[data-theme="dark"] .admin-content-editor .bg-white\/70 {
@@ -807,113 +867,124 @@ html[data-theme="dark"] .agenda-panel--day::after {
   opacity: 0.58;
 }
 
-html[data-theme="dark"] .agenda-calendar--day {
+.agenda-calendar--day {
   border-color: color-mix(in srgb, #d1849f 34%, transparent) !important;
-  background: color-mix(in srgb, var(--bg) 90%, #23131a 10%) !important;
+  background: color-mix(in srgb, #ffffff 86%, #f4e6ec 14%) !important;
   box-shadow:
-    inset 0 1px 0 color-mix(in srgb, #f9dde7 12%, transparent),
-    inset 0 -70px 120px -102px color-mix(in srgb, #ee95b5 28%, transparent);
+    inset 0 1px 0 color-mix(in srgb, #ffffff 72%, transparent),
+    inset 0 -70px 120px -102px color-mix(in srgb, #ef9db9 30%, transparent);
 }
 
-html[data-theme="dark"] .agenda-calendar--day::before {
-  opacity: 0.16;
+.agenda-calendar--day::before {
+  opacity: 0;
   background:
     radial-gradient(
       circle at 12% 12%,
-      color-mix(in srgb, #ee93b3 16%, transparent) 0 120px,
+      color-mix(in srgb, #ffd58f 32%, transparent) 0 120px,
       transparent 210px
     ),
     radial-gradient(
       ellipse at 84% 2%,
-      color-mix(in srgb, #f7d2e0 11%, transparent) 0 240px,
+      color-mix(in srgb, #ffe9bc 24%, transparent) 0 240px,
       transparent 410px
     ),
     linear-gradient(
       180deg,
-      color-mix(in srgb, #28151e 62%, transparent),
-      color-mix(in srgb, #1a0f15 78%, transparent)
+      color-mix(in srgb, #fff8e0 66%, transparent),
+      color-mix(in srgb, #fff 88%, transparent)
     );
 }
 
-html[data-theme="dark"] .agenda-calendar--day::after {
-  opacity: 0.3;
+.agenda-calendar--day::after {
+  opacity: 0;
   transform: translate3d(0, 0, 0) scale(1);
-  filter: saturate(0.86);
+  filter: saturate(0.72);
 }
 
-html[data-theme="dark"] .agenda-calendar--day .fc {
-  --fc-border-color: color-mix(in srgb, var(--accent2) 34%, transparent);
-  --fc-page-bg-color: transparent;
-  --fc-neutral-bg-color: color-mix(in srgb, #ffffff 4%, transparent);
-  --fc-today-bg-color: color-mix(in srgb, var(--accent2) 16%, transparent);
-  --fc-button-bg-color: color-mix(in srgb, var(--bg) 86%, #ffffff 14%);
-  --fc-button-border-color: color-mix(in srgb, var(--accent2) 36%, transparent);
-  --fc-button-hover-bg-color: color-mix(in srgb, var(--accent2) 22%, var(--bg) 78%);
-  --fc-button-hover-border-color: color-mix(in srgb, var(--accent2) 56%, transparent);
-  --fc-button-active-bg-color: color-mix(in srgb, var(--accent2) 30%, var(--bg) 70%);
-  --fc-button-active-border-color: color-mix(in srgb, var(--accent2) 64%, transparent);
-  --fc-button-text-color: var(--fg);
+.agenda-calendar--day .fc {
+  --fc-border-color: color-mix(in srgb, #b63f66 28%, transparent);
+  --fc-page-bg-color: color-mix(in srgb, #ffffff 94%, #f7ecf1 6%);
+  --fc-neutral-bg-color: color-mix(in srgb, #ffffff 10%, transparent);
+  --fc-today-bg-color: color-mix(in srgb, #b62450 16%, transparent);
+  --fc-button-bg-color: color-mix(in srgb, #ffffff 88%, #f3dde5 12%);
+  --fc-button-border-color: color-mix(in srgb, #b63f66 32%, transparent);
+  --fc-button-hover-bg-color: color-mix(in srgb, #fbeaf0 78%, #f3cad8 22%);
+  --fc-button-hover-border-color: color-mix(in srgb, #b63f66 48%, transparent);
+  --fc-button-active-bg-color: color-mix(in srgb, #f7dbe5 70%, #e59ab5 30%);
+  --fc-button-active-border-color: color-mix(in srgb, #b63f66 54%, transparent);
+  --fc-button-text-color: #2d1820;
 }
 
-html[data-theme="dark"] .agenda-calendar--day .fc .fc-toolbar-title,
-html[data-theme="dark"] .agenda-calendar--day .fc .fc-col-header-cell-cushion,
-html[data-theme="dark"] .agenda-calendar--day .fc .fc-daygrid-day-number,
-html[data-theme="dark"] .agenda-calendar--day .fc .fc-timegrid-slot-label-cushion,
-html[data-theme="dark"] .agenda-calendar--day .fc .fc-timegrid-axis-cushion {
-  color: var(--fg);
-  text-shadow: 0 1px 8px rgba(12, 7, 19, 0.55);
+.agenda-calendar--day .fc .fc-toolbar-title,
+.agenda-calendar--day .fc .fc-col-header-cell-cushion,
+.agenda-calendar--day .fc .fc-daygrid-day-number,
+.agenda-calendar--day .fc .fc-timegrid-slot-label-cushion,
+.agenda-calendar--day .fc .fc-timegrid-axis-cushion {
+  color: #2d1820;
+  text-shadow: 0 1px 6px rgba(255, 255, 255, 0.55);
 }
 
-html[data-theme="dark"] .agenda-calendar--day .fc .fc-button {
-  border-color: color-mix(in srgb, var(--accent2) 36%, transparent);
-  background: color-mix(in srgb, var(--bg) 86%, #ffffff 14%);
-  color: var(--fg);
+.agenda-calendar--day .fc .fc-button {
+  border-color: color-mix(in srgb, #b63f66 32%, transparent);
+  background: color-mix(in srgb, #ffffff 88%, #f3dde5 12%);
+  color: #2d1820;
 }
 
-html[data-theme="dark"] .agenda-calendar--day .fc .fc-button:not(:disabled):hover {
-  background: color-mix(in srgb, var(--accent2) 22%, var(--bg) 78%);
-  border-color: color-mix(in srgb, var(--accent2) 56%, transparent);
+.agenda-calendar--day .fc .fc-button:not(:disabled):hover {
+  background: color-mix(in srgb, #fbeaf0 78%, #f3cad8 22%);
+  border-color: color-mix(in srgb, #b63f66 48%, transparent);
 }
 
-html[data-theme="dark"] .agenda-calendar--day .fc .fc-scrollgrid,
-html[data-theme="dark"] .agenda-calendar--day .fc .fc-timegrid-slots td,
-html[data-theme="dark"] .agenda-calendar--day .fc .fc-timegrid-axis,
-html[data-theme="dark"] .agenda-calendar--day .fc .fc-col-header-cell,
-html[data-theme="dark"] .agenda-calendar--day .fc .fc-timegrid-divider {
-  border-color: color-mix(in srgb, var(--accent2) 30%, transparent);
-  background-color: color-mix(in srgb, var(--bg) 92%, #000000 8%);
+.agenda-calendar--day .fc .fc-scrollgrid,
+.agenda-calendar--day .fc .fc-timegrid-slots td,
+.agenda-calendar--day .fc .fc-timegrid-axis,
+.agenda-calendar--day .fc .fc-col-header-cell,
+.agenda-calendar--day .fc .fc-timegrid-divider {
+  border-color: color-mix(in srgb, #b63f66 24%, transparent);
+  background-color: color-mix(in srgb, #ffffff 94%, #f7ecf1 6%);
+}
+
+.agenda-calendar--day .fc .fc-daygrid-day,
+.agenda-calendar--day .fc .fc-timegrid-col,
+.agenda-calendar--day .fc .fc-timegrid-col-bg,
+.agenda-calendar--day .fc .fc-timegrid-slot,
+.agenda-calendar--day .fc .fc-daygrid-day-frame,
+.agenda-calendar--day .fc .fc-daygrid-day-bg {
+  background-color: var(--fc-page-bg-color);
 }
 
 .agenda-calendar--night {
+  border-color: color-mix(in srgb, #e27fa3 34%, transparent) !important;
+  background: color-mix(in srgb, #120910 94%, #1b0f16 6%) !important;
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, #ffd7ef 16%, transparent),
     inset 0 -80px 130px -105px color-mix(in srgb, #ea87ab 55%, transparent);
 }
 
 .agenda-calendar--night::before {
-  opacity: 0.14;
+  opacity: 0;
   transform: scale(1.01);
 }
 
 .agenda-calendar--night::after {
-  opacity: 0.74;
+  opacity: 0;
   transform: translate3d(0, 0, 0) scale(1);
   filter: saturate(0.86) contrast(1.05);
-  animation: night-aurora-drift 24s ease-in-out infinite;
+  animation: none;
 }
 
 .agenda-calendar--night .fc {
-  --fc-border-color: color-mix(in srgb, var(--accent2) 42%, transparent);
-  --fc-page-bg-color: transparent;
-  --fc-neutral-bg-color: color-mix(in srgb, #ffffff 6%, transparent);
-  --fc-today-bg-color: color-mix(in srgb, var(--accent2) 20%, transparent);
-  --fc-button-bg-color: color-mix(in srgb, var(--bg) 84%, #ffffff 16%);
-  --fc-button-border-color: color-mix(in srgb, var(--accent2) 40%, transparent);
-  --fc-button-hover-bg-color: color-mix(in srgb, var(--accent2) 26%, var(--bg) 74%);
-  --fc-button-hover-border-color: color-mix(in srgb, var(--accent2) 62%, transparent);
-  --fc-button-active-bg-color: color-mix(in srgb, var(--accent2) 34%, var(--bg) 66%);
-  --fc-button-active-border-color: color-mix(in srgb, var(--accent2) 68%, transparent);
-  --fc-button-text-color: var(--fg);
+  --fc-border-color: color-mix(in srgb, #e27fa3 42%, transparent);
+  --fc-page-bg-color: color-mix(in srgb, #120910 94%, #000000 6%);
+  --fc-neutral-bg-color: color-mix(in srgb, #ffffff 7%, transparent);
+  --fc-today-bg-color: color-mix(in srgb, #e0658b 24%, transparent);
+  --fc-button-bg-color: color-mix(in srgb, #1a0d14 84%, #ffffff 16%);
+  --fc-button-border-color: color-mix(in srgb, #e27fa3 44%, transparent);
+  --fc-button-hover-bg-color: color-mix(in srgb, #31111e 76%, #e0658b 24%);
+  --fc-button-hover-border-color: color-mix(in srgb, #f0a8c3 64%, transparent);
+  --fc-button-active-bg-color: color-mix(in srgb, #401425 70%, #e0658b 30%);
+  --fc-button-active-border-color: color-mix(in srgb, #f4b7cf 70%, transparent);
+  --fc-button-text-color: #f9edf1;
 }
 
 .agenda-calendar--night .fc .fc-toolbar-title,
@@ -921,23 +992,23 @@ html[data-theme="dark"] .agenda-calendar--day .fc .fc-timegrid-divider {
 .agenda-calendar--night .fc .fc-daygrid-day-number,
 .agenda-calendar--night .fc .fc-timegrid-slot-label-cushion,
 .agenda-calendar--night .fc .fc-timegrid-axis-cushion {
-  color: var(--fg);
+  color: #f9edf1;
   text-shadow: 0 2px 10px rgba(10, 7, 17, 0.65);
 }
 
 .agenda-calendar--night .fc .fc-button {
-  border-color: color-mix(in srgb, var(--accent2) 40%, transparent);
-  background: color-mix(in srgb, var(--bg) 84%, #ffffff 16%);
-  color: var(--fg);
+  border-color: color-mix(in srgb, #e27fa3 44%, transparent);
+  background: color-mix(in srgb, #1a0d14 84%, #ffffff 16%);
+  color: #f9edf1;
 }
 
 .agenda-calendar--night .fc .fc-button:not(:disabled):hover {
-  background: color-mix(in srgb, var(--accent2) 26%, var(--bg) 74%);
-  border-color: color-mix(in srgb, var(--accent2) 62%, transparent);
+  background: color-mix(in srgb, #31111e 76%, #e0658b 24%);
+  border-color: color-mix(in srgb, #f0a8c3 64%, transparent);
 }
 
 .agenda-calendar--night .fc .fc-button-primary:not(:disabled).fc-button-active {
-  color: var(--fg);
+  color: #f9edf1;
 }
 
 .agenda-calendar--night .fc .fc-scrollgrid,
@@ -945,8 +1016,17 @@ html[data-theme="dark"] .agenda-calendar--day .fc .fc-timegrid-divider {
 .agenda-calendar--night .fc .fc-timegrid-axis,
 .agenda-calendar--night .fc .fc-col-header-cell,
 .agenda-calendar--night .fc .fc-timegrid-divider {
-  border-color: color-mix(in srgb, var(--accent2) 36%, transparent);
-  background-color: color-mix(in srgb, var(--bg) 92%, #000000 8%);
+  border-color: color-mix(in srgb, #e27fa3 38%, transparent);
+  background-color: color-mix(in srgb, #120910 92%, #000000 8%);
+}
+
+.agenda-calendar--night .fc .fc-daygrid-day,
+.agenda-calendar--night .fc .fc-timegrid-col,
+.agenda-calendar--night .fc .fc-timegrid-col-bg,
+.agenda-calendar--night .fc .fc-timegrid-slot,
+.agenda-calendar--night .fc .fc-daygrid-day-frame,
+.agenda-calendar--night .fc .fc-daygrid-day-bg {
+  background-color: var(--fc-page-bg-color);
 }
 
 .agenda-calendar--night .fc .fc-event {

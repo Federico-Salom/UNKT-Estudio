@@ -1,3 +1,22 @@
+const includedItems = [
+  "Luces",
+  "Difusores",
+  "Fondos",
+  "Sillon",
+  "Accesorios de acero",
+];
+
+const extraItems = [
+  "Bajada de fondo sin pisar - $20.000",
+  "Bajada de fondo pisando - $35.000",
+];
+
+const buildCatalogImageDefaults = (items: string[]) =>
+  items.map((item) => ({
+    src: "",
+    alt: `Imagen de ${item}`,
+  }));
+
 export const studio = {
   name: "UNKT Estudio",
   siteUrl: "https://unktestudio.com",
@@ -37,16 +56,15 @@ export const studio = {
   included: {
     title: "Incluido",
     subtitle: "Llegas y ya esta armado.",
-    items: ["Luces", "Difusores", "Fondos", "Sillon", "Accesorios de acero"],
+    items: includedItems,
+    images: buildCatalogImageDefaults(includedItems),
   },
   extras: {
     title: "Extras",
     subtitle:
-      "Bajadas de fondos en rojo, negro y blanco. Se cobran una sola vez por reserva.",
-    items: [
-      "Bajada de fondo sin pisar - $20.000",
-      "Bajada de fondo pisando - $35.000",
-    ],
+      "Bajadas de fondos en rojo, negro y blanco. Se cobran una sola vez por reserva y solo podes elegir una variante.",
+    items: extraItems,
+    images: buildCatalogImageDefaults(extraItems),
   },
   howToBook: {
     title: "Como reservar",

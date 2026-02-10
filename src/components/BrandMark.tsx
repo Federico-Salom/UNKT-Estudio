@@ -38,14 +38,12 @@ export default function BrandMark({
     20
   );
   const wordmarkWidth = Math.max(Math.round(wordmarkHeight * 4.45), 90);
-  const defaultWordmarkOffsetY =
-    (size <= 40 ? 1.6 : 2.15) * clampedWordmarkScale;
   const brandCoreSize = Math.max(
-    Math.round(size * 0.64 * clampedWordmarkScale),
+    Math.round(size * 0.58 * clampedWordmarkScale),
     15
   );
   const brandTailSize = Math.max(
-    Math.round(size * 0.31 * clampedWordmarkScale),
+    Math.round(size * 0.29 * clampedWordmarkScale),
     9
   );
 
@@ -67,15 +65,20 @@ export default function BrandMark({
         isDefaultWordmark ? (
           <span
             className="inline-flex min-w-0 shrink items-center gap-2 whitespace-nowrap text-accent"
-            style={{
-              transform: `translateY(${wordmarkOffsetY + defaultWordmarkOffsetY}px)`,
-            }}
+            style={
+              wordmarkOffsetY
+                ? {
+                    transform: `translateY(${wordmarkOffsetY}px)`,
+                  }
+                : undefined
+            }
             aria-label={studio.name}
           >
             <span
-              className="font-display leading-none font-semibold uppercase tracking-[0.085em]"
+              className="leading-none font-semibold uppercase tracking-[0.08em]"
               style={{
                 fontSize: brandCoreSize,
+                fontFamily: "var(--font-controls), 'Nunito Sans', sans-serif",
               }}
             >
               {brandCore}

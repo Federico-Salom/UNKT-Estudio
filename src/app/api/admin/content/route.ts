@@ -61,6 +61,95 @@ const saveUpload = async (file: File) => {
   return `/uploads/${filename}`;
 };
 
+type CatalogImagePayload = {
+  id: string;
+  src?: string;
+  alt?: string;
+};
+
+const buildCatalogImageAlt = (label: string) => `Imagen de ${label}`;
+
+const parseCatalogImageOrder = (
+  value: FormDataEntryValue | null
+): CatalogImagePayload[] | null => {
+  if (value === null) return null;
+
+  try {
+    const parsed = JSON.parse(String(value)) as unknown;
+    if (!Array.isArray(parsed)) return null;
+
+    return parsed.flatMap((item) => {
+      if (!item || typeof item !== "object") return [];
+      const payload = item as {
+        id?: unknown;
+        src?: unknown;
+        alt?: unknown;
+      };
+      const id = String(payload.id ?? "").trim();
+      if (!id) return [];
+
+      return [
+        {
+          id,
+          src: typeof payload.src === "string" ? payload.src : "",
+          alt: typeof payload.alt === "string" ? payload.alt : "",
+        },
+      ];
+    });
+  } catch {
+    return null;
+  }
+};
+
+const buildCatalogImages = async ({
+  orderRaw,
+  filePrefix,
+  labels,
+  currentImages,
+  formData,
+}: {
+  orderRaw: FormDataEntryValue | null;
+  filePrefix: string;
+  labels: string[];
+  currentImages: StudioContent["included"]["images"];
+  formData: FormData;
+}) => {
+  const fallbackOrder = labels.map((_, index) => ({
+    id: `fallback-${index}`,
+    src: currentImages[index]?.src || "",
+    alt: currentImages[index]?.alt || "",
+  }));
+  const parsedOrder = parseCatalogImageOrder(orderRaw);
+  const sourceOrder = parsedOrder?.length ? parsedOrder : fallbackOrder;
+  const nextImages: StudioContent["included"]["images"] = [];
+
+  for (let index = 0; index < labels.length; index += 1) {
+    const label = labels[index];
+    const sourceItem = sourceOrder[index];
+    const fallbackItem = fallbackOrder[index];
+    const id = sourceItem?.id || fallbackItem.id;
+    let src =
+      (typeof sourceItem?.src === "string" ? sourceItem.src : "") ||
+      fallbackItem.src;
+    const alt =
+      (typeof sourceItem?.alt === "string" ? sourceItem.alt.trim() : "") ||
+      fallbackItem.alt ||
+      buildCatalogImageAlt(label);
+
+    const file = id ? getFile(formData.get(`${filePrefix}${id}`)) : null;
+    if (file) {
+      src = await saveUpload(file);
+    }
+
+    nextImages.push({
+      src,
+      alt,
+    });
+  }
+
+  return nextImages;
+};
+
 export async function POST(request: NextRequest) {
   const wantsJson = request.headers
     .get("accept")
@@ -152,18 +241,31 @@ export async function POST(request: NextRequest) {
   nextContent.howToBook.title =
     toText(formData.get("howToBookTitle")) || current.howToBook.title;
 
-  nextContent.included.items = parseList(
+  const nextIncludedItems = parseList(
     formData.get("includedItems"),
     current.included.items
   );
-  nextContent.extras.items = parseList(
-    formData.get("extrasItems"),
-    current.extras.items
-  );
+  const nextExtraItems = parseList(formData.get("extrasItems"), current.extras.items);
+  nextContent.included.items = nextIncludedItems;
+  nextContent.extras.items = nextExtraItems;
   nextContent.howToBook.steps = parseList(
     formData.get("howToBookSteps"),
     current.howToBook.steps
   );
+  nextContent.included.images = await buildCatalogImages({
+    orderRaw: formData.get("includedImagesOrder"),
+    filePrefix: "includedImageFile_",
+    labels: nextIncludedItems,
+    currentImages: current.included.images,
+    formData,
+  });
+  nextContent.extras.images = await buildCatalogImages({
+    orderRaw: formData.get("extrasImagesOrder"),
+    filePrefix: "extrasImageFile_",
+    labels: nextExtraItems,
+    currentImages: current.extras.images,
+    formData,
+  });
 
   const heroAlt = toText(formData.get("heroImageAlt"));
   if (heroAlt) {

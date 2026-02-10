@@ -17,6 +17,17 @@ type GalleryFormItem = {
   previewUrl?: string;
 };
 
+type CatalogType = "included" | "extras";
+
+type CatalogImageFormItem = {
+  id: string;
+  label: string;
+  src?: string;
+  alt: string;
+  file?: File;
+  previewUrl?: string;
+};
+
 type AdminContentFormProps = {
   studio: StudioContent;
   gallery: GalleryItem[];
@@ -28,6 +39,24 @@ const errorMessages: Record<string, string> = {
   unauthorized: "Tu sesión expiró. Inicia sesión nuevamente.",
   forbidden: "No tienes permisos para editar el contenido.",
 };
+
+const buildCatalogImageAlt = (label: string) => `Imagen de ${label}`;
+
+const createCatalogImageItems = ({
+  labels,
+  images,
+  prefix,
+}: {
+  labels: string[];
+  images: StudioContent["included"]["images"];
+  prefix: CatalogType;
+}) =>
+  labels.map((label, index) => ({
+    id: `${prefix}-${index}-${Math.random().toString(36).slice(2, 8)}`,
+    label,
+    src: images[index]?.src || "",
+    alt: images[index]?.alt || buildCatalogImageAlt(label),
+  }));
 
 export default function AdminContentForm({
   studio,
@@ -54,8 +83,28 @@ export default function AdminContentForm({
       alt: item.alt,
     }))
   );
+  const [includedCatalogImages, setIncludedCatalogImages] = useState<
+    CatalogImageFormItem[]
+  >(() =>
+    createCatalogImageItems({
+      labels: studio.included.items,
+      images: studio.included.images,
+      prefix: "included",
+    })
+  );
+  const [extrasCatalogImages, setExtrasCatalogImages] = useState<
+    CatalogImageFormItem[]
+  >(() =>
+    createCatalogImageItems({
+      labels: studio.extras.items,
+      images: studio.extras.images,
+      prefix: "extras",
+    })
+  );
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const galleryItemsRef = useRef<GalleryFormItem[]>([]);
+  const includedCatalogImagesRef = useRef<CatalogImageFormItem[]>([]);
+  const extrasCatalogImagesRef = useRef<CatalogImageFormItem[]>([]);
   const hideTimer = useRef<number | null>(null);
 
   useEffect(() => {
@@ -71,8 +120,26 @@ export default function AdminContentForm({
   }, [galleryItems]);
 
   useEffect(() => {
+    includedCatalogImagesRef.current = includedCatalogImages;
+  }, [includedCatalogImages]);
+
+  useEffect(() => {
+    extrasCatalogImagesRef.current = extrasCatalogImages;
+  }, [extrasCatalogImages]);
+
+  useEffect(() => {
     return () => {
       galleryItemsRef.current.forEach((item) => {
+        if (item.previewUrl) {
+          URL.revokeObjectURL(item.previewUrl);
+        }
+      });
+      includedCatalogImagesRef.current.forEach((item) => {
+        if (item.previewUrl) {
+          URL.revokeObjectURL(item.previewUrl);
+        }
+      });
+      extrasCatalogImagesRef.current.forEach((item) => {
         if (item.previewUrl) {
           URL.revokeObjectURL(item.previewUrl);
         }
@@ -102,6 +169,32 @@ export default function AdminContentForm({
     galleryItems.forEach((item) => {
       if (item.file) {
         formData.append(`galleryFile_${item.id}`, item.file);
+      }
+    });
+
+    const includedImagesPayload = includedCatalogImages.map((item) => ({
+      id: item.id,
+      src: item.src || "",
+      alt: item.alt || "",
+      label: item.label,
+    }));
+    formData.set("includedImagesOrder", JSON.stringify(includedImagesPayload));
+    includedCatalogImages.forEach((item) => {
+      if (item.file) {
+        formData.append(`includedImageFile_${item.id}`, item.file);
+      }
+    });
+
+    const extrasImagesPayload = extrasCatalogImages.map((item) => ({
+      id: item.id,
+      src: item.src || "",
+      alt: item.alt || "",
+      label: item.label,
+    }));
+    formData.set("extrasImagesOrder", JSON.stringify(extrasImagesPayload));
+    extrasCatalogImages.forEach((item) => {
+      if (item.file) {
+        formData.append(`extrasImageFile_${item.id}`, item.file);
       }
     });
 
@@ -201,6 +294,69 @@ export default function AdminContentForm({
       }
       return prev.filter((item) => item.id !== id);
     });
+  };
+
+  const updateCatalogImages = (
+    type: CatalogType,
+    updater: (items: CatalogImageFormItem[]) => CatalogImageFormItem[]
+  ) => {
+    if (type === "included") {
+      setIncludedCatalogImages(updater);
+      return;
+    }
+    setExtrasCatalogImages(updater);
+  };
+
+  const handleCatalogImageAltChange = (
+    type: CatalogType,
+    id: string,
+    value: string
+  ) => {
+    updateCatalogImages(type, (prev) =>
+      prev.map((item) => (item.id === id ? { ...item, alt: value } : item))
+    );
+  };
+
+  const handleCatalogImageUpload = (
+    type: CatalogType,
+    id: string,
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const previewUrl = URL.createObjectURL(file);
+    updateCatalogImages(type, (prev) =>
+      prev.map((item) => {
+        if (item.id !== id) return item;
+        if (item.previewUrl) {
+          URL.revokeObjectURL(item.previewUrl);
+        }
+        return {
+          ...item,
+          file,
+          previewUrl,
+        };
+      })
+    );
+    event.target.value = "";
+  };
+
+  const handleRemoveCatalogImage = (type: CatalogType, id: string) => {
+    updateCatalogImages(type, (prev) =>
+      prev.map((item) => {
+        if (item.id !== id) return item;
+        if (item.previewUrl) {
+          URL.revokeObjectURL(item.previewUrl);
+        }
+        return {
+          ...item,
+          src: "",
+          file: undefined,
+          previewUrl: undefined,
+        };
+      })
+    );
   };
 
   const handleReorder = (from: number, to: number) => {
@@ -824,6 +980,180 @@ export default function AdminContentForm({
                   ))}
                 </div>
               )}
+            </div>
+          </details>
+
+          <details className="rounded-2xl border border-accent/15 bg-white/80 p-5">
+            <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
+              Imagenes de incluidos y extras
+            </summary>
+            <div className="mt-4 grid gap-6">
+              <div className="rounded-2xl border border-accent/15 bg-bg/70 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted">
+                Se asignan por orden de linea de la seccion &quot;Listas y
+                bloques&quot;.
+              </div>
+
+              <div className="grid gap-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">
+                  Incluidos
+                </p>
+                {includedCatalogImages.length === 0 ? (
+                  <div className="rounded-2xl border border-accent/15 bg-bg/80 px-4 py-3 text-sm text-muted">
+                    No hay incluidos cargados.
+                  </div>
+                ) : (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {includedCatalogImages.map((item) => {
+                      const uploadId = `included-image-${item.id}`;
+                      return (
+                        <div
+                          key={item.id}
+                          className="grid gap-3 rounded-2xl border border-accent/15 bg-white/70 p-4"
+                        >
+                          <div className="relative overflow-hidden rounded-2xl border border-accent/15 bg-bg">
+                            {item.previewUrl || item.src ? (
+                              <img
+                                className="h-40 w-full object-cover"
+                                src={item.previewUrl || item.src}
+                                alt={item.alt || buildCatalogImageAlt(item.label)}
+                              />
+                            ) : (
+                              <div className="flex h-40 items-center justify-center text-xs text-muted">
+                                Sin imagen
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+                            {item.label}
+                          </p>
+                          <label className="grid gap-2 text-sm font-semibold">
+                            Alt
+                            <input
+                              className="rounded-2xl border border-accent/20 bg-white px-4 py-2 text-sm outline-none transition focus:border-accent"
+                              type="text"
+                              value={item.alt}
+                              onChange={(event) =>
+                                handleCatalogImageAltChange(
+                                  "included",
+                                  item.id,
+                                  event.target.value
+                                )
+                              }
+                            />
+                          </label>
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <label
+                              htmlFor={uploadId}
+                              className="inline-flex items-center justify-center rounded-full border border-accent/30 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10"
+                            >
+                              Subir imagen
+                            </label>
+                            <button
+                              className="rounded-full border border-accent/30 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10"
+                              type="button"
+                              onClick={() =>
+                                handleRemoveCatalogImage("included", item.id)
+                              }
+                            >
+                              Quitar
+                            </button>
+                          </div>
+                          <input
+                            id={uploadId}
+                            type="file"
+                            accept="image/*"
+                            className="sr-only"
+                            onChange={(event) =>
+                              handleCatalogImageUpload("included", item.id, event)
+                            }
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              <div className="grid gap-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">
+                  Extras
+                </p>
+                {extrasCatalogImages.length === 0 ? (
+                  <div className="rounded-2xl border border-accent/15 bg-bg/80 px-4 py-3 text-sm text-muted">
+                    No hay extras cargados.
+                  </div>
+                ) : (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {extrasCatalogImages.map((item) => {
+                      const uploadId = `extras-image-${item.id}`;
+                      return (
+                        <div
+                          key={item.id}
+                          className="grid gap-3 rounded-2xl border border-accent/15 bg-white/70 p-4"
+                        >
+                          <div className="relative overflow-hidden rounded-2xl border border-accent/15 bg-bg">
+                            {item.previewUrl || item.src ? (
+                              <img
+                                className="h-40 w-full object-cover"
+                                src={item.previewUrl || item.src}
+                                alt={item.alt || buildCatalogImageAlt(item.label)}
+                              />
+                            ) : (
+                              <div className="flex h-40 items-center justify-center text-xs text-muted">
+                                Sin imagen
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+                            {item.label}
+                          </p>
+                          <label className="grid gap-2 text-sm font-semibold">
+                            Alt
+                            <input
+                              className="rounded-2xl border border-accent/20 bg-white px-4 py-2 text-sm outline-none transition focus:border-accent"
+                              type="text"
+                              value={item.alt}
+                              onChange={(event) =>
+                                handleCatalogImageAltChange(
+                                  "extras",
+                                  item.id,
+                                  event.target.value
+                                )
+                              }
+                            />
+                          </label>
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <label
+                              htmlFor={uploadId}
+                              className="inline-flex items-center justify-center rounded-full border border-accent/30 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10"
+                            >
+                              Subir imagen
+                            </label>
+                            <button
+                              className="rounded-full border border-accent/30 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10"
+                              type="button"
+                              onClick={() =>
+                                handleRemoveCatalogImage("extras", item.id)
+                              }
+                            >
+                              Quitar
+                            </button>
+                          </div>
+                          <input
+                            id={uploadId}
+                            type="file"
+                            accept="image/*"
+                            className="sr-only"
+                            onChange={(event) =>
+                              handleCatalogImageUpload("extras", item.id, event)
+                            }
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
           </details>
         </div>

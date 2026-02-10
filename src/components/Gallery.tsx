@@ -92,6 +92,7 @@ export default function Gallery({ studio }: GalleryProps) {
     "included" | "extras" | null
   >(null);
   const [selectedCatalogItem, setSelectedCatalogItem] = useState<{
+    index: number;
     label: string;
     type: "included" | "extras";
   } | null>(null);
@@ -193,8 +194,12 @@ export default function Gallery({ studio }: GalleryProps) {
     setActiveCatalogModal(null);
   };
 
-  const selectCatalogItem = (label: string, type: "included" | "extras") => {
-    setSelectedCatalogItem({ label, type });
+  const selectCatalogItem = (
+    index: number,
+    label: string,
+    type: "included" | "extras"
+  ) => {
+    setSelectedCatalogItem({ index, label, type });
   };
 
   const openPlanModal = () => {
@@ -221,6 +226,27 @@ export default function Gallery({ studio }: GalleryProps) {
   const updatePlanZoom = (nextZoom: number) => {
     setPlanZoom(Math.min(3, Math.max(1, nextZoom)));
   };
+
+  const activeCatalogItems =
+    activeCatalogModal === "included"
+      ? studio.included.items
+      : activeCatalogModal === "extras"
+        ? studio.extras.items
+        : [];
+  const activeCatalogImages =
+    activeCatalogModal === "included"
+      ? studio.included.images
+      : activeCatalogModal === "extras"
+        ? studio.extras.images
+        : [];
+  const isSelectedCatalogItem = selectedCatalogItem?.type === activeCatalogModal;
+  const selectedCatalogImage = isSelectedCatalogItem
+    ? activeCatalogImages[selectedCatalogItem.index]
+    : null;
+  const selectedCatalogImageSrc = selectedCatalogImage?.src?.trim() || "";
+  const selectedCatalogImageAlt =
+    (selectedCatalogImage?.alt || "").trim() ||
+    (isSelectedCatalogItem ? `Imagen de ${selectedCatalogItem.label}` : "");
 
   const topActionButtonClass =
     "inline-flex h-9 w-full items-center justify-center rounded-full border border-accent/30 bg-bg/90 px-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-accent shadow-[0_12px_26px_-18px_rgba(0,0,0,0.45)] transition hover:border-accent hover:bg-bg sm:px-3 md:h-11 md:px-5 md:text-[13px] md:tracking-[0.12em]";
@@ -283,128 +309,131 @@ export default function Gallery({ studio }: GalleryProps) {
           </div>
         </div>
 
-        <div
-          ref={stageRef}
-          className="gallery-stage relative overflow-visible"
-        >
-
-          <button
-            type="button"
-            aria-label="Imagen anterior"
-            onClick={handlePrev}
-            className="gallery-nav-btn absolute left-1 top-1/2 z-10 -translate-y-1/2 items-center justify-center rounded-full border border-accent/30 bg-bg/90 p-3 text-accent shadow-[0_10px_30px_-20px_rgba(0,0,0,0.4)] transition hover:border-accent hover:bg-bg md:left-3 md:inline-flex"
-          >
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 24 24"
-              className="h-5 w-5"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-          </button>
-
+        <div className="gallery-frame mx-auto w-full max-w-3xl">
           <div
-            ref={containerRef}
-            onScroll={handleScroll}
-            onPointerDown={dismissSwipeHint}
-            onTouchStart={dismissSwipeHint}
-            onWheel={dismissSwipeHint}
-            className="gallery-scroll -mb-1 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 pt-2 md:gap-6 md:px-8"
+            ref={stageRef}
+            className="gallery-stage relative overflow-visible"
           >
-            {gallery.map((image, index) => (
-              <div
-                key={`${image.src}-${index}`}
-                ref={(el) => {
-                  slideRefs.current[index] = el;
-                }}
-                className="gallery-slide relative snap-center overflow-hidden rounded-3xl border border-accent/15 bg-muted/10 shadow-[0_26px_56px_-32px_rgba(0,0,0,0.6)]"
+            <button
+              type="button"
+              aria-label="Imagen anterior"
+              onClick={handlePrev}
+              className="gallery-nav-btn absolute left-1 top-1/2 z-10 -translate-y-1/2 items-center justify-center rounded-full border border-accent/30 bg-bg/90 p-3 text-accent shadow-[0_10px_30px_-20px_rgba(0,0,0,0.4)] transition hover:border-accent hover:bg-bg md:left-3 md:inline-flex"
+            >
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               >
-                <div className="relative aspect-[4/3] w-full">
-                  <Image
-                    src={image.src}
-                    alt={image.alt}
-                    fill
-                    className="gallery-image object-cover"
-                    sizes="(min-width: 1280px) 78vw, (min-width: 768px) 86vw, 92vw"
-                  />
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
+
+            <div
+              ref={containerRef}
+              onScroll={handleScroll}
+              onPointerDown={dismissSwipeHint}
+              onTouchStart={dismissSwipeHint}
+              onWheel={dismissSwipeHint}
+              className="gallery-scroll -mb-[44px] flex snap-x snap-mandatory gap-0 overflow-x-auto px-0 pb-[56px] pt-2"
+            >
+              {gallery.map((image, index) => (
+                <div
+                  key={`${image.src}-${index}`}
+                  ref={(el) => {
+                    slideRefs.current[index] = el;
+                  }}
+                  className="gallery-slide snap-center px-4 md:px-7"
+                >
+                  <div className="gallery-card relative overflow-hidden rounded-3xl border border-accent/15 bg-muted/10 shadow-[0_26px_56px_-32px_rgba(0,0,0,0.6)]">
+                    <div className="relative aspect-[16/9] w-full">
+                      <Image
+                        src={image.src}
+                        alt={image.alt}
+                        fill
+                        className="gallery-image object-cover object-center"
+                        sizes="(min-width: 1280px) 60rem, (min-width: 768px) 80vw, 92vw"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {showSwipeHint ? (
+              <div className="gallery-swipe-hint pointer-events-none absolute bottom-5 left-1/2 z-20 -translate-x-1/2">
+                <div className="gallery-swipe-hint-pill">
+                  <span className="gallery-swipe-hint-text">Desliza</span>
+                  <span className="gallery-swipe-hint-arrows" aria-hidden="true">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M8 6l-6 6 6 6" />
+                    </svg>
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M16 6l6 6-6 6" />
+                    </svg>
+                  </span>
                 </div>
               </div>
-            ))}
+            ) : null}
+
+            <button
+              type="button"
+              aria-label="Imagen siguiente"
+              onClick={handleNext}
+              className="gallery-nav-btn absolute right-1 top-1/2 z-10 -translate-y-1/2 items-center justify-center rounded-full border border-accent/30 bg-bg/90 p-3 text-accent shadow-[0_10px_30px_-20px_rgba(0,0,0,0.4)] transition hover:border-accent hover:bg-bg md:right-3 md:inline-flex"
+            >
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </button>
           </div>
 
-          {showSwipeHint ? (
-            <div className="gallery-swipe-hint pointer-events-none absolute bottom-5 left-1/2 z-20 -translate-x-1/2">
-              <div className="gallery-swipe-hint-pill">
-                <span className="gallery-swipe-hint-text">Desliza</span>
-                <span className="gallery-swipe-hint-arrows" aria-hidden="true">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M8 6l-6 6 6 6" />
-                  </svg>
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M16 6l6 6-6 6" />
-                  </svg>
-                </span>
-              </div>
-            </div>
-          ) : null}
-
-          <button
-            type="button"
-            aria-label="Imagen siguiente"
-            onClick={handleNext}
-            className="gallery-nav-btn absolute right-1 top-1/2 z-10 -translate-y-1/2 items-center justify-center rounded-full border border-accent/30 bg-bg/90 p-3 text-accent shadow-[0_10px_30px_-20px_rgba(0,0,0,0.4)] transition hover:border-accent hover:bg-bg md:right-3 md:inline-flex"
-          >
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 24 24"
-              className="h-5 w-5"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M9 18l6-6-6-6" />
-            </svg>
-          </button>
-        </div>
-
-        <div className="mt-0.5 flex h-4 items-center justify-center gap-1.5">
-          {gallery.map((_, index) => (
-            <button
-              key={`dot-${index}`}
-              type="button"
-              aria-label={`Ir a la imagen ${index + 1}`}
-              onClick={() => {
-                dismissSwipeHint();
-                scrollToIndex(index);
-              }}
-              className={`inline-flex h-2 w-2 items-center justify-center rounded-full transition ${
-                index === currentIndex
-                  ? "bg-accent"
-                  : "bg-accent/30 hover:bg-accent/60"
-              }`}
-            />
-          ))}
+          <div className="gallery-dots mt-0.5 flex h-4 items-center justify-center gap-1.5">
+            {gallery.map((_, index) => (
+              <button
+                key={`dot-${index}`}
+                type="button"
+                aria-label={`Ir a la imagen ${index + 1}`}
+                onClick={() => {
+                  dismissSwipeHint();
+                  scrollToIndex(index);
+                }}
+                className={`inline-flex h-2 w-2 items-center justify-center rounded-full transition ${
+                  index === currentIndex
+                    ? "bg-accent"
+                    : "bg-accent/30 hover:bg-accent/60"
+                }`}
+              />
+            ))}
+          </div>
         </div>
 
       </Container>
@@ -446,19 +475,18 @@ export default function Gallery({ studio }: GalleryProps) {
             </div>
 
             <div className="mt-4 flex flex-wrap gap-2">
-              {(activeCatalogModal === "included"
-                ? studio.included.items
-                : studio.extras.items
-              ).map((item) => {
+              {activeCatalogItems.map((item, index) => {
                 const isSelected =
                   selectedCatalogItem?.type === activeCatalogModal &&
-                  selectedCatalogItem.label === item;
+                  selectedCatalogItem.index === index;
 
                 return (
                   <button
                     type="button"
-                    key={item}
-                    onClick={() => selectCatalogItem(item, activeCatalogModal)}
+                    key={`${item}-${index}`}
+                    onClick={() =>
+                      selectCatalogItem(index, item, activeCatalogModal)
+                    }
                     className={`rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-wide transition ${
                       isSelected
                         ? "border-accent bg-accent text-bg"
@@ -472,7 +500,7 @@ export default function Gallery({ studio }: GalleryProps) {
             </div>
 
             <div className="mt-5 rounded-2xl border border-accent/20 bg-bg/80 p-4">
-              {selectedCatalogItem?.type === activeCatalogModal ? (
+              {isSelectedCatalogItem ? (
                 <>
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">
                     {activeCatalogModal === "included" ? "Incluido" : "Extra"}
@@ -485,6 +513,20 @@ export default function Gallery({ studio }: GalleryProps) {
                       ? studio.included.subtitle
                       : studio.extras.subtitle}
                   </p>
+
+                  <div className="mt-4 overflow-hidden rounded-2xl border border-accent/20 bg-bg">
+                    {selectedCatalogImageSrc ? (
+                      <img
+                        src={selectedCatalogImageSrc}
+                        alt={selectedCatalogImageAlt}
+                        className="h-52 w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-52 items-center justify-center px-4 text-center text-sm text-muted">
+                        Sin imagen de referencia para esta opcion.
+                      </div>
+                    )}
+                  </div>
                 </>
               ) : (
                 <p className="text-sm text-muted">

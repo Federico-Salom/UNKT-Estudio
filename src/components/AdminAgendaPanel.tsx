@@ -217,9 +217,7 @@ export default function AdminAgendaPanel({
   const [message, setMessage] = useState("");
   const hideTimer = useRef<number | null>(null);
   const isMonthView = availabilityView === "dayGridMonth";
-  const effectiveTimeWindowMode: TimeWindowMode = isMonthView
-    ? "day"
-    : timeWindowMode;
+  const effectiveTimeWindowMode: TimeWindowMode = timeWindowMode;
   const isNight = effectiveTimeWindowMode === "night";
   const activeSlotColors = isNight ? nightSlotColors : slotColors;
   const activeBookingColors = isNight ? nightBookingColors : bookingColors;
@@ -1082,7 +1080,7 @@ export default function AdminAgendaPanel({
           className={`agenda-calendar mt-6 relative overflow-hidden rounded-2xl border p-3 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
             isNight
               ? "agenda-calendar--night border-accent2/35 bg-bg/90"
-              : "agenda-calendar--day border-accent/15 bg-white/80"
+              : "agenda-calendar--day border-accent/15"
           }`}
         >
           {selectedBooking && (

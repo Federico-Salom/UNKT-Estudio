@@ -40,13 +40,13 @@ export default async function AdminUsersPage() {
   }));
 
   return (
-    <div className="min-h-screen bg-bg text-fg">
+    <div className="admin-dashboard admin-users-page min-h-screen bg-bg text-fg">
       <header className="border-b border-accent/20 bg-bg/95">
         <Container className="flex items-center justify-between py-4">
           <BrandMark studio={studio} />
           <div className="flex items-center gap-6">
             <Link
-              className="inline-flex items-center rounded-full border border-accent/35 bg-accent/10 px-4 py-2 text-sm font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/20"
+              className="inline-flex items-center justify-center rounded-full border border-accent/35 bg-accent/10 px-4 py-2 text-center text-sm font-semibold leading-none tracking-wide text-accent transition hover:border-accent hover:bg-accent/20"
               href="/admin"
             >
               Panel
