@@ -13,11 +13,18 @@ type HeaderProps = {
 export default async function Header({ studio }: HeaderProps) {
   return (
     <header className="relative z-50 border-b border-accent/20 bg-bg/95 backdrop-blur">
-      <Container className="flex items-center justify-between gap-3 px-4 py-3 sm:px-6 md:py-4">
-        <div className="flex items-center md:hidden">
-          <BrandMark studio={studio} size={30} />
+      <Container className="flex items-center justify-between gap-2.5 px-3 py-2.5 sm:px-6 md:gap-3 md:py-4">
+        <div className="min-w-0 flex flex-1 items-center md:hidden">
+          <BrandMark
+            studio={studio}
+            size={36}
+            wordmarkScale={0.9}
+            wordmarkOffsetY={1.5}
+            gapClassName="gap-2 sm:gap-2.5"
+            className="max-w-[58vw] sm:max-w-full"
+          />
         </div>
-        <div className="hidden items-center md:flex">
+        <div className="hidden min-w-0 items-center md:flex">
           <BrandMark studio={studio} />
         </div>
         <HeaderActions />
@@ -30,8 +37,8 @@ async function HeaderActions() {
   const session = await getSessionFromCookies();
   if (!session) {
     return (
-      <div className="flex items-center gap-2 md:gap-4">
-        <ThemeToggle />
+      <div className="flex shrink-0 items-center gap-2 md:gap-4">
+        <ThemeToggle className="h-9 w-9 md:h-10 md:w-10" />
         <a
           className="inline-flex text-xs font-semibold uppercase tracking-wide text-fg/80 transition hover:text-fg md:text-sm"
           href="/login"
@@ -49,8 +56,8 @@ async function HeaderActions() {
 
   if (!user) {
     return (
-      <div className="flex items-center gap-2 md:gap-4">
-        <ThemeToggle />
+      <div className="flex shrink-0 items-center gap-2 md:gap-4">
+        <ThemeToggle className="h-9 w-9 md:h-10 md:w-10" />
         <a
           className="inline-flex text-xs font-semibold uppercase tracking-wide text-fg/80 transition hover:text-fg md:text-sm"
           href="/login"
@@ -65,8 +72,8 @@ async function HeaderActions() {
   const roleLabel = user.role === "admin" ? "Administrador" : "Usuario";
 
   return (
-    <div className="flex items-center gap-2 md:gap-4">
-      <ThemeToggle />
+    <div className="flex shrink-0 items-center gap-2 md:gap-4">
+      <ThemeToggle className="h-9 w-9 md:h-10 md:w-10" />
       <UserMenu
         user={{
           email: user.email,

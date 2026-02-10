@@ -45,14 +45,14 @@ export default function MapSection({ studio }: MapSectionProps) {
   const embedQuery = hasLocationText ? locationText : studio.name;
   const embedUrl = buildEmbedUrl(locationUrl, embedQuery);
   const cardClassName =
-    "group relative overflow-hidden rounded-3xl border-[1.5px] border-accent/26 bg-bg/90 p-2.5 shadow-[0_24px_48px_-36px_rgba(28,12,18,0.62)] transition hover:border-accent/42";
+    "group relative overflow-hidden rounded-3xl border-[1.5px] border-accent/26 bg-bg/90 p-2 shadow-[0_24px_48px_-36px_rgba(28,12,18,0.62)] transition hover:border-accent/42 md:p-2.5";
   const mediaShellClassName =
     "map-embed-shell relative overflow-hidden rounded-[1.35rem] border border-accent/24 bg-bg/85";
   const labelClassName =
-    "mt-2.5 inline-flex w-full items-center justify-center rounded-full border-[1.5px] border-accent/26 bg-bg px-4 py-2.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-accent";
+    "mt-2 inline-flex w-full items-center justify-center rounded-full border-[1.5px] border-accent/26 bg-bg px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-accent md:mt-2.5 md:py-2.5";
 
   return (
-    <section className="bg-bg pb-14 md:pb-20">
+    <section className="bg-bg pt-8 pb-8 md:pt-14 md:pb-14">
       <Container>
         <div className="mx-auto w-full max-w-3xl">
           <div className={cardClassName}>
@@ -62,7 +62,7 @@ export default function MapSection({ studio }: MapSectionProps) {
                 src={embedUrl}
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
-                className="map-embed-frame h-[300px] w-full sm:h-[320px]"
+                className="map-embed-frame h-[205px] w-full sm:h-[235px]"
               />
               <div className="map-embed-overlay" aria-hidden="true" />
             </div>

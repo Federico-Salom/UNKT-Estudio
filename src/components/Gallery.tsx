@@ -11,6 +11,9 @@ type GalleryProps = {
 
 export default function Gallery({ studio }: GalleryProps) {
   const gallery = studio.gallery ?? [];
+  const bookingLink = "/reservar";
+  const primaryCta =
+    studio.ctas.primary.replace(/\s*por\s*whats?app/i, "").trim() || "Reservar";
   const floorPlanSrc = studio.floorPlan.src || "/plano-estudio.svg";
   const floorPlanAlt = studio.floorPlan.alt || "Plano del lugar";
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -142,10 +145,10 @@ export default function Gallery({ studio }: GalleryProps) {
   return (
     <section
       id="galeria"
-      className="scroll-mt-24 bg-bg pt-6 pb-14 md:pt-10 md:pb-20"
+      className="scroll-mt-24 bg-bg pt-1 pb-14 md:pt-6 md:pb-20"
     >
       <Container>
-        <div className="mb-8 flex flex-col items-center gap-4 md:gap-5">
+        <div className="mb-5 flex flex-col items-center gap-4 md:mb-6 md:gap-5">
           <div className="grid w-full grid-cols-3 items-stretch gap-2 sm:gap-4 md:gap-6">
             <div className="relative w-full">
             <button
@@ -322,7 +325,7 @@ export default function Gallery({ studio }: GalleryProps) {
           </button>
         </div>
 
-        <div className="mt-1 flex items-center justify-center gap-1.5">
+        <div className="mt-2 flex h-5 items-center justify-center gap-1.5">
           {gallery.map((_, index) => (
             <button
               key={`dot-${index}`}
@@ -332,13 +335,22 @@ export default function Gallery({ studio }: GalleryProps) {
                 dismissSwipeHint();
                 scrollToIndex(index);
               }}
-              className={`h-2 w-2 rounded-full transition ${
+              className={`inline-flex h-2 w-2 items-center justify-center rounded-full transition ${
                 index === currentIndex
                   ? "bg-accent"
                   : "bg-accent/30 hover:bg-accent/60"
               }`}
             />
           ))}
+        </div>
+
+        <div className="mt-3 flex items-center justify-center">
+          <a
+            className="inline-flex w-full max-w-xl items-center justify-center rounded-full bg-accent px-6 py-3 text-sm font-semibold uppercase tracking-wide text-bg shadow-[0_12px_24px_-12px_rgba(0,0,0,0.6)] transition hover:bg-accent2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2"
+            href={bookingLink}
+          >
+            <span className="button-label">{primaryCta}</span>
+          </a>
         </div>
       </Container>
 

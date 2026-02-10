@@ -17,8 +17,8 @@ export default function Footer({ studio }: FooterProps) {
     "inline-flex h-11 w-11 items-center justify-center rounded-full border border-accent/30 bg-bg text-accent transition hover:border-accent hover:bg-accent/10";
 
   return (
-    <footer className="border-t border-accent/20 bg-bg/95 py-10 backdrop-blur">
-      <Container className="flex flex-col items-center justify-center gap-4 text-center text-sm text-muted md:flex-row md:justify-center">
+    <footer className="border-t border-accent/20 bg-bg/95 py-7 backdrop-blur md:py-8">
+      <Container className="flex flex-col items-center justify-center gap-3 text-center text-sm text-muted md:flex-row md:gap-4 md:justify-center">
         <p className="leading-none">UNKT Estudio</p>
         <div className="flex flex-wrap items-center justify-center gap-2">
           <a
