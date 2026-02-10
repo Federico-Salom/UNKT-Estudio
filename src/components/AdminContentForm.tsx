@@ -391,30 +391,84 @@ export default function AdminContentForm({
             <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
               Logo y wordmark
             </summary>
-            <div className="mt-4 grid gap-5 md:grid-cols-2">
-              <div className="grid gap-3">
-                <div className="overflow-hidden rounded-2xl border border-accent/20 bg-bg p-3">
-                  <img
-                    className="h-20 w-20 rounded-full object-cover"
-                    src={studio.logo.src}
-                    alt={studio.logo.alt}
-                  />
+            <div className="mt-4 grid gap-4">
+              <div className="grid gap-5 md:grid-cols-2">
+                <div className="grid gap-3">
+                  <div className="overflow-hidden rounded-2xl border border-accent/20 bg-bg p-3">
+                    <img
+                      className="h-20 w-20 rounded-full object-cover"
+                      src={studio.logo.src}
+                      alt={studio.logo.alt}
+                    />
+                  </div>
+                  <span className="text-xs font-semibold uppercase tracking-wide text-muted">
+                    Logo actual
+                  </span>
                 </div>
-                <span className="text-xs font-semibold uppercase tracking-wide text-muted">
-                  Logo actual (se reemplaza en Marca, SEO y sitio)
-                </span>
+                <div className="grid gap-3">
+                  <div className="overflow-hidden rounded-2xl border border-accent/20 bg-bg p-3">
+                    <img
+                      className="h-20 w-full object-contain"
+                      src={studio.logo.wordmarkSrc}
+                      alt={studio.logo.alt}
+                    />
+                  </div>
+                  <span className="text-xs font-semibold uppercase tracking-wide text-muted">
+                    Wordmark actual
+                  </span>
+                </div>
               </div>
-              <div className="grid gap-3">
-                <div className="overflow-hidden rounded-2xl border border-accent/20 bg-bg p-3">
-                  <img
-                    className="h-20 w-full object-contain"
-                    src={studio.logo.wordmarkSrc}
-                    alt={studio.logo.alt}
+              <label className="grid gap-2 text-sm font-semibold">
+                Alt del logo
+                <input
+                  className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                  type="text"
+                  name="logoAlt"
+                  defaultValue={studio.logo.alt}
+                  required
+                />
+              </label>
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="grid gap-2 text-sm font-semibold">
+                  Reemplazar logo (avatar)
+                  <div className="flex flex-wrap items-center gap-3">
+                    <label
+                      htmlFor="logoImageSeo"
+                      className="inline-flex items-center justify-center rounded-full border border-accent/30 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10"
+                    >
+                      Seleccionar imagen
+                    </label>
+                    <span className="text-xs text-muted">{logoFileName}</span>
+                  </div>
+                  <input
+                    id="logoImageSeo"
+                    type="file"
+                    name="logoImage"
+                    accept="image/*"
+                    className="sr-only"
+                    onChange={handleLogoFileChange}
                   />
-                </div>
-                <span className="text-xs font-semibold uppercase tracking-wide text-muted">
-                  Wordmark actual (se reemplaza en Marca, SEO y sitio)
-                </span>
+                </label>
+                <label className="grid gap-2 text-sm font-semibold">
+                  Reemplazar wordmark (texto)
+                  <div className="flex flex-wrap items-center gap-3">
+                    <label
+                      htmlFor="wordmarkImageSeo"
+                      className="inline-flex items-center justify-center rounded-full border border-accent/30 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10"
+                    >
+                      Seleccionar imagen
+                    </label>
+                    <span className="text-xs text-muted">{wordmarkFileName}</span>
+                  </div>
+                  <input
+                    id="wordmarkImageSeo"
+                    type="file"
+                    name="wordmarkImage"
+                    accept="image/*"
+                    className="sr-only"
+                    onChange={handleWordmarkFileChange}
+                  />
+                </label>
               </div>
             </div>
           </details>
@@ -424,12 +478,9 @@ export default function AdminContentForm({
             open
           >
             <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
-              Identidad y héroe
+              Título y subtítulo
             </summary>
             <div className="mt-4 grid gap-4">
-              <div className="rounded-2xl border border-accent/15 bg-bg/70 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted">
-                La identidad del estudio se maneja desde el logo wordmark.
-              </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <label className="grid gap-2 text-sm font-semibold">
                   Título principal
@@ -457,7 +508,7 @@ export default function AdminContentForm({
 
           <details className="rounded-2xl border border-accent/15 bg-white/80 p-5">
             <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
-              Plano del lugar
+              Plano y ubicacion
             </summary>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <div className="grid gap-3">
@@ -505,87 +556,47 @@ export default function AdminContentForm({
                     onChange={handleFloorPlanFileChange}
                   />
                 </label>
+                <label className="grid gap-2 text-sm font-semibold">
+                  Texto direccion
+                  <input
+                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                    type="text"
+                    name="locationText"
+                    defaultValue={studio.contact.locationText}
+                  />
+                </label>
+                <label className="grid gap-2 text-sm font-semibold">
+                  Link Google Maps
+                  <input
+                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                    type="url"
+                    name="locationUrl"
+                    defaultValue={studio.contact.locationUrl}
+                  />
+                </label>
               </div>
             </div>
           </details>
 
           <details className="rounded-2xl border border-accent/15 bg-white/80 p-5">
             <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
-              Marca, SEO y sitio
+              SEO y sitio
             </summary>
             <div className="mt-4 grid gap-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <label className="grid gap-2 text-sm font-semibold">
-                  URL del sitio
-                  <input
-                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-                    type="url"
-                    name="siteUrl"
-                    defaultValue={studio.siteUrl}
-                    required
-                  />
-                  <span className="text-xs font-medium text-muted">
-                    Ejemplo: https://tudominio.com. Si no pones protocolo, se
-                    completa automaticamente.
-                  </span>
-                </label>
-                <label className="grid gap-2 text-sm font-semibold">
-                  Alt del logo
-                  <input
-                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-                    type="text"
-                    name="logoAlt"
-                    defaultValue={studio.logo.alt}
-                    required
-                  />
-                </label>
-              </div>
-              <div className="rounded-2xl border border-accent/15 bg-bg/70 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted">
-                No hace falta editar rutas manuales. Para cambiar logo, wordmark
-                o imagen SEO, sube un archivo y el sistema guarda la ruta solo.
-              </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <label className="grid gap-2 text-sm font-semibold">
-                  Reemplazar logo (avatar)
-                  <div className="flex flex-wrap items-center gap-3">
-                    <label
-                      htmlFor="logoImageSeo"
-                      className="inline-flex items-center justify-center rounded-full border border-accent/30 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10"
-                    >
-                      Seleccionar imagen
-                    </label>
-                    <span className="text-xs text-muted">{logoFileName}</span>
-                  </div>
-                  <input
-                    id="logoImageSeo"
-                    type="file"
-                    name="logoImage"
-                    accept="image/*"
-                    className="sr-only"
-                    onChange={handleLogoFileChange}
-                  />
-                </label>
-                <label className="grid gap-2 text-sm font-semibold">
-                  Reemplazar wordmark (texto)
-                  <div className="flex flex-wrap items-center gap-3">
-                    <label
-                      htmlFor="wordmarkImageSeo"
-                      className="inline-flex items-center justify-center rounded-full border border-accent/30 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10"
-                    >
-                      Seleccionar imagen
-                    </label>
-                    <span className="text-xs text-muted">{wordmarkFileName}</span>
-                  </div>
-                  <input
-                    id="wordmarkImageSeo"
-                    type="file"
-                    name="wordmarkImage"
-                    accept="image/*"
-                    className="sr-only"
-                    onChange={handleWordmarkFileChange}
-                  />
-                </label>
-              </div>
+              <label className="grid gap-2 text-sm font-semibold">
+                URL del sitio
+                <input
+                  className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                  type="url"
+                  name="siteUrl"
+                  defaultValue={studio.siteUrl}
+                  required
+                />
+                <span className="text-xs font-medium text-muted">
+                  Ejemplo: https://tudominio.com. Si no pones protocolo, se
+                  completa automaticamente.
+                </span>
+              </label>
               <label className="grid gap-2 text-sm font-semibold">
                 SEO title
                 <input
@@ -637,31 +648,19 @@ export default function AdminContentForm({
 
           <details className="rounded-2xl border border-accent/15 bg-white/80 p-5">
             <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
-              CTAs y WhatsApp
+              Datos de contacto
             </summary>
             <div className="mt-4 grid gap-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <label className="grid gap-2 text-sm font-semibold">
-                  CTA principal
-                  <input
-                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-                    type="text"
-                    name="ctaPrimary"
-                    defaultValue={studio.ctas.primary}
-                    required
-                  />
-                </label>
-                <label className="grid gap-2 text-sm font-semibold">
-                  CTA secundario
-                  <input
-                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-                    type="text"
-                    name="ctaSecondary"
-                    defaultValue={studio.ctas.secondary}
-                    required
-                  />
-                </label>
-              </div>
+              <label className="grid gap-2 text-sm font-semibold">
+                Correo de contacto
+                <input
+                  className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                  type="email"
+                  name="contactEmail"
+                  defaultValue={studio.contact.email}
+                  required
+                />
+              </label>
               <label className="grid gap-2 text-sm font-semibold">
                 URL Instagram
                 <input
@@ -701,80 +700,14 @@ export default function AdminContentForm({
             </div>
           </details>
 
-          <details className="rounded-2xl border border-accent/15 bg-white/80 p-5">
-            <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
-              Datos de contacto
-            </summary>
-            <div className="mt-4 grid gap-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <label className="grid gap-2 text-sm font-semibold">
-                  Correo de contacto
-                  <input
-                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-                    type="email"
-                    name="contactEmail"
-                    defaultValue={studio.contact.email}
-                    required
-                  />
-                </label>
-                <label className="grid gap-2 text-sm font-semibold">
-                  Texto dirección
-                  <input
-                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-                    type="text"
-                    name="locationText"
-                    defaultValue={studio.contact.locationText}
-                  />
-                </label>
-              </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <label className="grid gap-2 text-sm font-semibold">
-                  Link Google Maps
-                  <input
-                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-                    type="url"
-                    name="locationUrl"
-                    defaultValue={studio.contact.locationUrl}
-                  />
-                </label>
-                <label className="grid gap-2 text-sm font-semibold">
-                  Horarios
-                  <input
-                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-                    type="text"
-                    name="hours"
-                    defaultValue={studio.contact.hours}
-                  />
-                </label>
-              </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <label className="grid gap-2 text-sm font-semibold">
-                  Título de contacto
-                  <input
-                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-                    type="text"
-                    name="contactTitle"
-                    defaultValue={studio.contact.title}
-                  />
-                </label>
-                <label className="grid gap-2 text-sm font-semibold">
-                  Nota de contacto
-                  <input
-                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-                    type="text"
-                    name="contactNote"
-                    defaultValue={studio.contact.note}
-                  />
-                </label>
-              </div>
-            </div>
-          </details>
-
-          <details className="rounded-2xl border border-accent/15 bg-white/80 p-5">
+          <details
+            id="precios"
+            className="rounded-2xl border border-accent/15 bg-white/80 p-5"
+          >
             <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
               Listas y bloques
             </summary>
-            <div className="mt-4 grid gap-4 md:grid-cols-3">
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
               <div className="grid gap-3">
                 <label className="grid gap-2 text-sm font-semibold">
                   Título incluido
@@ -831,40 +764,28 @@ export default function AdminContentForm({
                   />
                 </label>
               </div>
-              <div className="grid gap-3">
-                <label className="grid gap-2 text-sm font-semibold">
-                  Título cómo reservar
-                  <input
-                    className="rounded-2xl border border-accent/20 bg-white px-4 py-2 text-sm outline-none transition focus:border-accent"
-                    type="text"
-                    name="howToBookTitle"
-                    defaultValue={studio.howToBook.title}
-                  />
-                </label>
-                <label className="grid gap-2 text-sm font-semibold">
-                  Pasos (uno por línea)
-                  <textarea
-                    className="min-h-[120px] rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-                    name="howToBookSteps"
-                    defaultValue={studio.howToBook.steps.join("\n")}
-                  />
-                </label>
-              </div>
             </div>
           </details>
 
           <details className="rounded-2xl border border-accent/15 bg-white/80 p-5">
             <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
-              Footer
+              Politicas y condiciones
             </summary>
-            <div className="mt-4 grid gap-2">
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
               <label className="grid gap-2 text-sm font-semibold">
-                Texto del footer
-                <input
-                  className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-                  type="text"
-                  name="footerText"
-                  defaultValue={studio.footer.text}
+                Politica de cancelacion (un punto por linea)
+                <textarea
+                  className="min-h-[140px] rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                  name="footerPoliciesCancellation"
+                  defaultValue={studio.footer.policies.cancellation.join("\n")}
+                />
+              </label>
+              <label className="grid gap-2 text-sm font-semibold">
+                Condiciones de reserva (un punto por linea)
+                <textarea
+                  className="min-h-[140px] rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                  name="footerPoliciesBooking"
+                  defaultValue={studio.footer.policies.booking.join("\n")}
                 />
               </label>
             </div>
@@ -988,11 +909,6 @@ export default function AdminContentForm({
               Imagenes de incluidos y extras
             </summary>
             <div className="mt-4 grid gap-6">
-              <div className="rounded-2xl border border-accent/15 bg-bg/70 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted">
-                Se asignan por orden de linea de la seccion &quot;Listas y
-                bloques&quot;.
-              </div>
-
               <div className="grid gap-3">
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">
                   Incluidos

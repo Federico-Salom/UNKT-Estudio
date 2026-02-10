@@ -45,6 +45,22 @@ const parseList = (value: FormDataEntryValue | null, fallback: string[]) => {
   return lines.length ? lines : fallback;
 };
 
+const stripLegacyContentFields = (content: StudioContent) => {
+  const mutable = content as StudioContent & Record<string, unknown>;
+  const ctas = mutable.ctas;
+  const footer = mutable.footer;
+
+  if (ctas && typeof ctas === "object" && !Array.isArray(ctas)) {
+    delete (ctas as Record<string, unknown>).secondary;
+  }
+
+  if (footer && typeof footer === "object" && !Array.isArray(footer)) {
+    delete (footer as Record<string, unknown>).text;
+  }
+
+  delete mutable.howToBook;
+};
+
 const getFile = (value: FormDataEntryValue | null) => {
   if (!value || typeof value === "string") return null;
   return value.size > 0 ? value : null;
@@ -204,31 +220,37 @@ export async function POST(request: NextRequest) {
     toText(formData.get("heroTitle")) || current.hero.title;
   nextContent.hero.subtitle =
     toText(formData.get("heroSubtitle")) || current.hero.subtitle;
-  nextContent.ctas.primary =
-    toText(formData.get("ctaPrimary")) || current.ctas.primary;
-  nextContent.ctas.secondary =
-    toText(formData.get("ctaSecondary")) || current.ctas.secondary;
   nextContent.contact.whatsapp.phone =
     toText(formData.get("whatsappPhone")) || current.contact.whatsapp.phone;
   nextContent.contact.whatsapp.message =
     toText(formData.get("whatsappMessage")) ||
     current.contact.whatsapp.message;
   nextContent.contact.instagram =
-    toText(formData.get("contactInstagram")) || current.contact.instagram;
+    toText(formData.get("contactInstagram"));
   nextContent.contact.email =
     toText(formData.get("contactEmail")) || current.contact.email;
   nextContent.contact.locationText =
-    toText(formData.get("locationText")) || current.contact.locationText;
+    toText(formData.get("locationText"));
   nextContent.contact.locationUrl =
-    toText(formData.get("locationUrl")) || current.contact.locationUrl;
-  nextContent.contact.hours =
-    toText(formData.get("hours")) || current.contact.hours;
-  nextContent.contact.title =
-    toText(formData.get("contactTitle")) || current.contact.title;
-  nextContent.contact.note =
-    toText(formData.get("contactNote")) || current.contact.note;
-  nextContent.footer.text =
-    toText(formData.get("footerText")) || current.footer.text;
+    toText(formData.get("locationUrl"));
+  nextContent.contact = {
+    whatsapp: {
+      phone: nextContent.contact.whatsapp.phone,
+      message: nextContent.contact.whatsapp.message,
+    },
+    instagram: nextContent.contact.instagram,
+    email: nextContent.contact.email,
+    locationText: nextContent.contact.locationText,
+    locationUrl: nextContent.contact.locationUrl,
+  };
+  nextContent.footer.policies.cancellation = parseList(
+    formData.get("footerPoliciesCancellation"),
+    current.footer.policies.cancellation
+  );
+  nextContent.footer.policies.booking = parseList(
+    formData.get("footerPoliciesBooking"),
+    current.footer.policies.booking
+  );
 
   nextContent.included.title =
     toText(formData.get("includedTitle")) || current.included.title;
@@ -238,8 +260,6 @@ export async function POST(request: NextRequest) {
     toText(formData.get("extrasTitle")) || current.extras.title;
   nextContent.extras.subtitle =
     toText(formData.get("extrasSubtitle")) || current.extras.subtitle;
-  nextContent.howToBook.title =
-    toText(formData.get("howToBookTitle")) || current.howToBook.title;
 
   const nextIncludedItems = parseList(
     formData.get("includedItems"),
@@ -248,10 +268,6 @@ export async function POST(request: NextRequest) {
   const nextExtraItems = parseList(formData.get("extrasItems"), current.extras.items);
   nextContent.included.items = nextIncludedItems;
   nextContent.extras.items = nextExtraItems;
-  nextContent.howToBook.steps = parseList(
-    formData.get("howToBookSteps"),
-    current.howToBook.steps
-  );
   nextContent.included.images = await buildCatalogImages({
     orderRaw: formData.get("includedImagesOrder"),
     filePrefix: "includedImageFile_",
@@ -326,6 +342,8 @@ export async function POST(request: NextRequest) {
       // ignore invalid gallery payload
     }
   }
+
+  stripLegacyContentFields(nextContent);
 
   await updateStudioContent(nextContent);
 

@@ -79,6 +79,7 @@ export default function Gallery({ studio }: GalleryProps) {
   const locationQuery = hasLocationText ? locationText : studio.name;
   const mapEmbedUrl = buildMapEmbedUrl(locationUrl, locationQuery);
   const mapOpenUrl = buildMapOpenUrl(locationUrl, locationQuery);
+  const mapAddressLabel = hasLocationText ? locationText : "";
   const containerRef = useRef<HTMLDivElement | null>(null);
   const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -577,7 +578,10 @@ export default function Gallery({ studio }: GalleryProps) {
               <div className="map-embed-overlay" aria-hidden="true" />
             </div>
 
-            <div className="mt-4 flex justify-end">
+            <div className="mt-4 flex items-center justify-between gap-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
+                {mapAddressLabel}
+              </p>
               <a
                 href={mapOpenUrl}
                 target="_blank"

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionFromCookies } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { BASE_PRICE, dedupeExtras, getExtraPrice } from "@/lib/booking";
+import { dedupeExtras, getExtraPrice, resolveBasePrice } from "@/lib/booking";
+import { getStudioContent } from "@/lib/studio-content";
 
 export const runtime = "nodejs";
 
@@ -76,6 +77,8 @@ export async function POST(request: NextRequest) {
           return 1;
         }
       })();
+  const studio = await getStudioContent();
+  const basePrice = resolveBasePrice(studio.pricing.basePrice);
 
   const baseUrl = process.env.APP_URL || getBaseUrl(request);
   const breakdownItems = [
@@ -83,7 +86,7 @@ export async function POST(request: NextRequest) {
       title: "Reserva UNKT Estudio (hora)",
       quantity: hours,
       currency_id: "ARS",
-      unit_price: BASE_PRICE,
+      unit_price: basePrice,
     },
     ...extras.map((extra) => ({
       title: `Extra: ${extra}`,

@@ -1,6 +1,6 @@
 import Header from "@/components/Header";
 import BookingForm from "@/components/BookingForm";
-import { BASE_PRICE, buildExtraPriceMap } from "@/lib/booking";
+import { buildExtraPriceMap, resolveBasePrice } from "@/lib/booking";
 import { getAvailabilityCutoffDate } from "@/lib/availability";
 import { prisma } from "@/lib/prisma";
 import { getStudioContent } from "@/lib/studio-content";
@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 
 export default async function ReservarPage() {
   const studio = await getStudioContent();
+  const basePrice = resolveBasePrice(studio.pricing.basePrice);
   const cutoff = getAvailabilityCutoffDate();
 
   const slots = await prisma.availabilitySlot.findMany({
@@ -50,8 +51,9 @@ export default async function ReservarPage() {
           <BookingForm
             slots={slotOptions}
             extras={studio.extras.items}
-            basePrice={BASE_PRICE}
+            basePrice={basePrice}
             extraPrices={buildExtraPriceMap(studio.extras.items)}
+            policies={studio.footer.policies}
           />
         </div>
       </main>

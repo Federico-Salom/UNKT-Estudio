@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { AUTH_COOKIE, hashPassword, signSession, verifySession } from "@/lib/auth";
 import { getAvailabilityCutoffDate } from "@/lib/availability";
-import { BASE_PRICE, filterExtrasToAllowed, getExtrasTotal } from "@/lib/booking";
+import { filterExtrasToAllowed, getExtrasTotal, resolveBasePrice } from "@/lib/booking";
 import { getStudioContent } from "@/lib/studio-content";
 import { randomUUID } from "crypto";
 
@@ -65,6 +65,7 @@ export async function POST(request: NextRequest) {
     requestedExtras,
     studio.extras.items
   ).slice(0, 1);
+  const basePrice = resolveBasePrice(studio.pricing.basePrice);
 
   const extrasTotal = getExtrasTotal(extras);
   const cutoff = getAvailabilityCutoffDate();
@@ -210,7 +211,7 @@ export async function POST(request: NextRequest) {
       }
 
       const hours = orderedSlotIds.length;
-      const total = BASE_PRICE * hours + extrasTotal;
+      const total = basePrice * hours + extrasTotal;
 
       const booking = await tx.booking.create({
         data: {

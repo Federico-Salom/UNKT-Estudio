@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import AdminPricingModal from "@/components/AdminPricingModal";
 import BrandMark from "@/components/BrandMark";
 import Container from "@/components/Container";
 import UserMenu from "@/components/UserMenu";
 import ThemeToggle from "@/components/ThemeToggle";
 import { getSessionFromCookies } from "@/lib/auth";
+import { getExtraPrice, resolveBasePrice } from "@/lib/booking";
 import { prisma } from "@/lib/prisma";
 import { getStudioContent } from "@/lib/studio-content";
 
@@ -73,6 +75,11 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   }
 
   const studio = await getStudioContent();
+  const pricingBasePrice = resolveBasePrice(studio.pricing.basePrice);
+  const pricingExtras = studio.extras.items.map((label) => ({
+    label,
+    price: getExtraPrice(label),
+  }));
   const metric = await prisma.siteMetric.findUnique({
     where: { id: "global" },
   });
@@ -256,6 +263,10 @@ return (
                 >
                   Editar contenido
                 </Link>
+                <AdminPricingModal
+                  basePrice={pricingBasePrice}
+                  extras={pricingExtras}
+                />
                 <Link
                   className="inline-flex items-center justify-center rounded-full border border-accent/40 px-5 py-2 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent2 hover:text-accent2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2"
                   href="/admin/agenda"

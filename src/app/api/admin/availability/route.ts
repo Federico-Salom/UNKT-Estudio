@@ -16,6 +16,9 @@ const hourFormatter = new Intl.DateTimeFormat("en-US", {
 });
 
 const getLocalHour = (date: Date) => Number(hourFormatter.format(date));
+const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const parseDateInput = (value: string) =>
+  DATE_ONLY_PATTERN.test(value) ? buildDateTime(value, "00:00") : new Date(value);
 
 const ensureAdmin = async () => {
   const session = await getSessionFromCookies();
@@ -51,8 +54,8 @@ export async function POST(request: NextRequest) {
   let endDate: Date;
 
   if (startISO && endISO) {
-    startDate = new Date(startISO);
-    endDate = new Date(endISO);
+    startDate = parseDateInput(startISO);
+    endDate = parseDateInput(endISO);
   } else {
     if (!date || !start || !end) {
       return errorResponse("Completa fecha y horario.");
@@ -77,7 +80,7 @@ export async function POST(request: NextRequest) {
       start: new Date(cursor),
       end: next,
     });
-    cursor.setHours(cursor.getHours() + 1);
+    cursor.setTime(next.getTime());
   }
 
   if (!slots.length) {
@@ -151,8 +154,8 @@ export async function PATCH(request: NextRequest) {
     let nextEnd: Date;
 
     if (startISO && endISO) {
-      nextStart = new Date(startISO);
-      nextEnd = new Date(endISO);
+      nextStart = parseDateInput(startISO);
+      nextEnd = parseDateInput(endISO);
     } else {
       nextStart = buildDateTime(date, start);
       nextEnd = buildDateTime(date, end);
@@ -231,8 +234,8 @@ export async function DELETE(request: NextRequest) {
   const timeWindowMode = String(body.timeWindowMode || "");
 
   if (startISO && endISO) {
-    const startDate = new Date(startISO);
-    const endDate = new Date(endISO);
+    const startDate = parseDateInput(startISO);
+    const endDate = parseDateInput(endISO);
 
     if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
       return errorResponse("Rango de fechas invalido.");

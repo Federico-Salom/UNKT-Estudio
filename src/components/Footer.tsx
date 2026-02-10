@@ -118,7 +118,11 @@ export default function Footer({ studio }: FooterProps) {
 
       </Container>
 
-      <PoliciesModal isOpen={isPolicyModalOpen} onClose={closePolicyModal} />
+      <PoliciesModal
+        isOpen={isPolicyModalOpen}
+        onClose={closePolicyModal}
+        policies={studio.footer.policies}
+      />
     </footer>
   );
 }

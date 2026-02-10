@@ -66,17 +66,10 @@ export const studio = {
     items: extraItems,
     images: buildCatalogImageDefaults(extraItems),
   },
-  howToBook: {
-    title: "Como reservar",
-    steps: [
-      "Elegi el horario disponible.",
-      "Completa tus datos y selecciona extras.",
-      "Paga para confirmar la reserva.",
-    ],
+  pricing: {
+    basePrice: 40000,
   },
   contact: {
-    title: "Reserva ahora",
-    note: "Elegi horario, completa tus datos y confirma el pago.",
     whatsapp: {
       phone: "5491158524000",
       message:
@@ -84,16 +77,28 @@ export const studio = {
     },
     instagram: "https://www.instagram.com/unkt.estudio/",
     email: "hola@unktestudio.com",
-    locationText: "(Sumar direccion)",
-    locationUrl: "https://maps.google.com/?q=UNKT+Estudio",
-    hours: "(Sumar horarios)",
+    locationText: "",
+    locationUrl: "",
   },
   ctas: {
     primary: "Reservar",
-    secondary: "Consultar disponibilidad",
   },
   footer: {
-    text: "Alquiler de estudio fotografico.",
+    policies: {
+      cancellation: [
+        "Las cancelaciones o reprogramaciones se gestionan por WhatsApp con al menos 24 horas de anticipacion.",
+        "Con 24 horas o mas, se permite una unica reprogramacion sin cargo, sujeta a disponibilidad.",
+        "Con menos de 24 horas, en caso de no presentarse o llegar con demoras que afecten el turno, no hay reintegro.",
+        "Si UNKT Estudio debe cancelar por fuerza mayor, se ofrece reprogramacion prioritaria o reintegro total.",
+      ],
+      booking: [
+        "La reserva minima es de 2 horas consecutivas.",
+        "Solo se habilitan reservas con un minimo de 2 horas de anticipacion.",
+        "La reserva queda confirmada cuando el pago figura acreditado por Mercado Pago.",
+        "Los extras se cobran una sola vez por reserva. Solo se puede elegir una variante y se asignan segun disponibilidad.",
+        "El uso del estudio debe respetar el horario contratado para no afectar los turnos siguientes.",
+      ],
+    },
   },
 };
 

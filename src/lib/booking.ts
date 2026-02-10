@@ -1,4 +1,5 @@
-export const BASE_PRICE = 40000;
+export const DEFAULT_BASE_PRICE = 40000;
+export const BASE_PRICE = DEFAULT_BASE_PRICE;
 export const DEFAULT_EXTRA_PRICE = 15000;
 export const EXTRA_PRICE = DEFAULT_EXTRA_PRICE;
 export const EXTRA_PRICE_BY_LABEL: Record<string, number> = {
@@ -93,6 +94,14 @@ export const buildExtraPriceMap = (extras: string[]) =>
 
 export const getExtrasTotal = (extras: string[]) =>
   dedupeExtras(extras).reduce((total, extra) => total + getExtraPrice(extra), 0);
+
+export const resolveBasePrice = (value: unknown) => {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return DEFAULT_BASE_PRICE;
+  }
+  return Math.round(parsed);
+};
 
 export const BOOKING_TIMEZONE =
   process.env.BOOKING_TIMEZONE || "America/Argentina/Buenos_Aires";

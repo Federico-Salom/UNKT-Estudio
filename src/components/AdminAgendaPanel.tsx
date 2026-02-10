@@ -185,6 +185,25 @@ const formatDayLabel = (dayKey: string) => {
   return dayLabelFormatter.format(date);
 };
 
+const isDateOnlyKey = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value);
+
+const addDaysToDayKey = (dayKey: string, amount: number) => {
+  const [year, month, day] = dayKey.split("-").map(Number);
+  if (!year || !month || !day) {
+    return dayKey;
+  }
+  const date = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+  date.setUTCDate(date.getUTCDate() + amount);
+  return date.toISOString().slice(0, 10);
+};
+
+const hasTimeOverlap = (
+  startA: number,
+  endA: number,
+  startB: number,
+  endB: number
+) => startA < endB && startB < endA;
+
 export default function AdminAgendaPanel({
   slots,
   bookings,
@@ -587,6 +606,24 @@ export default function AdminAgendaPanel({
   }) => {
     setSelectedBooking(null);
 
+    const selectionRange = (() => {
+      if (!isMonthView) {
+        return {
+          startISO: selection.startStr,
+          endISO: selection.endStr,
+        };
+      }
+
+      const dayKey = isDateOnlyKey(selection.startStr)
+        ? selection.startStr
+        : getDateKey(selection.startStr);
+
+      return {
+        startISO: dayKey,
+        endISO: addDaysToDayKey(dayKey, 1),
+      };
+    })();
+
     setStatus("saving");
     setMessage("Guardando...");
 
@@ -598,8 +635,8 @@ export default function AdminAgendaPanel({
           Accept: "application/json",
         },
         body: JSON.stringify({
-          startISO: selection.startStr,
-          endISO: selection.endStr,
+          startISO: selectionRange.startISO,
+          endISO: selectionRange.endISO,
         }),
       });
 
@@ -646,6 +683,78 @@ export default function AdminAgendaPanel({
     } finally {
       setPendingSlotActionId((current) => (current === slotId ? null : current));
     }
+  };
+
+  const removeOverlappingAvailableSlots = async (booking: BookingItem) => {
+    const bookingStart = toDate(booking.start).getTime();
+    const bookingEnd = toDate(booking.end).getTime();
+    if (!Number.isFinite(bookingStart) || !Number.isFinite(bookingEnd)) {
+      return;
+    }
+
+    const overlappingAvailableSlots = localSlots.filter((slot) => {
+      if (slot.status !== "available") {
+        return false;
+      }
+      const slotStart = toDate(slot.start).getTime();
+      const slotEnd = toDate(slot.end).getTime();
+      return hasTimeOverlap(slotStart, slotEnd, bookingStart, bookingEnd);
+    });
+
+    if (!overlappingAvailableSlots.length) {
+      return;
+    }
+
+    setStatus("saving");
+    setMessage("Actualizando...");
+
+    const deletionResults = await Promise.allSettled(
+      overlappingAvailableSlots.map(async (slot) => {
+        const response = await fetch("/api/admin/availability", {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({ slotId: slot.id }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const message =
+            typeof data.error === "string" ? data.error : "No se pudo limpiar.";
+          throw new Error(message);
+        }
+        return slot.id;
+      })
+    );
+
+    const removedIds = deletionResults
+      .filter((result): result is PromiseFulfilledResult<string> => result.status === "fulfilled")
+      .map((result) => result.value);
+    const failed = deletionResults.filter(
+      (result): result is PromiseRejectedResult => result.status === "rejected"
+    );
+
+    if (removedIds.length) {
+      const removedIdSet = new Set(removedIds);
+      setLocalSlots((prev) => prev.filter((slot) => !removedIdSet.has(slot.id)));
+      router.refresh();
+    }
+
+    if (failed.length) {
+      const reason = failed[0].reason;
+      const reasonText =
+        reason instanceof Error && reason.message
+          ? reason.message
+          : "No se pudieron limpiar horarios superpuestos.";
+      showToast("error", reasonText);
+      return;
+    }
+
+    showToast(
+      "saved",
+      `${removedIds.length} horario(s) disponible(s) limpiados por reserva.`
+    );
   };
 
   return (
@@ -987,6 +1096,15 @@ export default function AdminAgendaPanel({
             selectLongPressDelay={120}
             eventLongPressDelay={120}
             select={handleSelect}
+            selectAllow={(selectionInfo) => {
+              if (!isMonthView) {
+                return true;
+              }
+              return (
+                selectionInfo.end.getTime() - selectionInfo.start.getTime() <=
+                24 * 60 * 60 * 1000
+              );
+            }}
             events={combinedEvents}
             displayEventTime={false}
             eventClassNames={(arg) => {
@@ -1082,7 +1200,9 @@ export default function AdminAgendaPanel({
               }
 
               if (props.type === "booking") {
-                openBookingPopover(props as BookingItem, info.el, info.jsEvent);
+                const booking = props as BookingItem;
+                openBookingPopover(booking, info.el, info.jsEvent);
+                void removeOverlappingAvailableSlots(booking);
                 return;
               }
 

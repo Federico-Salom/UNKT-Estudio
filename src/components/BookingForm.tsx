@@ -7,6 +7,7 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import esLocale from "@fullcalendar/core/locales/es";
 import PoliciesModal from "@/components/PoliciesModal";
+import type { StudioContent } from "@/content/studio";
 import { BOOKING_TIMEZONE } from "@/lib/booking";
 
 type SlotOption = {
@@ -20,6 +21,7 @@ type BookingFormProps = {
   extras: string[];
   basePrice: number;
   extraPrices: Record<string, number>;
+  policies: StudioContent["footer"]["policies"];
 };
 
 const dateKeyFormatter = new Intl.DateTimeFormat("en-CA", {
@@ -67,6 +69,7 @@ export default function BookingForm({
   extras,
   basePrice,
   extraPrices,
+  policies,
 }: BookingFormProps) {
   const router = useRouter();
   const [name, setName] = useState("");
@@ -460,7 +463,11 @@ export default function BookingForm({
         .
       </p>
 
-      <PoliciesModal isOpen={isPolicyModalOpen} onClose={closePolicyModal} />
+      <PoliciesModal
+        isOpen={isPolicyModalOpen}
+        onClose={closePolicyModal}
+        policies={policies}
+      />
     </form>
   );
 }

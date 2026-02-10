@@ -39,6 +39,14 @@ const LEGACY_GALLERY_PLACEHOLDERS = new Set([
   "/gallery-5.svg",
   "/gallery-6.svg",
 ]);
+const LEGACY_LOCATION_TEXT_PLACEHOLDERS = new Set([
+  "(sumar direccion)",
+  "(sumar dirección)",
+]);
+const LEGACY_LOCATION_URLS = new Set([
+  "https://maps.google.com/?q=unkt+estudio",
+  "https://maps.google.com/?q=unkt%2bestudio",
+]);
 const LEGACY_EXTRA_ITEMS = ["Sillon", "Accesorios de acero"];
 const normalizeListValue = (value: string) => value.trim().toLowerCase();
 const dedupeList = (items: string[]) => {
@@ -154,6 +162,29 @@ const normalizeAssetPaths = (content: StudioContent): StudioContent => {
     normalizedGallery.length === 0 || hasLegacySingleDefaultGallery
       ? DEFAULT_GALLERY
       : normalizedGallery;
+  const normalizedLocationTextCandidate = content.contact.locationText.trim();
+  const normalizedLocationText = LEGACY_LOCATION_TEXT_PLACEHOLDERS.has(
+    normalizeListValue(normalizedLocationTextCandidate)
+  )
+    ? ""
+    : normalizedLocationTextCandidate;
+  const normalizedLocationUrlCandidate = content.contact.locationUrl.trim();
+  const normalizedLocationUrl = LEGACY_LOCATION_URLS.has(
+    normalizeListValue(normalizedLocationUrlCandidate)
+  )
+    ? ""
+    : normalizedLocationUrlCandidate;
+  const normalizedContact: StudioContent["contact"] = {
+    whatsapp: {
+      phone: content.contact.whatsapp.phone || studio.contact.whatsapp.phone,
+      message:
+        content.contact.whatsapp.message || studio.contact.whatsapp.message,
+    },
+    instagram: content.contact.instagram || "",
+    email: content.contact.email || studio.contact.email,
+    locationText: normalizedLocationText,
+    locationUrl: normalizedLocationUrl,
+  };
 
   const normalizedContent = {
     ...content,
@@ -171,6 +202,7 @@ const normalizeAssetPaths = (content: StudioContent): StudioContent => {
       src: content.floorPlan.src || DEFAULT_FLOOR_PLAN_SRC,
       alt: content.floorPlan.alt || DEFAULT_FLOOR_PLAN_ALT,
     },
+    contact: normalizedContact,
     included: {
       ...content.included,
       items: [...content.included.items],

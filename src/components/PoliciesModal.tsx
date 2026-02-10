@@ -2,31 +2,32 @@
 
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
-import {
-  BOOKING_CONDITIONS,
-  CANCELLATION_POLICY,
-  POLICY_ACCEPTANCE_COPY,
-} from "@/lib/policies";
+import type { StudioContent } from "@/content/studio";
 
 type PoliciesModalProps = {
   isOpen: boolean;
   onClose: () => void;
+  policies: StudioContent["footer"]["policies"];
 };
 
-const policySections = [
-  {
-    id: "cancellation",
-    title: "Politica de cancelacion",
-    items: CANCELLATION_POLICY,
-  },
-  {
-    id: "booking",
-    title: "Condiciones de reserva",
-    items: BOOKING_CONDITIONS,
-  },
-] as const;
+export default function PoliciesModal({
+  isOpen,
+  onClose,
+  policies,
+}: PoliciesModalProps) {
+  const policySections = [
+    {
+      id: "cancellation",
+      title: "Politica de cancelacion",
+      items: policies.cancellation,
+    },
+    {
+      id: "booking",
+      title: "Condiciones de reserva",
+      items: policies.booking,
+    },
+  ] as const;
 
-export default function PoliciesModal({ isOpen, onClose }: PoliciesModalProps) {
   useEffect(() => {
     if (!isOpen) return;
     const previousOverflow = document.body.style.overflow;
@@ -124,7 +125,7 @@ export default function PoliciesModal({ isOpen, onClose }: PoliciesModalProps) {
             </section>
           ))}
           <p className="text-center text-[11px] uppercase tracking-[0.12em] text-muted">
-            {POLICY_ACCEPTANCE_COPY}
+            Al reservar, aceptas los terminos y condiciones.
           </p>
         </div>
       </div>
