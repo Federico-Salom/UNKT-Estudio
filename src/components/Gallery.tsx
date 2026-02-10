@@ -145,7 +145,7 @@ export default function Gallery({ studio }: GalleryProps) {
   return (
     <section
       id="galeria"
-      className="scroll-mt-24 bg-bg pt-1 pb-14 md:pt-6 md:pb-20"
+      className="scroll-mt-24 bg-bg pt-1 pb-2 md:pt-6 md:pb-6"
     >
       <Container>
         <div className="mb-5 flex flex-col items-center gap-4 md:mb-6 md:gap-5">
@@ -251,7 +251,7 @@ export default function Gallery({ studio }: GalleryProps) {
             onPointerDown={dismissSwipeHint}
             onTouchStart={dismissSwipeHint}
             onWheel={dismissSwipeHint}
-            className="gallery-scroll -mb-2 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-8 pt-2 md:gap-6 md:px-8"
+            className="gallery-scroll -mb-1 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 pt-2 md:gap-6 md:px-8"
           >
             {gallery.map((image, index) => (
               <div
@@ -325,7 +325,7 @@ export default function Gallery({ studio }: GalleryProps) {
           </button>
         </div>
 
-        <div className="mt-2 flex h-5 items-center justify-center gap-1.5">
+        <div className="mt-0.5 flex h-4 items-center justify-center gap-1.5">
           {gallery.map((_, index) => (
             <button
               key={`dot-${index}`}

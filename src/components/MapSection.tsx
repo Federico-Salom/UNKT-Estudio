@@ -52,7 +52,7 @@ export default function MapSection({ studio }: MapSectionProps) {
     "mt-2 inline-flex w-full items-center justify-center rounded-full border-[1.5px] border-accent/26 bg-bg px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-accent md:mt-2.5 md:py-2.5";
 
   return (
-    <section className="bg-bg pt-8 pb-8 md:pt-14 md:pb-14">
+    <section className="bg-bg pt-4 pb-4 md:pt-10 md:pb-10">
       <Container>
         <div className="mx-auto w-full max-w-3xl">
           <div className={cardClassName}>
