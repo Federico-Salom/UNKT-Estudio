@@ -80,11 +80,8 @@ export default function Gallery({ studio }: GalleryProps) {
   const mapEmbedUrl = buildMapEmbedUrl(locationUrl, locationQuery);
   const mapOpenUrl = buildMapOpenUrl(locationUrl, locationQuery);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const stageRef = useRef<HTMLDivElement | null>(null);
   const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const hintInitializedRef = useRef(false);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [showSwipeHint, setShowSwipeHint] = useState(false);
   const [isPlanOpen, setIsPlanOpen] = useState(false);
   const [isLocationOpen, setIsLocationOpen] = useState(false);
   const [planZoom, setPlanZoom] = useState(1);
@@ -101,42 +98,6 @@ export default function Gallery({ studio }: GalleryProps) {
     slideRefs.current = slideRefs.current.slice(0, gallery.length);
   }, [gallery.length]);
 
-  useEffect(() => {
-    const stage = stageRef.current;
-    if (!stage || hintInitializedRef.current) return;
-
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      hintInitializedRef.current = true;
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const isVisible = entries.some((entry) => entry.isIntersecting);
-        if (!isVisible || hintInitializedRef.current) return;
-        hintInitializedRef.current = true;
-        setShowSwipeHint(true);
-        observer.disconnect();
-      },
-      { threshold: 0.45 }
-    );
-
-    observer.observe(stage);
-    return () => observer.disconnect();
-  }, [gallery.length]);
-
-  useEffect(() => {
-    if (!showSwipeHint) return;
-    const timeoutId = window.setTimeout(() => {
-      setShowSwipeHint(false);
-    }, 30000);
-    return () => window.clearTimeout(timeoutId);
-  }, [showSwipeHint]);
-
-  const dismissSwipeHint = () => {
-    setShowSwipeHint((prev) => (prev ? false : prev));
-  };
-
   const scrollToIndex = (index: number) => {
     const slide = slideRefs.current[index];
     if (!slide) return;
@@ -146,14 +107,12 @@ export default function Gallery({ studio }: GalleryProps) {
 
   const handlePrev = () => {
     if (!gallery.length) return;
-    dismissSwipeHint();
     const next = (currentIndex - 1 + gallery.length) % gallery.length;
     scrollToIndex(next);
   };
 
   const handleNext = () => {
     if (!gallery.length) return;
-    dismissSwipeHint();
     const next = (currentIndex + 1) % gallery.length;
     scrollToIndex(next);
   };
@@ -161,7 +120,6 @@ export default function Gallery({ studio }: GalleryProps) {
   const handleScroll = () => {
     const container = containerRef.current;
     if (!container) return;
-    dismissSwipeHint();
     const center = container.scrollLeft + container.clientWidth / 2;
     let nearest = 0;
     let minDistance = Number.POSITIVE_INFINITY;
@@ -310,10 +268,7 @@ export default function Gallery({ studio }: GalleryProps) {
         </div>
 
         <div className="gallery-frame mx-auto w-full max-w-3xl">
-          <div
-            ref={stageRef}
-            className="gallery-stage relative overflow-visible"
-          >
+          <div className="gallery-stage relative overflow-visible">
             <button
               type="button"
               aria-label="Imagen anterior"
@@ -337,9 +292,6 @@ export default function Gallery({ studio }: GalleryProps) {
             <div
               ref={containerRef}
               onScroll={handleScroll}
-              onPointerDown={dismissSwipeHint}
-              onTouchStart={dismissSwipeHint}
-              onWheel={dismissSwipeHint}
               className="gallery-scroll -mb-[44px] flex snap-x snap-mandatory gap-0 overflow-x-auto px-0 pb-[56px] pt-2"
             >
               {gallery.map((image, index) => (
@@ -364,36 +316,6 @@ export default function Gallery({ studio }: GalleryProps) {
                 </div>
               ))}
             </div>
-
-            {showSwipeHint ? (
-              <div className="gallery-swipe-hint pointer-events-none absolute bottom-5 left-1/2 z-20 -translate-x-1/2">
-                <div className="gallery-swipe-hint-pill">
-                  <span className="gallery-swipe-hint-text">Desliza</span>
-                  <span className="gallery-swipe-hint-arrows" aria-hidden="true">
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M8 6l-6 6 6 6" />
-                    </svg>
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M16 6l6 6-6 6" />
-                    </svg>
-                  </span>
-                </div>
-              </div>
-            ) : null}
 
             <button
               type="button"
@@ -423,7 +345,6 @@ export default function Gallery({ studio }: GalleryProps) {
                 type="button"
                 aria-label={`Ir a la imagen ${index + 1}`}
                 onClick={() => {
-                  dismissSwipeHint();
                   scrollToIndex(index);
                 }}
                 className={`inline-flex h-2 w-2 items-center justify-center rounded-full transition ${

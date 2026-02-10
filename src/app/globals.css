@@ -175,79 +175,6 @@ html[data-theme="dark"] section.bg-bg {
   flex: 0 0 100%;
 }
 
-.gallery-swipe-hint-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
-  background: color-mix(in srgb, var(--bg) 88%, #ffffff 12%);
-  padding: 0.4rem 0.78rem;
-  box-shadow: 0 12px 28px -20px rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
-  animation: gallery-hint-fade-in 320ms ease-out;
-}
-
-.gallery-swipe-hint-text {
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--accent);
-}
-
-.gallery-swipe-hint-arrows {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.18rem;
-  color: var(--accent);
-  animation: gallery-hint-swipe 1.3s ease-in-out infinite;
-}
-
-.gallery-swipe-hint-arrows svg {
-  width: 0.82rem;
-  height: 0.82rem;
-  opacity: 0.86;
-}
-
-html[data-theme="dark"] .gallery-swipe-hint-pill {
-  border-color: color-mix(in srgb, var(--accent2) 58%, transparent);
-  background: color-mix(in srgb, var(--bg) 80%, #2f1520 20%);
-  box-shadow: 0 14px 30px -18px rgba(0, 0, 0, 0.88);
-}
-
-html[data-theme="dark"] .gallery-swipe-hint-text,
-html[data-theme="dark"] .gallery-swipe-hint-arrows {
-  color: color-mix(in srgb, var(--fg) 90%, var(--accent2) 10%);
-}
-
-@keyframes gallery-hint-swipe {
-  0%,
-  100% {
-    transform: translateX(0);
-    opacity: 0.76;
-  }
-  30% {
-    transform: translateX(-8px);
-    opacity: 1;
-  }
-  68% {
-    transform: translateX(8px);
-    opacity: 1;
-  }
-}
-
-@keyframes gallery-hint-fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 html[data-theme="dark"] .gallery-card {
   border-color: color-mix(in srgb, var(--accent2) 36%, transparent);
   background: color-mix(in srgb, var(--bg) 82%, #29131a 18%);
@@ -1065,9 +992,7 @@ html[data-theme="dark"] .agenda-panel--day::after {
   .agenda-calendar .fc .fc-timegrid-axis,
   .agenda-calendar .fc .fc-col-header-cell,
   .agenda-calendar .fc .fc-timegrid-divider,
-  .agenda-calendar .fc .fc-event,
-  .gallery-swipe-hint-pill,
-  .gallery-swipe-hint-arrows {
+  .agenda-calendar .fc .fc-event {
     transition: none !important;
     animation: none !important;
   }

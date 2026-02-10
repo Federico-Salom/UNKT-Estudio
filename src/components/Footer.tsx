@@ -32,7 +32,7 @@ export default function Footer({ studio }: FooterProps) {
   };
 
   return (
-    <footer className="border-t border-accent/20 bg-bg/95 py-8 backdrop-blur md:py-10">
+    <footer className="border-t border-accent/20 bg-bg/95 py-4 backdrop-blur md:py-5">
       <Container className="space-y-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
           <div className="mx-auto w-fit lg:mx-0">
@@ -116,17 +116,6 @@ export default function Footer({ studio }: FooterProps) {
           </div>
         </div>
 
-        <p className="text-center text-[11px] uppercase tracking-[0.12em] text-muted">
-          Al reservar, aceptas los{" "}
-          <button
-            type="button"
-            onClick={openPolicyModal}
-            className="font-semibold text-accent underline decoration-accent/55 underline-offset-2 transition hover:text-accent2"
-          >
-            terminos y condiciones
-          </button>
-          .
-        </p>
       </Container>
 
       <PoliciesModal isOpen={isPolicyModalOpen} onClose={closePolicyModal} />

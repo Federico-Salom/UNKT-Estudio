@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionFromCookies } from "@/lib/auth";
 import { BOOKING_TIMEZONE, buildDateTime } from "@/lib/booking";
-import { autoBlockClosingSlots, getAvailabilityCutoffDate } from "@/lib/availability";
+import { getAvailabilityCutoffDate } from "@/lib/availability";
 
 export const runtime = "nodejs";
 
@@ -40,8 +40,6 @@ export async function POST(request: NextRequest) {
     return auth.response;
   }
 
-  await autoBlockClosingSlots();
-
   const body = await request.json().catch(() => ({}));
   const startISO = String(body.startISO || "");
   const endISO = String(body.endISO || "");
@@ -70,7 +68,7 @@ export async function POST(request: NextRequest) {
     return errorResponse("El horario final debe ser mayor al inicial.");
   }
 
-  const slots: { start: Date; end: Date; status: "available" | "blocked" }[] = [];
+  const slots: { start: Date; end: Date }[] = [];
   const cursor = new Date(startDate);
 
   while (cursor < endDate) {
@@ -78,8 +76,6 @@ export async function POST(request: NextRequest) {
     slots.push({
       start: new Date(cursor),
       end: next,
-      // New slots are blocked by default until an admin explicitly enables them.
-      status: "blocked",
     });
     cursor.setHours(cursor.getHours() + 1);
   }
@@ -87,19 +83,32 @@ export async function POST(request: NextRequest) {
   if (!slots.length) {
     return errorResponse("No hay horarios para agregar.");
   }
+  const cutoff = getAvailabilityCutoffDate();
+  const candidateSlots = slots.filter((slot) => slot.start.getTime() > cutoff.getTime());
+
+  if (!candidateSlots.length) {
+    return errorResponse(
+      "Solo puedes agregar horarios con al menos 2 horas de anticipacion."
+    );
+  }
 
   const existing = await prisma.availabilitySlot.findMany({
-    where: { start: { in: slots.map((slot) => slot.start) } },
+    where: { start: { in: candidateSlots.map((slot) => slot.start) } },
     select: { start: true },
   });
 
   const existingSet = new Set(existing.map((slot) => slot.start.getTime()));
-
-  const toCreate = slots.filter((slot) => !existingSet.has(slot.start.getTime()));
+  const toCreate = candidateSlots.filter(
+    (slot) => !existingSet.has(slot.start.getTime())
+  );
 
   if (toCreate.length) {
     await prisma.availabilitySlot.createMany({
-      data: toCreate,
+      data: toCreate.map((slot) => ({
+        start: slot.start,
+        end: slot.end,
+        status: "available",
+      })),
     });
   }
 
@@ -111,8 +120,6 @@ export async function PATCH(request: NextRequest) {
   if (!auth.ok) {
     return auth.response;
   }
-
-  await autoBlockClosingSlots();
 
   const body = await request.json().catch(() => ({}));
   const slotId = String(body.slotId || "");
@@ -157,6 +164,11 @@ export async function PATCH(request: NextRequest) {
     if (nextEnd <= nextStart) {
       return errorResponse("El horario final debe ser mayor al inicial.");
     }
+    if (nextStart.getTime() <= cutoff.getTime()) {
+      return errorResponse(
+        "No se puede mover un horario pasado o con menos de 2 horas de anticipacion."
+      );
+    }
 
     const existing = await prisma.availabilitySlot.findFirst({
       where: {
@@ -169,12 +181,9 @@ export async function PATCH(request: NextRequest) {
       return errorResponse("Ya existe un horario con ese inicio.");
     }
 
-    const nextStatus =
-      nextStart.getTime() <= cutoff.getTime() ? "blocked" : (slot.status as "available" | "blocked");
-
     const updated = await prisma.availabilitySlot.update({
       where: { id: slotId },
-      data: { start: nextStart, end: nextEnd, status: nextStatus },
+      data: { start: nextStart, end: nextEnd, status: "available" },
     });
 
     return NextResponse.json({
@@ -185,7 +194,11 @@ export async function PATCH(request: NextRequest) {
     });
   }
 
-  if (status !== "available" && status !== "blocked") {
+  if (!status) {
+    return errorResponse("No hay cambios para guardar.");
+  }
+
+  if (status !== "available") {
     return errorResponse("Estado invalido.");
   }
 
@@ -246,7 +259,7 @@ export async function DELETE(request: NextRequest) {
           lt: rangeEnd,
         },
         status: {
-          in: ["available", "blocked"],
+          not: "booked",
         },
       },
       select: {

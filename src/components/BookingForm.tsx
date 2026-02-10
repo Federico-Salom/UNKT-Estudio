@@ -6,6 +6,7 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import esLocale from "@fullcalendar/core/locales/es";
+import PoliciesModal from "@/components/PoliciesModal";
 import { BOOKING_TIMEZONE } from "@/lib/booking";
 
 type SlotOption = {
@@ -76,6 +77,7 @@ export default function BookingForm({
   const [status, setStatus] = useState<"idle" | "loading">("idle");
   const [apiError, setApiError] = useState("");
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [isPolicyModalOpen, setIsPolicyModalOpen] = useState(false);
 
   const extrasTotal = useMemo(
     () => (selectedExtra ? extraPrices[selectedExtra] ?? 0 : 0),
@@ -222,6 +224,8 @@ export default function BookingForm({
   const nameError = attempted ? getNameError() : null;
   const phoneError = attempted ? getPhoneError() : null;
   const slotError = attempted ? getSlotError() : null;
+  const openPolicyModal = () => setIsPolicyModalOpen(true);
+  const closePolicyModal = () => setIsPolicyModalOpen(false);
 
   const inputClass = (invalid: boolean) =>
     [
@@ -277,7 +281,7 @@ export default function BookingForm({
       <div className="grid gap-3">
         <p className="text-sm font-semibold">Seleccioná un día</p>
         <p className="text-xs text-muted">
-          La reserva mínima es de 2 horas consecutivas. Además, se bloquea 1
+          La reserva mínima es de 2 horas consecutivas. Además, se reserva 1
           hora posterior para mantenimiento.
         </p>
         <div className="booking-calendar overflow-hidden rounded-2xl border border-accent/15 bg-white/80 p-3">
@@ -426,7 +430,7 @@ export default function BookingForm({
         )}
         {selectedSlotCount > 1 && (
           <div className="mt-1 text-xs text-muted">
-            Se bloquea 1 hora posterior para mantenimiento (no se cobra).
+            Se reserva 1 hora posterior para mantenimiento (no se cobra).
           </div>
         )}
       </div>
@@ -443,6 +447,20 @@ export default function BookingForm({
       >
         {status === "loading" ? "Procesando..." : "Reservar y pagar"}
       </button>
+
+      <p className="text-center text-[11px] uppercase tracking-[0.12em] text-muted">
+        Al reservar, aceptas los{" "}
+        <button
+          type="button"
+          onClick={openPolicyModal}
+          className="font-semibold text-accent underline decoration-accent/55 underline-offset-2 transition hover:text-accent2"
+        >
+          terminos y condiciones
+        </button>
+        .
+      </p>
+
+      <PoliciesModal isOpen={isPolicyModalOpen} onClose={closePolicyModal} />
     </form>
   );
 }

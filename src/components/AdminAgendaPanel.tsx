@@ -9,7 +9,7 @@ import interactionPlugin from "@fullcalendar/interaction";
 import esLocale from "@fullcalendar/core/locales/es";
 import { BOOKING_TIMEZONE } from "@/lib/booking";
 
-type SlotStatus = "available" | "blocked" | "booked";
+type SlotStatus = "available" | "booked";
 
 type SlotItem = {
   id: string;
@@ -91,16 +91,11 @@ const timeWindowConfig: Record<
 
 const slotStatusLabels: Record<SlotStatus, string> = {
   available: "Disponible",
-  blocked: "Bloqueado",
   booked: "Reservado",
 };
 
 const slotColors: Record<SlotStatus, { bg: string; text: string }> = {
   available: { bg: "var(--accent)", text: "var(--bg)" },
-  blocked: {
-    bg: "color-mix(in srgb, var(--bg) 72%, var(--muted) 28%)",
-    text: "var(--muted)",
-  },
   booked: { bg: "var(--muted)", text: "var(--bg)" },
 };
 
@@ -108,10 +103,6 @@ const nightSlotColors: Record<SlotStatus, { bg: string; text: string }> = {
   available: {
     bg: "color-mix(in srgb, var(--accent) 68%, var(--accent2) 32%)",
     text: "var(--bg)",
-  },
-  blocked: {
-    bg: "color-mix(in srgb, var(--muted) 62%, var(--accent2) 38%)",
-    text: "var(--fg)",
   },
   booked: {
     bg: "color-mix(in srgb, var(--accent2) 62%, var(--muted) 38%)",
@@ -395,22 +386,19 @@ export default function AdminAgendaPanel({
   const daySlotGroups = useMemo(() => {
     const grouped = new Map<
       string,
-      { available: SlotItem[]; blocked: SlotItem[]; booked: SlotItem[] }
+      { available: SlotItem[]; booked: SlotItem[] }
     >();
 
     localSlots.forEach((slot) => {
       const dateKey = getDateKey(slot.start);
       if (!grouped.has(dateKey)) {
-        grouped.set(dateKey, { available: [], blocked: [], booked: [] });
+        grouped.set(dateKey, { available: [], booked: [] });
       }
       grouped.get(dateKey)![slot.status].push(slot);
     });
 
     grouped.forEach((slotsByStatus) => {
       slotsByStatus.available.sort(
-        (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()
-      );
-      slotsByStatus.blocked.sort(
         (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()
       );
       slotsByStatus.booked.sort(
@@ -581,7 +569,6 @@ export default function AdminAgendaPanel({
 
     const slotsByStatus = daySlotGroups.get(monthDetailDayKey) ?? {
       available: [],
-      blocked: [],
       booked: [],
     };
 
@@ -590,7 +577,6 @@ export default function AdminAgendaPanel({
       dayLabel: formatDayLabel(monthDetailDayKey),
       bookings: dayBookingGroups.get(monthDetailDayKey) ?? [],
       availableSlots: slotsByStatus.available,
-      blockedSlots: slotsByStatus.blocked,
       bookedSlots: slotsByStatus.booked,
     };
   }, [monthDetailDayKey, daySlotGroups, dayBookingGroups]);
@@ -625,48 +611,10 @@ export default function AdminAgendaPanel({
         );
         return;
       }
-      showToast("saved", "Horarios agregados como bloqueados.");
+      showToast("saved", "Horarios agregados como disponibles.");
       router.refresh();
     } catch {
       showToast("error", "No se pudieron agregar horarios.");
-    }
-  };
-
-  const handleSlotClick = async (slotId: string, currentStatus: SlotStatus) => {
-    if (pendingSlotActionId) {
-      return;
-    }
-    if (currentStatus === "booked") {
-      showToast("error", "Ese horario ya esta reservado.");
-      return;
-    }
-    const nextStatus = currentStatus === "available" ? "blocked" : "available";
-
-    setPendingSlotActionId(slotId);
-    try {
-      const response = await fetch("/api/admin/availability", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({ slotId, status: nextStatus }),
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        showToast("error", data.error || "No se pudo actualizar.");
-        return;
-      }
-      setLocalSlots((prev) =>
-        prev.map((slot) =>
-          slot.id === slotId ? { ...slot, status: nextStatus } : slot
-        )
-      );
-      showToast("saved", "Horario actualizado.");
-    } catch {
-      showToast("error", "No se pudo actualizar.");
-    } finally {
-      setPendingSlotActionId((current) => (current === slotId ? null : current));
     }
   };
 
@@ -732,7 +680,7 @@ export default function AdminAgendaPanel({
               className="mt-2 text-sm leading-relaxed text-muted"
             >
               Vas a borrar {getClearScopeDescription()}. Solo se eliminan horarios
-              disponibles y bloqueados.
+              disponibles.
             </p>
             <div className="mt-4 flex items-center justify-end gap-2">
               <button
@@ -890,28 +838,16 @@ export default function AdminAgendaPanel({
                         >
                           <div className="flex items-center justify-between gap-2">
                             <strong>{formatRangeLabel(slot.start, slot.end)}</strong>
-                            <div className="flex items-center gap-1">
-                              <button
-                                type="button"
-                                onClick={() => handleSlotClick(slot.id, "available")}
-                                disabled={isPending}
-                                className={`rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-wide transition disabled:cursor-not-allowed disabled:opacity-60 ${
-                                  monthDetailSecondaryButtonClass
-                                }`}
-                              >
-                                Bloquear
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteSlot(slot.id)}
-                                disabled={isPending}
-                                className={`rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-wide transition disabled:cursor-not-allowed disabled:opacity-60 ${
-                                  monthDetailPrimaryButtonClass
-                                }`}
-                              >
-                                Eliminar
-                              </button>
-                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteSlot(slot.id)}
+                              disabled={isPending}
+                              className={`rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-wide transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                                monthDetailPrimaryButtonClass
+                              }`}
+                            >
+                              Eliminar
+                            </button>
                           </div>
                         </article>
                       );
@@ -925,68 +861,7 @@ export default function AdminAgendaPanel({
               </section>
             </div>
 
-            <div className="mt-4 grid gap-4 lg:grid-cols-2">
-              <section
-                className={`rounded-2xl border p-4 ${
-                  monthDetailSectionClass
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-semibold uppercase tracking-wide">
-                    Bloqueados
-                  </h4>
-                  <span className="text-xs font-semibold">
-                    {monthDetailData.blockedSlots.length}
-                  </span>
-                </div>
-
-                <div className="mt-3 max-h-48 space-y-2 overflow-y-auto pr-1">
-                  {monthDetailData.blockedSlots.length ? (
-                    monthDetailData.blockedSlots.map((slot) => {
-                      const isPending = pendingSlotActionId === slot.id;
-                      return (
-                        <article
-                          key={slot.id}
-                          className={`rounded-xl border p-3 text-xs ${
-                            monthDetailCardClass
-                          }`}
-                        >
-                          <div className="flex items-center justify-between gap-2">
-                            <strong>{formatRangeLabel(slot.start, slot.end)}</strong>
-                            <div className="flex items-center gap-1">
-                              <button
-                                type="button"
-                                onClick={() => handleSlotClick(slot.id, "blocked")}
-                                disabled={isPending}
-                                className={`rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-wide transition disabled:cursor-not-allowed disabled:opacity-60 ${
-                                  monthDetailSecondaryButtonClass
-                                }`}
-                              >
-                                Habilitar
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteSlot(slot.id)}
-                                disabled={isPending}
-                                className={`rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-wide transition disabled:cursor-not-allowed disabled:opacity-60 ${
-                                  monthDetailPrimaryButtonClass
-                                }`}
-                              >
-                                Eliminar
-                              </button>
-                            </div>
-                          </div>
-                        </article>
-                      );
-                    })
-                  ) : (
-                    <p className={`text-xs ${monthDetailMutedClass}`}>
-                      No hay horarios bloqueados en este dia.
-                    </p>
-                  )}
-                </div>
-              </section>
-
+            <div className="mt-4">
               <section
                 className={`rounded-2xl border p-4 ${
                   monthDetailSectionClass
@@ -1216,7 +1091,6 @@ export default function AdminAgendaPanel({
               if (availabilityView !== "timeGridDay" || !props.status) {
                 return;
               }
-              handleSlotClick(info.event.id, props.status as SlotStatus);
             }}
             headerToolbar={{
               left: "prev,next today",
@@ -1265,13 +1139,6 @@ export default function AdminAgendaPanel({
               style={{ background: activeSlotColors.available.bg }}
             />
             Disponible
-          </span>
-          <span className="flex items-center gap-2">
-            <span
-              className="h-3 w-3 rounded-full"
-              style={{ background: activeSlotColors.blocked.bg }}
-            />
-            Bloqueado
           </span>
           <span className="flex items-center gap-2">
             <span

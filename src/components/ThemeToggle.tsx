@@ -1,13 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 type Theme = "light" | "dark";
 
 const THEME_KEY = "unkt-theme";
+const THEME_EVENT = "unkt-theme-change";
 
-const resolveInitialTheme = (): Theme => {
-  if (typeof window === "undefined") return "light";
+const resolveTheme = (): Theme => {
+  const rootTheme = document.documentElement.dataset.theme;
+  if (rootTheme === "light" || rootTheme === "dark") {
+    return rootTheme;
+  }
 
   const saved = window.localStorage.getItem(THEME_KEY);
   if (saved === "light" || saved === "dark") {
@@ -25,22 +29,53 @@ const applyTheme = (theme: Theme) => {
   root.style.colorScheme = theme;
 };
 
+const getClientThemeSnapshot = (): Theme => {
+  if (typeof window === "undefined") return "light";
+  return resolveTheme();
+};
+
+const getServerThemeSnapshot = (): Theme => "light";
+
+const subscribeToTheme = (callback: () => void) => {
+  if (typeof window === "undefined") return () => {};
+
+  const handleThemeChange = () => callback();
+  const handleStorage = (event: StorageEvent) => {
+    if (event.key !== THEME_KEY) return;
+
+    if (event.newValue === "light" || event.newValue === "dark") {
+      applyTheme(event.newValue);
+    }
+
+    callback();
+  };
+
+  window.addEventListener(THEME_EVENT, handleThemeChange);
+  window.addEventListener("storage", handleStorage);
+
+  return () => {
+    window.removeEventListener(THEME_EVENT, handleThemeChange);
+    window.removeEventListener("storage", handleStorage);
+  };
+};
+
 type ThemeToggleProps = {
   className?: string;
 };
 
 export default function ThemeToggle({ className = "" }: ThemeToggleProps) {
-  const [theme, setTheme] = useState<Theme>(() => resolveInitialTheme());
+  const theme = useSyncExternalStore(
+    subscribeToTheme,
+    getClientThemeSnapshot,
+    getServerThemeSnapshot
+  );
   const isDark = theme === "dark";
-
-  useEffect(() => {
-    applyTheme(theme);
-    window.localStorage.setItem(THEME_KEY, theme);
-  }, [theme]);
 
   const toggleTheme = () => {
     const next: Theme = theme === "dark" ? "light" : "dark";
-    setTheme(next);
+    applyTheme(next);
+    window.localStorage.setItem(THEME_KEY, next);
+    window.dispatchEvent(new Event(THEME_EVENT));
   };
 
   return (

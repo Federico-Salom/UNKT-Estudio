@@ -6,7 +6,6 @@ import Container from "@/components/Container";
 import UserMenu from "@/components/UserMenu";
 import ThemeToggle from "@/components/ThemeToggle";
 import { getSessionFromCookies } from "@/lib/auth";
-import { autoBlockClosingSlots } from "@/lib/availability";
 import { prisma } from "@/lib/prisma";
 import { getStudioContent } from "@/lib/studio-content";
 
@@ -28,7 +27,6 @@ export default async function AdminAgendaPage() {
 
   const studio = await getStudioContent();
   const createdAtLabel = user.createdAt.toLocaleString("es-AR");
-  await autoBlockClosingSlots();
 
   const slots = await prisma.availabilitySlot.findMany({
     orderBy: { start: "asc" },
@@ -38,11 +36,16 @@ export default async function AdminAgendaPage() {
     orderBy: { createdAt: "desc" },
   });
 
-  const slotsForPanel = slots.map((slot) => ({
+  const slotsForPanel: {
+    id: string;
+    start: string;
+    end: string;
+    status: "available" | "booked";
+  }[] = slots.map((slot) => ({
     id: slot.id,
     start: slot.start.toISOString(),
     end: slot.end.toISOString(),
-    status: slot.status as "available" | "blocked" | "booked",
+    status: slot.status === "booked" ? "booked" : "available",
   }));
 
   const slotById = new Map(slots.map((slot) => [slot.id, slot]));
