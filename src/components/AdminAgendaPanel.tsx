@@ -67,25 +67,21 @@ type AdminAgendaPanelProps = {
 };
 
 type ToastStatus = "idle" | "saving" | "saved" | "error";
-type TimeWindowMode = "day" | "night";
+type TimeWindowMode = "am" | "pm";
 
 const timeWindowConfig: Record<
   TimeWindowMode,
-  { slotMin: string; slotMax: string; scroll: string; label: string; hint: string }
+  { slotMin: string; slotMax: string; scroll: string }
 > = {
-  day: {
-    slotMin: "07:00:00",
-    slotMax: "19:00:00",
-    scroll: "07:00:00",
-    label: "Modo dia",
-    hint: "07:00 a 19:00",
+  am: {
+    slotMin: "00:00:00",
+    slotMax: "12:00:00",
+    scroll: "08:00:00",
   },
-  night: {
-    slotMin: "19:00:00",
-    slotMax: "31:00:00",
-    scroll: "19:00:00",
-    label: "Modo noche",
-    hint: "19:00 a 07:00",
+  pm: {
+    slotMin: "12:00:00",
+    slotMax: "24:00:00",
+    scroll: "12:00:00",
   },
 };
 
@@ -126,14 +122,13 @@ const nightBookingColors: Record<string, { bg: string; text: string }> = {
   },
 };
 
-const bookingFallbackColors: Record<TimeWindowMode, { bg: string; text: string }> =
-  {
-    day: { bg: "var(--muted)", text: "var(--bg)" },
-    night: {
-      bg: "color-mix(in srgb, var(--accent2) 58%, var(--muted) 42%)",
-      text: "var(--bg)",
-    },
-  };
+const bookingFallbackColors = {
+  light: { bg: "var(--muted)", text: "var(--bg)" },
+  dark: {
+    bg: "color-mix(in srgb, var(--accent2) 58%, var(--muted) 42%)",
+    text: "var(--bg)",
+  },
+} as const;
 
 const dateKeyFormatter = new Intl.DateTimeFormat("en-CA", {
   timeZone: BOOKING_TIMEZONE,
@@ -212,6 +207,7 @@ export default function AdminAgendaPanel({
   const calendarContainerRef = useRef<HTMLDivElement | null>(null);
   const [localSlots, setLocalSlots] = useState<SlotItem[]>(slots);
   const [isMobile, setIsMobile] = useState(false);
+  const [isDarkTheme, setIsDarkTheme] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<BookingPopover | null>(
     null
   );
@@ -220,37 +216,80 @@ export default function AdminAgendaPanel({
     null
   );
   const [availabilityView, setAvailabilityView] = useState("timeGridWeek");
-  const [timeWindowMode, setTimeWindowMode] = useState<TimeWindowMode>("day");
+  const [timeWindowMode, setTimeWindowMode] = useState<TimeWindowMode>("am");
   const [visibleRange, setVisibleRange] = useState<VisibleRange | null>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [showHelpGuide, setShowHelpGuide] = useState(false);
   const [status, setStatus] = useState<ToastStatus>("idle");
   const [message, setMessage] = useState("");
   const hideTimer = useRef<number | null>(null);
+  const helpButtonRef = useRef<HTMLButtonElement | null>(null);
+  const helpPopoverRef = useRef<HTMLDivElement | null>(null);
   const isMonthView = availabilityView === "dayGridMonth";
   const effectiveTimeWindowMode: TimeWindowMode = timeWindowMode;
-  const isNight = effectiveTimeWindowMode === "night";
-  const activeSlotColors = isNight ? nightSlotColors : slotColors;
-  const activeBookingColors = isNight ? nightBookingColors : bookingColors;
-  const fallbackBookingPalette = bookingFallbackColors[effectiveTimeWindowMode];
+  const isPmWindow = effectiveTimeWindowMode === "pm";
+  const useDarkMonthDetailPalette = isDarkTheme;
+  const activeSlotColors = useDarkMonthDetailPalette ? nightSlotColors : slotColors;
+  const activeBookingColors = useDarkMonthDetailPalette
+    ? nightBookingColors
+    : bookingColors;
+  const fallbackBookingPalette = useDarkMonthDetailPalette
+    ? bookingFallbackColors.dark
+    : bookingFallbackColors.light;
   const activeWindow = timeWindowConfig[effectiveTimeWindowMode];
-  const monthDetailDialogClass = isNight
+  const monthDetailDialogClass = useDarkMonthDetailPalette
     ? "border-accent2/40 bg-bg/95 text-fg"
     : "border-accent/20 bg-white text-fg";
   const monthDetailHeadingClass = "text-fg";
   const monthDetailMutedClass = "text-muted";
   const monthDetailStrongClass = "text-fg";
-  const monthDetailSectionClass = isNight
+  const monthDetailSectionClass = useDarkMonthDetailPalette
     ? "border-accent2/28 bg-bg/80"
     : "border-accent/15 bg-bg/70";
-  const monthDetailCardClass = isNight
+  const monthDetailCardClass = useDarkMonthDetailPalette
     ? "border-accent2/24 bg-bg/75"
     : "border-accent/12 bg-white/90";
-  const monthDetailSecondaryButtonClass = isNight
+  const monthDetailSecondaryButtonClass = useDarkMonthDetailPalette
     ? "border-accent2/45 bg-bg/80 text-fg hover:border-accent2 hover:bg-accent2/15"
     : "border-accent/30 bg-bg text-muted hover:border-accent/55 hover:bg-accent/10";
-  const monthDetailPrimaryButtonClass = isNight
+  const monthDetailPrimaryButtonClass = useDarkMonthDetailPalette
     ? "border-accent2/50 bg-accent2 text-bg hover:bg-accent"
     : "border-accent/40 bg-accent text-bg hover:bg-accent2";
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const root = document.documentElement;
+    const syncTheme = () => setIsDarkTheme(root.dataset.theme === "dark");
+    syncTheme();
+
+    const observer = new MutationObserver((changes) => {
+      if (
+        changes.some(
+          (change) =>
+            change.type === "attributes" && change.attributeName === "data-theme"
+        )
+      ) {
+        syncTheme();
+      }
+    });
+
+    observer.observe(root, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+
+    window.addEventListener("unkt-theme-change", syncTheme);
+    window.addEventListener("storage", syncTheme);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("unkt-theme-change", syncTheme);
+      window.removeEventListener("storage", syncTheme);
+    };
+  }, []);
 
   useEffect(() => {
     setLocalSlots(slots);
@@ -282,6 +321,35 @@ export default function AdminAgendaPanel({
     };
   }, []);
 
+  useEffect(() => {
+    if (!showHelpGuide) {
+      return;
+    }
+
+    const handleMouseDown = (event: MouseEvent) => {
+      const target = event.target as Node;
+      const isOnButton = helpButtonRef.current?.contains(target);
+      const isOnPopover = helpPopoverRef.current?.contains(target);
+      if (!isOnButton && !isOnPopover) {
+        setShowHelpGuide(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setShowHelpGuide(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleMouseDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handleMouseDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [showHelpGuide]);
+
   const showToast = (nextStatus: ToastStatus, text: string) => {
     if (hideTimer.current) {
       window.clearTimeout(hideTimer.current);
@@ -302,14 +370,14 @@ export default function AdminAgendaPanel({
 
   const getClearScopeDescription = () => {
     if (availabilityView.includes("Week")) {
-      return effectiveTimeWindowMode === "night"
-        ? "la franja Noche de la semana visible (19:00 a 07:00)"
-        : "la franja Dia de la semana visible (07:00 a 19:00)";
+      return effectiveTimeWindowMode === "pm"
+        ? "la franja PM de la semana visible (12:00 a 24:00)"
+        : "la franja AM de la semana visible (00:00 a 12:00)";
     }
     if (availabilityView.includes("Day")) {
-      return effectiveTimeWindowMode === "night"
-        ? "la franja Noche del dia visible (19:00 a 07:00)"
-        : "la franja Dia del dia visible (07:00 a 19:00)";
+      return effectiveTimeWindowMode === "pm"
+        ? "la franja PM del dia visible (12:00 a 24:00)"
+        : "la franja AM del dia visible (00:00 a 12:00)";
     }
     return "todo el mes visible";
   };
@@ -317,6 +385,7 @@ export default function AdminAgendaPanel({
   const requestClearVisibleRange = () => {
     if (!visibleRange || status === "saving") return;
     setSelectedBooking(null);
+    setShowHelpGuide(false);
     setShowClearConfirm(true);
   };
 
@@ -773,7 +842,7 @@ export default function AdminAgendaPanel({
             aria-labelledby="clear-confirm-title"
             aria-describedby="clear-confirm-description"
             className={`relative w-full max-w-md rounded-3xl border px-5 py-4 shadow-[0_28px_60px_-32px_rgba(0,0,0,0.65)] ${
-              isNight
+              useDarkMonthDetailPalette
                 ? "border-accent2/40 bg-bg/95 text-fg"
                 : "border-accent/25 bg-white text-fg"
             }`}
@@ -796,9 +865,7 @@ export default function AdminAgendaPanel({
                 type="button"
                 onClick={() => setShowClearConfirm(false)}
                 className={`rounded-full border px-4 py-2 text-[10px] font-semibold uppercase tracking-wide transition ${
-                  isNight
-                    ? monthDetailSecondaryButtonClass
-                    : "border-accent/30 bg-bg text-muted hover:border-accent/50 hover:bg-accent/5"
+                  monthDetailSecondaryButtonClass
                 }`}
               >
                 Cancelar
@@ -807,9 +874,7 @@ export default function AdminAgendaPanel({
                 type="button"
                 onClick={handleClearVisibleRange}
                 className={`rounded-full border px-4 py-2 text-[10px] font-semibold uppercase tracking-wide transition ${
-                  isNight
-                    ? monthDetailPrimaryButtonClass
-                    : "border-accent/35 bg-accent text-bg hover:bg-accent2"
+                  monthDetailPrimaryButtonClass
                 }`}
               >
                 Confirmar
@@ -1027,33 +1092,119 @@ export default function AdminAgendaPanel({
       )}
 
       <section
-        className={`agenda-panel rounded-3xl border p-8 backdrop-blur transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-          isNight
+        className={`agenda-panel rounded-3xl border p-4 backdrop-blur transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] sm:p-8 ${
+          useDarkMonthDetailPalette
             ? "agenda-panel--night border-accent2/40 bg-bg/95 text-fg shadow-[0_40px_90px_-55px_rgba(0,0,0,0.95)]"
             : "agenda-panel--day border-accent/20 bg-white/70 text-fg shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)]"
         }`}
       >
-        <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="agenda-header-layer flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="font-display text-3xl tracking-[0.08em] text-fg transition-colors duration-500">
               Disponibilidad
             </h1>
           </div>
-          <div className="flex flex-col items-end gap-2">
+          <div className="relative flex flex-col items-end gap-2">
+            <button
+              ref={helpButtonRef}
+              type="button"
+              onClick={() => setShowHelpGuide((prev) => !prev)}
+              className={`inline-flex h-9 w-9 items-center justify-center rounded-full border text-base font-bold leading-none transition ${
+                useDarkMonthDetailPalette
+                  ? "border-accent2/45 bg-bg/88 text-fg hover:border-accent2 hover:bg-accent2/16"
+                  : "border-accent/30 bg-white/90 text-accent hover:border-accent/55 hover:bg-accent/10"
+              }`}
+              aria-label="Abrir ayuda de agenda"
+              aria-expanded={showHelpGuide}
+              aria-haspopup="dialog"
+              aria-controls="agenda-help-popover"
+            >
+              ?
+            </button>
+            {showHelpGuide && (
+              <div
+                ref={helpPopoverRef}
+                id="agenda-help-popover"
+                role="dialog"
+                aria-label="Guia de agenda"
+                className={`absolute right-0 top-11 z-[40] w-[min(18rem,85vw)] rounded-2xl border p-4 text-left shadow-[0_24px_52px_-30px_rgba(0,0,0,0.75)] ${
+                  useDarkMonthDetailPalette
+                    ? "border-accent2/42 bg-bg/96 text-fg"
+                    : "border-accent/24 bg-white text-fg"
+                }`}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <strong className="text-xs uppercase tracking-wide text-fg">
+                    Guia rapida
+                  </strong>
+                  <button
+                    type="button"
+                    onClick={() => setShowHelpGuide(false)}
+                    className={`inline-flex h-7 w-7 items-center justify-center rounded-full border text-xs transition ${
+                      useDarkMonthDetailPalette
+                        ? "border-accent2/40 bg-bg/82 text-fg hover:border-accent2"
+                        : "border-accent/25 bg-bg text-muted hover:border-accent/55"
+                    }`}
+                    aria-label="Cerrar ayuda"
+                  >
+                    x
+                  </button>
+                </div>
+
+                <p className="mt-2 text-xs leading-relaxed text-muted">
+                  Referencia de colores y uso rapido de la agenda.
+                </p>
+
+                <div className="mt-3 grid gap-2 text-[11px] font-semibold uppercase tracking-wide">
+                  <span
+                    className={`inline-flex h-8 items-center gap-2 rounded-full px-3 ${
+                      useDarkMonthDetailPalette
+                        ? "border border-accent2/28 bg-bg/82 text-fg"
+                        : "border border-accent/20 bg-bg/60 text-fg"
+                    }`}
+                  >
+                    <span
+                      className="h-3 w-3 rounded-full"
+                      style={{ background: activeSlotColors.available.bg }}
+                    />
+                    Disponible
+                  </span>
+                  <span
+                    className={`inline-flex h-8 items-center gap-2 rounded-full px-3 ${
+                      useDarkMonthDetailPalette
+                        ? "border border-accent2/28 bg-bg/82 text-fg"
+                        : "border border-accent/20 bg-bg/60 text-fg"
+                    }`}
+                  >
+                    <span
+                      className="h-3 w-3 rounded-full"
+                      style={{ background: activeSlotColors.booked.bg }}
+                    />
+                    Reservado
+                  </span>
+                </div>
+
+                <ul className="mt-3 space-y-1.5 text-xs leading-relaxed text-muted">
+                  <li>Toque o arrastre para crear horarios disponibles.</li>
+                  <li>Toque una reserva para ver datos y limpiar solapes.</li>
+                  <li>Use el boton limpiar para borrar la vista actual.</li>
+                </ul>
+              </div>
+            )}
             {!isMonthView && (
               <button
                 type="button"
                 onClick={() =>
-                  setTimeWindowMode((prev) => (prev === "day" ? "night" : "day"))
+                  setTimeWindowMode((prev) => (prev === "am" ? "pm" : "am"))
                 }
                 className={`inline-flex items-center justify-center rounded-full border px-4 py-2 text-[10px] font-semibold uppercase tracking-wide transition-all duration-500 ease-out ${
-                  isNight
+                  useDarkMonthDetailPalette
                     ? "border-accent2/50 bg-accent2 text-bg shadow-[0_10px_24px_-14px_rgba(0,0,0,0.8)] hover:bg-accent"
                     : "border-accent/35 bg-accent text-bg shadow-[0_10px_20px_-14px_rgba(139,13,90,0.9)] hover:bg-accent2"
                 }`}
-                aria-pressed={isNight}
+                aria-pressed={isPmWindow}
               >
-                {isNight ? "Noche" : "Dia"}
+                {isPmWindow ? "PM" : "AM"}
               </button>
             )}
           </div>
@@ -1061,8 +1212,8 @@ export default function AdminAgendaPanel({
 
         <div
           ref={calendarContainerRef}
-          className={`agenda-calendar mt-6 relative overflow-hidden rounded-2xl border p-3 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-            isNight
+          className={`agenda-calendar agenda-calendar-layer mt-6 relative overflow-hidden rounded-2xl border p-2 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] sm:p-3 ${
+            useDarkMonthDetailPalette
               ? "agenda-calendar--night border-accent2/35 bg-bg/90"
               : "agenda-calendar--day border-accent/15"
           }`}
@@ -1070,7 +1221,7 @@ export default function AdminAgendaPanel({
           {selectedBooking && (
             <div
               className={`pointer-events-none absolute z-10 w-[260px] rounded-2xl border px-4 py-3 text-xs shadow-[0_18px_36px_-20px_rgba(0,0,0,0.35)] ${
-                isNight
+                useDarkMonthDetailPalette
                   ? "border-accent2/40 bg-bg/95 text-muted shadow-[0_26px_48px_-24px_rgba(0,0,0,0.95)]"
                   : "border-accent/20 bg-bg/95 text-muted"
               }`}
@@ -1208,9 +1359,20 @@ export default function AdminAgendaPanel({
 
               setMonthDetailDayKey(null);
               setSelectedBooking(null);
-              if (availabilityView !== "timeGridDay" || !props.status) {
+              if (props.type !== "slot" || !props.status) {
                 return;
               }
+
+              if (props.status !== "available") {
+                return;
+              }
+
+              if (!info.event.id) {
+                showToast("error", "No se pudo identificar el horario.");
+                return;
+              }
+
+              void handleDeleteSlot(info.event.id);
             }}
             headerToolbar={{
               left: "prev,next today",
@@ -1242,31 +1404,14 @@ export default function AdminAgendaPanel({
             type="button"
             onClick={requestClearVisibleRange}
             disabled={!visibleRange || status === "saving"}
-            className={`inline-flex items-center justify-center rounded-full border px-4 py-2 text-[10px] font-semibold uppercase tracking-wide transition disabled:cursor-not-allowed disabled:opacity-60 ${
-              isNight
+            className={`inline-flex h-9 items-center justify-center rounded-full border px-4 text-[10px] font-semibold uppercase tracking-wide transition disabled:cursor-not-allowed disabled:opacity-60 ${
+              useDarkMonthDetailPalette
                 ? monthDetailSecondaryButtonClass
                 : "border-accent/35 bg-accent/10 text-accent hover:border-accent hover:bg-accent/20"
             }`}
           >
             {getClearButtonLabel()}
           </button>
-        </div>
-
-        <div className="mt-4 flex flex-wrap gap-3 text-xs font-semibold uppercase tracking-wide text-muted transition-colors duration-500">
-          <span className="flex items-center gap-2">
-            <span
-              className="h-3 w-3 rounded-full"
-              style={{ background: activeSlotColors.available.bg }}
-            />
-            Disponible
-          </span>
-          <span className="flex items-center gap-2">
-            <span
-              className="h-3 w-3 rounded-full"
-              style={{ background: activeSlotColors.booked.bg }}
-            />
-            Reservado
-          </span>
         </div>
       </section>
     </div>

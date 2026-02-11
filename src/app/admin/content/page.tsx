@@ -29,7 +29,7 @@ export default async function AdminContentPage() {
   const createdAtLabel = user.createdAt.toLocaleString("es-AR");
 
   return (
-    <div className="admin-content-editor min-h-screen bg-bg text-fg">
+    <div className="admin-dashboard admin-content-editor min-h-screen bg-bg text-fg">
       <header className="relative z-50 border-b border-accent/20 bg-bg/95 backdrop-blur">
         <Container className="flex items-center justify-between gap-2.5 px-3 py-2.5 sm:px-6 md:py-4">
           <div className="min-w-0 flex items-center">
@@ -67,10 +67,11 @@ export default async function AdminContentPage() {
       </header>
 
       <main className="py-8 sm:py-12 md:py-16">
-        <Container>
+        <div className="mx-auto w-full max-w-6xl px-8 sm:px-8 md:px-8">
           <AdminContentForm studio={studio} gallery={studio.gallery} />
-        </Container>
+        </div>
       </main>
     </div>
   );
 }
+

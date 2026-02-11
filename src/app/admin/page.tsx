@@ -14,10 +14,12 @@ import { getStudioContent } from "@/lib/studio-content";
 export const dynamic = "force-dynamic";
 
 type DashboardPeriod = "week" | "month" | "year";
+type DashboardChart = "bookings" | "revenue";
 
 type AdminPageProps = {
   searchParams?: Promise<{
     period?: string | string[];
+    chart?: string | string[];
   }>;
 };
 
@@ -53,6 +55,10 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
     : resolvedSearchParams?.period;
   const selectedPeriod: DashboardPeriod =
     periodParam === "month" || periodParam === "year" ? periodParam : "week";
+  const chartParam = Array.isArray(resolvedSearchParams?.chart)
+    ? resolvedSearchParams?.chart[0]
+    : resolvedSearchParams?.chart;
+  const selectedChart: DashboardChart = chartParam === "revenue" ? "revenue" : "bookings";
 
   const session = await getSessionFromCookies();
   if (!session) {
@@ -257,9 +263,18 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
     { key: "month", label: "Mes" },
     { key: "year", label: "A\u00f1o" },
   ];
+  const chartOptions: { key: DashboardChart; label: string }[] = [
+    { key: "bookings", label: "Reservas" },
+    { key: "revenue", label: "Ingresos" },
+  ];
 
-  const resolvePeriodHref = (period: DashboardPeriod) =>
-    period === "week" ? "/admin" : `/admin?period=${period}`;
+  const resolveDashboardHref = (period: DashboardPeriod, chart: DashboardChart) => {
+    const params = new URLSearchParams();
+    if (period !== "week") params.set("period", period);
+    if (chart !== "bookings") params.set("chart", chart);
+    const query = params.toString();
+    return query ? `/admin?${query}` : "/admin";
+  };
 
   return (
     <div className="admin-dashboard min-h-screen bg-bg text-fg">
@@ -341,7 +356,32 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
                   return (
                     <Link
                       key={`mobile-${option.key}`}
-                      href={resolvePeriodHref(option.key)}
+                      href={resolveDashboardHref(option.key, selectedChart)}
+                      scroll={false}
+                      className={`rounded-full px-4 py-1.5 text-[10px] font-semibold uppercase tracking-wide transition ${
+                        active
+                          ? "bg-accent text-bg shadow-[0_8px_16px_-12px_rgba(139,13,90,0.9)]"
+                          : "text-muted hover:bg-accent/10"
+                      }`}
+                    >
+                      {option.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted">
+                Grafico
+              </p>
+              <div className="inline-flex items-center rounded-full border border-accent/25 bg-white/80 p-1">
+                {chartOptions.map((option) => {
+                  const active = selectedChart === option.key;
+                  return (
+                    <Link
+                      key={`mobile-chart-${option.key}`}
+                      href={resolveDashboardHref(selectedPeriod, option.key)}
+                      scroll={false}
                       className={`rounded-full px-4 py-1.5 text-[10px] font-semibold uppercase tracking-wide transition ${
                         active
                           ? "bg-accent text-bg shadow-[0_8px_16px_-12px_rgba(139,13,90,0.9)]"
@@ -367,7 +407,8 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
                   return (
                     <Link
                       key={option.key}
-                      href={resolvePeriodHref(option.key)}
+                      href={resolveDashboardHref(option.key, selectedChart)}
+                      scroll={false}
                       className={`rounded-full px-4 py-1.5 text-[10px] font-semibold uppercase tracking-wide transition ${
                         active
                           ? "bg-accent text-bg shadow-[0_8px_16px_-12px_rgba(139,13,90,0.9)]"
@@ -382,8 +423,12 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
             </div>
           </div>
 
-          <div className="mt-4 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mt-8 md:grid md:overflow-visible md:pb-0 lg:grid-cols-2">
-            <div className="flex min-h-[24rem] min-w-full snap-center flex-col rounded-3xl border border-accent/20 bg-white/70 p-6 shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)] backdrop-blur md:min-w-0">
+          <div className="mt-4 space-y-4 md:mt-8 md:grid md:gap-4 md:space-y-0 lg:grid-cols-2">
+            <div
+              className={`min-h-[24rem] flex-col rounded-3xl border border-accent/20 bg-white/70 p-6 shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)] backdrop-blur md:flex ${
+                selectedChart === "bookings" ? "flex" : "hidden"
+              }`}
+            >
               <div className="flex items-baseline justify-between">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted">
@@ -421,7 +466,11 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
                 ))}
               </div>
             </div>
-            <div className="flex min-h-[24rem] min-w-full snap-center flex-col rounded-3xl border border-accent/20 bg-white/70 p-6 shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)] backdrop-blur md:min-w-0">
+            <div
+              className={`min-h-[24rem] flex-col rounded-3xl border border-accent/20 bg-white/70 p-6 shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)] backdrop-blur md:flex ${
+                selectedChart === "revenue" ? "flex" : "hidden"
+              }`}
+            >
               <div className="flex items-baseline justify-between">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted">

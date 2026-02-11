@@ -245,15 +245,16 @@ export async function DELETE(request: NextRequest) {
     }
 
     const isTimeGridView = viewType.startsWith("timeGrid");
-    const isNightWindow = isTimeGridView && timeWindowMode === "night";
-    const isDayWindow = isTimeGridView && timeWindowMode === "day";
-
-    const rangeStart = isNightWindow
-      ? new Date(startDate.getTime() + 19 * 60 * 60 * 1000)
-      : startDate;
-    const rangeEnd = isNightWindow
-      ? new Date(endDate.getTime() + 7 * 60 * 60 * 1000)
-      : endDate;
+    const normalizedWindowMode =
+      timeWindowMode === "day"
+        ? "am"
+        : timeWindowMode === "night"
+          ? "pm"
+          : timeWindowMode;
+    const isAmWindow = isTimeGridView && normalizedWindowMode === "am";
+    const isPmWindow = isTimeGridView && normalizedWindowMode === "pm";
+    const rangeStart = startDate;
+    const rangeEnd = endDate;
 
     const candidates = await prisma.availabilitySlot.findMany({
       where: {
@@ -272,13 +273,10 @@ export async function DELETE(request: NextRequest) {
     });
 
     const filtered =
-      isDayWindow || isNightWindow
+      isAmWindow || isPmWindow
         ? candidates.filter((slot) => {
             const hour = getLocalHour(slot.start);
-            if (isDayWindow) {
-              return hour >= 7 && hour < 19;
-            }
-            return hour >= 19 || hour < 7;
+            return isAmWindow ? hour < 12 : hour >= 12;
           })
         : candidates;
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 type Role = "admin" | "user";
 
@@ -50,6 +51,7 @@ export default function AdminUsersPanel({
   const [messageById, setMessageById] = useState<Record<string, string>>({});
   const [searchValue, setSearchValue] = useState("");
   const [selectedUserId, setSelectedUserId] = useState<string>("");
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
   const timers = useRef<Record<string, number>>({});
 
   useEffect(() => {
@@ -172,8 +174,7 @@ export default function AdminUsersPanel({
     });
   }, [filteredUsers]);
 
-  const selectedUser =
-    filteredUsers.find((item) => item.id === selectedUserId) ?? null;
+  const selectedUser = users.find((item) => item.id === selectedUserId) ?? null;
   const selectedRoleValue: Role = selectedUser
     ? roles[selectedUser.id] ?? selectedUser.role
     : "user";
@@ -187,6 +188,49 @@ export default function AdminUsersPanel({
     ? (statusById[selectedUser.id] ?? "idle")
     : "idle";
   const selectedMessage = selectedUser ? messageById[selectedUser.id] : "";
+
+  useEffect(() => {
+    if (!isDetailOpen) {
+      return;
+    }
+    if (!selectedUser) {
+      setIsDetailOpen(false);
+    }
+  }, [isDetailOpen, selectedUser]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (isDetailOpen) {
+      root.classList.add("admin-users-modal-open");
+    } else {
+      root.classList.remove("admin-users-modal-open");
+    }
+
+    return () => {
+      root.classList.remove("admin-users-modal-open");
+    };
+  }, [isDetailOpen]);
+
+  useEffect(() => {
+    if (!isDetailOpen) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsDetailOpen(false);
+      }
+    };
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isDetailOpen]);
 
   return (
     <div className="admin-users-panel rounded-3xl border border-accent/20 bg-white/70 p-5 shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)] backdrop-blur sm:p-8">
@@ -214,12 +258,12 @@ export default function AdminUsersPanel({
           type="search"
           value={searchValue}
           onChange={(event) => setSearchValue(event.target.value)}
-          placeholder="Correo, rol o fecha de creacion"
+          placeholder="Correo, rol o fecha"
           autoComplete="off"
         />
       </div>
 
-      <div className="admin-users-table mt-6 grid gap-4 rounded-2xl border border-accent/15 bg-white/80 p-3 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:p-4">
+      <div className="admin-users-table mt-6 overflow-hidden rounded-2xl border border-accent/15 bg-white/80 p-3">
         <div className="admin-users-list overflow-hidden rounded-2xl border border-accent/15 bg-bg/70">
           <ul className="max-h-[26rem] space-y-2 overflow-y-auto p-2">
             {filteredUsers.length === 0 ? (
@@ -242,13 +286,16 @@ export default function AdminUsersPanel({
                           : "border-accent/20 bg-white/70 hover:border-accent/35 hover:bg-accent/5"
                       }`}
                       type="button"
-                      onClick={() => setSelectedUserId(item.id)}
+                      onClick={() => {
+                        setSelectedUserId(item.id);
+                        setIsDetailOpen(true);
+                      }}
                     >
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="break-all text-sm font-semibold text-fg">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                        <p className="min-w-0 truncate text-sm font-semibold leading-snug text-fg sm:whitespace-normal sm:[overflow-wrap:anywhere]">
                           {item.email}
                         </p>
-                        <span className="rounded-full border border-accent/20 bg-bg/80 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-muted">
+                        <span className="self-start rounded-full border border-accent/20 bg-bg/80 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-muted sm:shrink-0">
                           {roleLabels[roleValue]}
                         </span>
                       </div>
@@ -278,115 +325,134 @@ export default function AdminUsersPanel({
             )}
           </ul>
         </div>
-
-        <div className="admin-users-detail overflow-hidden rounded-2xl border border-accent/15 bg-bg/70">
-          {!selectedUser ? (
-            <div className="flex min-h-[15rem] items-center justify-center px-6 py-10 text-center text-sm text-muted">
-              Selecciona un usuario para ver y editar su informacion.
-            </div>
-          ) : (
-            <div className="space-y-5 p-5">
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">
-                  Usuario seleccionado
-                </p>
-                <h2 className="mt-2 break-all text-xl font-semibold text-fg">
-                  {selectedUser.email}
-                </h2>
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-xl border border-accent/15 bg-white/70 px-3 py-3">
-                  <span className="text-[10px] font-semibold uppercase tracking-wide text-muted">
-                    Rol actual
-                  </span>
-                  <p className="mt-1 text-sm font-semibold text-fg">
-                    {roleLabels[selectedRoleValue]}
-                  </p>
-                </div>
-                <div className="rounded-xl border border-accent/15 bg-white/70 px-3 py-3">
-                  <span className="text-[10px] font-semibold uppercase tracking-wide text-muted">
-                    Creado
-                  </span>
-                  <p className="mt-1 text-sm font-semibold text-fg">
-                    {selectedUser.createdAtLabel}
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label
-                    htmlFor="selected-user-role"
-                    className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted"
-                  >
-                    Cambiar rol
-                  </label>
-                  <select
-                    id="selected-user-role"
-                    className="admin-users-role-select w-full rounded-full border border-accent/20 bg-white px-4 py-3 text-xs font-semibold uppercase tracking-wide text-fg outline-none transition focus:border-accent disabled:cursor-not-allowed disabled:bg-bg"
-                    value={selectedRoleValue}
-                    onChange={(event) =>
-                      handleRoleChange(
-                        selectedUser.id,
-                        event.target.value as Role
-                      )
-                    }
-                    disabled={selectedIsSelf}
-                  >
-                    <option value="admin">{roleLabels.admin}</option>
-                    <option value="user">{roleLabels.user}</option>
-                  </select>
-                  {selectedIsSelf && (
-                    <span className="text-[10px] font-semibold uppercase tracking-wide text-muted">
-                      Tu cuenta no se puede editar desde aca.
-                    </span>
-                  )}
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2">
-                  <button
-                    className="admin-users-save-button inline-flex min-w-28 items-center justify-center rounded-full border border-accent/30 px-4 py-2 text-[10px] font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10 disabled:cursor-not-allowed disabled:opacity-60"
-                    type="button"
-                    onClick={() => handleSave(selectedUser.id)}
-                    disabled={
-                      selectedIsSelf ||
-                      !selectedIsDirty ||
-                      selectedRowStatus === "saving"
-                    }
-                  >
-                    {selectedRowStatus === "saving"
-                      ? "Guardando..."
-                      : selectedRowStatus === "saved"
-                        ? "Guardado"
-                        : "Guardar"}
-                  </button>
-                  {!selectedMessage &&
-                    !selectedIsSelf &&
-                    !selectedIsDirty &&
-                    selectedRowStatus === "idle" && (
-                      <span className="text-[10px] font-semibold uppercase tracking-wide text-muted">
-                        Sin cambios
-                      </span>
-                    )}
-                </div>
-
-                {selectedMessage && (
-                  <p
-                    className={`text-xs font-semibold uppercase tracking-wide ${
-                      selectedRowStatus === "error"
-                        ? "text-accent"
-                        : "text-muted"
-                    }`}
-                  >
-                    {selectedMessage}
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
       </div>
+
+      {isDetailOpen && selectedUser && typeof document !== "undefined"
+        ? createPortal(
+            <div
+              className="admin-users-modal-overlay fixed inset-0 z-[120] flex items-center justify-center p-4 sm:p-6"
+              onClick={() => setIsDetailOpen(false)}
+            >
+              <div
+                className="admin-users-modal relative w-full max-w-xl overflow-hidden rounded-3xl border border-accent/20 bg-white/90 p-5 shadow-[0_34px_72px_-34px_rgba(0,0,0,0.75)] backdrop-blur sm:p-6"
+                role="dialog"
+                aria-modal="true"
+                aria-label={`Editar usuario ${selectedUser.email}`}
+                onClick={(event) => event.stopPropagation()}
+              >
+                <button
+                  className="admin-users-close absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full border border-accent/25 bg-bg/80 text-xl leading-none text-accent transition hover:border-accent hover:bg-accent/10"
+                  type="button"
+                  aria-label="Cerrar modal"
+                  onClick={() => setIsDetailOpen(false)}
+                >
+                  X
+                </button>
+
+                <div className="space-y-5">
+                  <div className="pr-8">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">
+                      Usuario seleccionado
+                    </p>
+                    <h2 className="mt-2 text-xl font-semibold leading-snug text-fg [overflow-wrap:anywhere]">
+                      {selectedUser.email}
+                    </h2>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-xl border border-accent/15 bg-white/70 px-3 py-3">
+                      <span className="text-[10px] font-semibold uppercase tracking-wide text-muted">
+                        Rol actual
+                      </span>
+                      <p className="mt-1 text-sm font-semibold text-fg">
+                        {roleLabels[selectedRoleValue]}
+                      </p>
+                    </div>
+                    <div className="rounded-xl border border-accent/15 bg-white/70 px-3 py-3">
+                      <span className="text-[10px] font-semibold uppercase tracking-wide text-muted">
+                        Creado
+                      </span>
+                      <p className="mt-1 text-sm font-semibold text-fg">
+                        {selectedUser.createdAtLabel}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="selected-user-role"
+                        className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted"
+                      >
+                        Cambiar rol
+                      </label>
+                      <select
+                        id="selected-user-role"
+                        className="admin-users-role-select w-full"
+                        value={selectedRoleValue}
+                        onChange={(event) =>
+                          handleRoleChange(
+                            selectedUser.id,
+                            event.target.value as Role
+                          )
+                        }
+                        disabled={selectedIsSelf}
+                      >
+                        <option value="admin">{roleLabels.admin}</option>
+                        <option value="user">{roleLabels.user}</option>
+                      </select>
+                      {selectedIsSelf && (
+                        <span className="text-[10px] font-semibold uppercase tracking-wide text-muted">
+                          Tu cuenta no se puede editar desde aca.
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        className="admin-users-save-button inline-flex min-w-28 items-center justify-center rounded-full border border-accent/30 px-4 py-2 text-[10px] font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10 disabled:cursor-not-allowed disabled:opacity-60"
+                        type="button"
+                        onClick={() => handleSave(selectedUser.id)}
+                        disabled={
+                          selectedIsSelf ||
+                          !selectedIsDirty ||
+                          selectedRowStatus === "saving"
+                        }
+                      >
+                        {selectedRowStatus === "saving"
+                          ? "Guardando..."
+                          : selectedRowStatus === "saved"
+                            ? "Guardado"
+                            : "Guardar"}
+                      </button>
+                      {!selectedMessage &&
+                        !selectedIsSelf &&
+                        !selectedIsDirty &&
+                        selectedRowStatus === "idle" && (
+                          <span className="text-[10px] font-semibold uppercase tracking-wide text-muted">
+                            Sin cambios
+                          </span>
+                        )}
+                    </div>
+
+                    {selectedMessage && (
+                      <p
+                        className={`text-xs font-semibold uppercase tracking-wide ${
+                          selectedRowStatus === "error"
+                            ? "text-accent"
+                            : "text-muted"
+                        }`}
+                      >
+                        {selectedMessage}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>,
+            document.body
+          )
+        : null}
     </div>
   );
 }

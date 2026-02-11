@@ -383,24 +383,23 @@ export default function AdminContentForm({
 
   return (
     <form
-      className="grid min-w-0 gap-6 sm:gap-8 md:gap-10"
+      className="grid w-full max-w-full min-w-0 gap-3 overflow-x-clip sm:gap-8 md:gap-10"
       onSubmit={handleSubmit}
       encType="multipart/form-data"
     >
-      <div className="rounded-3xl border border-accent/20 bg-white/70 p-4 shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)] backdrop-blur sm:p-6 md:p-8">
-        <h1 className="font-display text-2xl uppercase tracking-[0.12em] sm:text-3xl sm:tracking-[0.2em]">
+      <div className="overflow-x-hidden rounded-3xl border border-accent/20 bg-white/70 p-5 shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)] backdrop-blur sm:p-7 md:p-8">
+        <h1 className="font-display text-xl uppercase tracking-[0.08em] sm:text-3xl sm:tracking-[0.2em]">
           Contenido
         </h1>
-        <p className="mt-2 break-words text-sm text-muted">
+        <p className="mt-2 break-words text-sm leading-relaxed text-muted">
           Edita textos y contenidos visuales de la landing.
         </p>
 
-        <div className="mt-8 grid gap-6">
+        <div className="mt-5 grid gap-4 sm:mt-8 sm:gap-6">
           <details
-            className="rounded-2xl border border-accent/15 bg-white/80 p-4 sm:p-5"
-            open
+            className="rounded-2xl border border-accent/15 bg-white/80 p-4 sm:p-6"
           >
-            <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
+            <summary className="cursor-pointer break-words pr-4 text-[11px] font-semibold uppercase tracking-[0.06em] text-fg/80 sm:text-sm sm:tracking-wide">
               Logo y wordmark
             </summary>
             <div className="mt-4 grid gap-4">
@@ -408,7 +407,7 @@ export default function AdminContentForm({
                 <div className="grid gap-3">
                   <div className="overflow-hidden rounded-2xl border border-accent/20 bg-bg p-3">
                     <img
-                      className="h-20 w-20 rounded-full object-cover"
+                      className="h-14 w-14 rounded-full object-cover sm:h-20 sm:w-20"
                       src={studio.logo.src}
                       alt={studio.logo.alt}
                     />
@@ -421,20 +420,20 @@ export default function AdminContentForm({
                   <div className="overflow-hidden rounded-2xl border border-accent/20 bg-bg p-3">
                     {hasCustomWordmark ? (
                       <img
-                        className="h-20 w-full object-contain"
+                        className="h-14 w-full object-contain sm:h-20"
                         src={studio.logo.wordmarkSrc}
                         alt={studio.logo.alt}
                       />
                     ) : (
-                      <div className="flex h-20 min-w-0 items-center gap-2 overflow-hidden text-accent">
-                        <span className="truncate text-xl font-semibold uppercase tracking-[0.08em]">
+                      <div className="flex h-14 min-w-0 items-center gap-1.5 overflow-hidden text-accent sm:h-20 sm:gap-2">
+                        <span className="truncate text-lg font-semibold uppercase tracking-[0.08em] sm:text-xl">
                           {wordmarkCore}
                         </span>
                         <span
                           aria-hidden
                           className="h-1 w-1 shrink-0 rounded-full bg-accent/45"
                         />
-                        <span className="truncate text-sm font-semibold uppercase tracking-[0.16em] text-accent/82">
+                        <span className="truncate text-xs font-semibold uppercase tracking-[0.16em] text-accent/82 sm:text-sm">
                           {wordmarkTail}
                         </span>
                       </div>
@@ -448,7 +447,7 @@ export default function AdminContentForm({
               <label className="grid gap-2 text-sm font-semibold">
                 Wordmark (texto)
                 <input
-                  className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                  className="rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
                   type="text"
                   name="name"
                   defaultValue={studio.name}
@@ -462,7 +461,7 @@ export default function AdminContentForm({
               <label className="grid gap-2 text-sm font-semibold">
                 Alt del logo
                 <input
-                  className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                  className="rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
                   type="text"
                   name="logoAlt"
                   defaultValue={studio.logo.alt}
@@ -475,7 +474,7 @@ export default function AdminContentForm({
                   <div className="flex flex-wrap items-center gap-3">
                     <label
                       htmlFor="logoImageSeo"
-                      className="inline-flex items-center justify-center rounded-full border border-accent/30 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10"
+                      className="inline-flex items-center justify-center rounded-full border border-accent/30 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10 sm:px-4 sm:py-2 sm:text-xs"
                     >
                       Seleccionar imagen
                     </label>
@@ -497,7 +496,7 @@ export default function AdminContentForm({
                   <div className="flex flex-wrap items-center gap-3">
                     <label
                       htmlFor="wordmarkImageSeo"
-                      className="inline-flex items-center justify-center rounded-full border border-accent/30 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10"
+                      className="inline-flex items-center justify-center rounded-full border border-accent/30 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10 sm:px-4 sm:py-2 sm:text-xs"
                     >
                       Seleccionar imagen
                     </label>
@@ -519,10 +518,9 @@ export default function AdminContentForm({
           </details>
 
           <details
-            className="rounded-2xl border border-accent/15 bg-white/80 p-4 sm:p-5"
-            open
+            className="rounded-2xl border border-accent/15 bg-white/80 p-4 sm:p-6"
           >
-            <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
+            <summary className="cursor-pointer break-words pr-4 text-[11px] font-semibold uppercase tracking-[0.06em] text-fg/80 sm:text-sm sm:tracking-wide">
               Título y subtítulo
             </summary>
             <div className="mt-4 grid gap-4">
@@ -530,7 +528,7 @@ export default function AdminContentForm({
                 <label className="grid gap-2 text-sm font-semibold">
                   Título principal
                   <input
-                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                    className="rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
                     type="text"
                     name="heroTitle"
                     defaultValue={studio.hero.title}
@@ -540,7 +538,7 @@ export default function AdminContentForm({
                 <label className="grid gap-2 text-sm font-semibold">
                   Subtítulo
                   <input
-                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                    className="rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
                     type="text"
                     name="heroSubtitle"
                     defaultValue={studio.hero.subtitle}
@@ -551,15 +549,15 @@ export default function AdminContentForm({
             </div>
           </details>
 
-          <details className="rounded-2xl border border-accent/15 bg-white/80 p-4 sm:p-5">
-            <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
+          <details className="rounded-2xl border border-accent/15 bg-white/80 p-4 sm:p-6">
+            <summary className="cursor-pointer break-words pr-4 text-[11px] font-semibold uppercase tracking-[0.06em] text-fg/80 sm:text-sm sm:tracking-wide">
               Plano y ubicacion
             </summary>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <div className="grid gap-3">
                 <div className="overflow-hidden rounded-2xl border border-accent/20 bg-bg p-3">
                   <img
-                    className="h-48 w-full rounded-xl object-contain"
+                    className="h-36 w-full rounded-xl object-contain sm:h-48"
                     src={studio.floorPlan.src}
                     alt={studio.floorPlan.alt}
                   />
@@ -573,7 +571,7 @@ export default function AdminContentForm({
                 <label className="grid gap-2 text-sm font-semibold">
                   Alt del plano
                   <input
-                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                    className="rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
                     type="text"
                     name="floorPlanAlt"
                     defaultValue={studio.floorPlan.alt}
@@ -586,7 +584,7 @@ export default function AdminContentForm({
                   <div className="flex flex-wrap items-center gap-3">
                     <label
                       htmlFor="floorPlanImage"
-                      className="inline-flex items-center justify-center rounded-full border border-accent/30 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10"
+                      className="inline-flex items-center justify-center rounded-full border border-accent/30 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10 sm:px-4 sm:py-2 sm:text-xs"
                     >
                       Seleccionar imagen
                     </label>
@@ -606,7 +604,7 @@ export default function AdminContentForm({
                 <label className="grid gap-2 text-sm font-semibold">
                   Texto direccion
                   <input
-                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                    className="rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
                     type="text"
                     name="locationText"
                     defaultValue={studio.contact.locationText}
@@ -615,7 +613,7 @@ export default function AdminContentForm({
                 <label className="grid gap-2 text-sm font-semibold">
                   Link Google Maps
                   <input
-                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                    className="rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
                     type="url"
                     name="locationUrl"
                     defaultValue={studio.contact.locationUrl}
@@ -625,15 +623,15 @@ export default function AdminContentForm({
             </div>
           </details>
 
-          <details className="rounded-2xl border border-accent/15 bg-white/80 p-4 sm:p-5">
-            <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
+          <details className="rounded-2xl border border-accent/15 bg-white/80 p-4 sm:p-6">
+            <summary className="cursor-pointer break-words pr-4 text-[11px] font-semibold uppercase tracking-[0.06em] text-fg/80 sm:text-sm sm:tracking-wide">
               SEO y sitio
             </summary>
             <div className="mt-4 grid gap-4">
               <label className="grid gap-2 text-sm font-semibold">
                 URL del sitio
                 <input
-                  className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                  className="rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
                   type="url"
                   name="siteUrl"
                   defaultValue={studio.siteUrl}
@@ -647,7 +645,7 @@ export default function AdminContentForm({
               <label className="grid gap-2 text-sm font-semibold">
                 SEO title
                 <input
-                  className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                  className="rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
                   type="text"
                   name="seoTitle"
                   defaultValue={studio.seo.title}
@@ -657,7 +655,7 @@ export default function AdminContentForm({
               <label className="grid gap-2 text-sm font-semibold">
                 SEO description
                 <textarea
-                  className="min-h-[96px] rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                  className="min-h-[96px] rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
                   name="seoDescription"
                   defaultValue={studio.seo.description}
                   required
@@ -672,7 +670,7 @@ export default function AdminContentForm({
                 <div className="flex flex-wrap items-center gap-3">
                   <label
                     htmlFor="seoOgImageFile"
-                    className="inline-flex items-center justify-center rounded-full border border-accent/30 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10"
+                    className="inline-flex items-center justify-center rounded-full border border-accent/30 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10 sm:px-4 sm:py-2 sm:text-xs"
                   >
                     Seleccionar imagen
                   </label>
@@ -695,15 +693,15 @@ export default function AdminContentForm({
             </div>
           </details>
 
-          <details className="rounded-2xl border border-accent/15 bg-white/80 p-4 sm:p-5">
-            <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
+          <details className="rounded-2xl border border-accent/15 bg-white/80 p-4 sm:p-6">
+            <summary className="cursor-pointer break-words pr-4 text-[11px] font-semibold uppercase tracking-[0.06em] text-fg/80 sm:text-sm sm:tracking-wide">
               Datos de contacto
             </summary>
             <div className="mt-4 grid gap-4">
               <label className="grid gap-2 text-sm font-semibold">
                 Correo de contacto
                 <input
-                  className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                  className="rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
                   type="email"
                   name="contactEmail"
                   defaultValue={studio.contact.email}
@@ -713,7 +711,7 @@ export default function AdminContentForm({
               <label className="grid gap-2 text-sm font-semibold">
                 URL Instagram
                 <input
-                  className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                  className="rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
                   type="url"
                   name="contactInstagram"
                   defaultValue={studio.contact.instagram}
@@ -723,7 +721,7 @@ export default function AdminContentForm({
                 <label className="grid gap-2 text-sm font-semibold">
                   Numero de WhatsApp
                   <input
-                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                    className="rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
                     type="text"
                     name="whatsappPhone"
                     placeholder="+54 9 11 5852-4000"
@@ -738,7 +736,7 @@ export default function AdminContentForm({
                 <label className="grid gap-2 text-sm font-semibold">
                   Mensaje WhatsApp
                   <input
-                    className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                    className="rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
                     type="text"
                     name="whatsappMessage"
                     defaultValue={studio.contact.whatsapp.message}
@@ -751,9 +749,9 @@ export default function AdminContentForm({
 
           <details
             id="precios"
-            className="rounded-2xl border border-accent/15 bg-white/80 p-4 sm:p-5"
+            className="rounded-2xl border border-accent/15 bg-white/80 p-4 sm:p-6"
           >
-            <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
+            <summary className="cursor-pointer break-words pr-4 text-[11px] font-semibold uppercase tracking-[0.06em] text-fg/80 sm:text-sm sm:tracking-wide">
               Listas y bloques
             </summary>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
@@ -761,7 +759,7 @@ export default function AdminContentForm({
                 <label className="grid gap-2 text-sm font-semibold">
                   Título incluido
                   <input
-                    className="rounded-2xl border border-accent/20 bg-white px-4 py-2 text-sm outline-none transition focus:border-accent"
+                    className="rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:text-sm"
                     type="text"
                     name="includedTitle"
                     defaultValue={studio.included.title}
@@ -770,7 +768,7 @@ export default function AdminContentForm({
                 <label className="grid gap-2 text-sm font-semibold">
                   Subtítulo incluido
                   <input
-                    className="rounded-2xl border border-accent/20 bg-white px-4 py-2 text-sm outline-none transition focus:border-accent"
+                    className="rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:text-sm"
                     type="text"
                     name="includedSubtitle"
                     defaultValue={studio.included.subtitle}
@@ -779,7 +777,7 @@ export default function AdminContentForm({
                 <label className="grid gap-2 text-sm font-semibold">
                   Incluido (uno por línea)
                   <textarea
-                    className="min-h-[120px] rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                    className="min-h-[120px] rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
                     name="includedItems"
                     defaultValue={studio.included.items.join("\n")}
                   />
@@ -789,7 +787,7 @@ export default function AdminContentForm({
                 <label className="grid gap-2 text-sm font-semibold">
                   Título extras
                   <input
-                    className="rounded-2xl border border-accent/20 bg-white px-4 py-2 text-sm outline-none transition focus:border-accent"
+                    className="rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:text-sm"
                     type="text"
                     name="extrasTitle"
                     defaultValue={studio.extras.title}
@@ -798,7 +796,7 @@ export default function AdminContentForm({
                 <label className="grid gap-2 text-sm font-semibold">
                   Subtítulo extras
                   <input
-                    className="rounded-2xl border border-accent/20 bg-white px-4 py-2 text-sm outline-none transition focus:border-accent"
+                    className="rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:text-sm"
                     type="text"
                     name="extrasSubtitle"
                     defaultValue={studio.extras.subtitle}
@@ -807,7 +805,7 @@ export default function AdminContentForm({
                 <label className="grid gap-2 text-sm font-semibold">
                   Extras (uno por línea)
                   <textarea
-                    className="min-h-[120px] rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                    className="min-h-[120px] rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
                     name="extrasItems"
                     defaultValue={studio.extras.items.join("\n")}
                   />
@@ -816,15 +814,15 @@ export default function AdminContentForm({
             </div>
           </details>
 
-          <details className="rounded-2xl border border-accent/15 bg-white/80 p-4 sm:p-5">
-            <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
+          <details className="rounded-2xl border border-accent/15 bg-white/80 p-4 sm:p-6">
+            <summary className="cursor-pointer break-words pr-4 text-[11px] font-semibold uppercase tracking-[0.06em] text-fg/80 sm:text-sm sm:tracking-wide">
               Politicas y condiciones
             </summary>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <label className="grid gap-2 text-sm font-semibold">
                 Politica de cancelacion (un punto por linea)
                 <textarea
-                  className="min-h-[140px] rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                  className="min-h-[140px] rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
                   name="footerPoliciesCancellation"
                   defaultValue={studio.footer.policies.cancellation.join("\n")}
                 />
@@ -832,7 +830,7 @@ export default function AdminContentForm({
               <label className="grid gap-2 text-sm font-semibold">
                 Condiciones de reserva (un punto por linea)
                 <textarea
-                  className="min-h-[140px] rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                  className="min-h-[140px] rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
                   name="footerPoliciesBooking"
                   defaultValue={studio.footer.policies.booking.join("\n")}
                 />
@@ -842,18 +840,18 @@ export default function AdminContentForm({
         </div>
       </div>
 
-      <div className="rounded-3xl border border-accent/20 bg-white/70 p-4 shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)] backdrop-blur sm:p-6 md:p-8">
-        <h2 className="font-display text-xl uppercase tracking-[0.12em] sm:text-2xl sm:tracking-[0.2em]">
+      <div className="overflow-x-hidden rounded-3xl border border-accent/20 bg-white/70 p-5 shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)] backdrop-blur sm:p-7 md:p-8">
+        <h2 className="font-display text-lg uppercase tracking-[0.08em] sm:text-2xl sm:tracking-[0.2em]">
           Carrusel
         </h2>
         <p className="mt-2 text-sm text-muted">
           Gestiona las imagenes del carrusel del home.
         </p>
 
-        <div className="mt-8 grid gap-6">
+        <div className="mt-5 grid gap-4 sm:mt-8 sm:gap-6">
 
-          <details className="rounded-2xl border border-accent/15 bg-white/80 p-4 sm:p-5">
-            <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
+          <details className="rounded-2xl border border-accent/15 bg-white/80 p-4 sm:p-6">
+            <summary className="cursor-pointer break-words pr-4 text-[11px] font-semibold uppercase tracking-[0.06em] text-fg/80 sm:text-sm sm:tracking-wide">
               Galeria del carrusel
             </summary>
             <div className="mt-4 grid gap-4">
@@ -894,7 +892,7 @@ export default function AdminContentForm({
                   {galleryItems.map((item, index) => (
                     <div
                       key={item.id}
-                      className={`grid gap-3 rounded-2xl border border-accent/15 bg-white/70 p-4 ${
+                      className={`grid gap-3 rounded-2xl border border-accent/15 bg-white/70 p-3 sm:p-4 ${
                         dragIndex === index ? "opacity-70" : ""
                       }`}
                       draggable
@@ -913,12 +911,12 @@ export default function AdminContentForm({
                         </span>
                         {item.previewUrl || item.src ? (
                           <img
-                            className="h-40 w-full object-cover"
+                            className="h-28 w-full object-cover sm:h-40"
                             src={item.previewUrl || item.src}
                             alt={item.alt || "Imagen del estudio"}
                           />
                         ) : (
-                          <div className="flex h-40 items-center justify-center text-xs text-muted">
+                          <div className="flex h-28 items-center justify-center text-xs text-muted sm:h-40">
                             Sin imagen
                           </div>
                         )}
@@ -926,7 +924,7 @@ export default function AdminContentForm({
                       <label className="grid gap-2 text-sm font-semibold">
                         Alt
                         <input
-                          className="rounded-2xl border border-accent/20 bg-white px-4 py-2 text-sm outline-none transition focus:border-accent"
+                          className="rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:text-sm"
                           type="text"
                           value={item.alt}
                           onChange={(event) =>
@@ -953,8 +951,8 @@ export default function AdminContentForm({
             </div>
           </details>
 
-          <details className="rounded-2xl border border-accent/15 bg-white/80 p-4 sm:p-5">
-            <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
+          <details className="rounded-2xl border border-accent/15 bg-white/80 p-4 sm:p-6">
+            <summary className="cursor-pointer break-words pr-4 text-[11px] font-semibold uppercase tracking-[0.06em] text-fg/80 sm:text-sm sm:tracking-wide">
               Imagenes de incluidos y extras
             </summary>
             <div className="mt-4 grid gap-6">
@@ -973,17 +971,17 @@ export default function AdminContentForm({
                       return (
                         <div
                           key={item.id}
-                          className="grid gap-3 rounded-2xl border border-accent/15 bg-white/70 p-4"
+                          className="grid gap-3 rounded-2xl border border-accent/15 bg-white/70 p-3 sm:p-4"
                         >
                           <div className="relative overflow-hidden rounded-2xl border border-accent/15 bg-bg">
                             {item.previewUrl || item.src ? (
                               <img
-                                className="h-40 w-full object-cover"
+                                className="h-28 w-full object-cover sm:h-40"
                                 src={item.previewUrl || item.src}
                                 alt={item.alt || buildCatalogImageAlt(item.label)}
                               />
                             ) : (
-                              <div className="flex h-40 items-center justify-center text-xs text-muted">
+                              <div className="flex h-28 items-center justify-center text-xs text-muted sm:h-40">
                                 Sin imagen
                               </div>
                             )}
@@ -994,7 +992,7 @@ export default function AdminContentForm({
                           <label className="grid gap-2 text-sm font-semibold">
                             Alt
                             <input
-                              className="rounded-2xl border border-accent/20 bg-white px-4 py-2 text-sm outline-none transition focus:border-accent"
+                              className="rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:text-sm"
                               type="text"
                               value={item.alt}
                               onChange={(event) =>
@@ -1054,17 +1052,17 @@ export default function AdminContentForm({
                       return (
                         <div
                           key={item.id}
-                          className="grid gap-3 rounded-2xl border border-accent/15 bg-white/70 p-4"
+                          className="grid gap-3 rounded-2xl border border-accent/15 bg-white/70 p-3 sm:p-4"
                         >
                           <div className="relative overflow-hidden rounded-2xl border border-accent/15 bg-bg">
                             {item.previewUrl || item.src ? (
                               <img
-                                className="h-40 w-full object-cover"
+                                className="h-28 w-full object-cover sm:h-40"
                                 src={item.previewUrl || item.src}
                                 alt={item.alt || buildCatalogImageAlt(item.label)}
                               />
                             ) : (
-                              <div className="flex h-40 items-center justify-center text-xs text-muted">
+                              <div className="flex h-28 items-center justify-center text-xs text-muted sm:h-40">
                                 Sin imagen
                               </div>
                             )}
@@ -1075,7 +1073,7 @@ export default function AdminContentForm({
                           <label className="grid gap-2 text-sm font-semibold">
                             Alt
                             <input
-                              className="rounded-2xl border border-accent/20 bg-white px-4 py-2 text-sm outline-none transition focus:border-accent"
+                              className="rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:text-sm"
                               type="text"
                               value={item.alt}
                               onChange={(event) =>

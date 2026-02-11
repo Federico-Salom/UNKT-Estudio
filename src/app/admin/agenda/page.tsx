@@ -129,8 +129,8 @@ export default async function AdminAgendaPage() {
         </Container>
       </header>
 
-      <main className="px-6 py-16">
-        <Container>
+      <main className="px-2 py-16 sm:px-6">
+        <Container className="!px-2 sm:!px-6">
           <AdminAgendaPanel slots={slotsForPanel} bookings={bookingsForPanel} />
         </Container>
       </main>
