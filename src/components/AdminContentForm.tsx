@@ -40,6 +40,7 @@ const errorMessages: Record<string, string> = {
   forbidden: "No tienes permisos para editar el contenido.",
 };
 
+const DEFAULT_WORDMARK_SRC = "/logo-largo.svg";
 const buildCatalogImageAlt = (label: string) => `Imagen de ${label}`;
 
 const createCatalogImageItems = ({
@@ -369,23 +370,34 @@ export default function AdminContentForm({
     });
   };
 
+  const hasCustomWordmark =
+    Boolean(studio.logo.wordmarkSrc) &&
+    studio.logo.wordmarkSrc !== DEFAULT_WORDMARK_SRC;
+  const [wordmarkCoreRaw, ...wordmarkTailParts] = (
+    studio.name || "UNKT Estudio"
+  )
+    .trim()
+    .split(/\s+/);
+  const wordmarkCore = (wordmarkCoreRaw || "UNKT").toUpperCase();
+  const wordmarkTail = (wordmarkTailParts.join(" ") || "Estudio").toUpperCase();
+
   return (
     <form
-      className="grid gap-10"
+      className="grid min-w-0 gap-6 sm:gap-8 md:gap-10"
       onSubmit={handleSubmit}
       encType="multipart/form-data"
     >
-      <div className="rounded-3xl border border-accent/20 bg-white/70 p-8 shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)] backdrop-blur">
-        <h1 className="font-display text-3xl uppercase tracking-[0.2em]">
+      <div className="rounded-3xl border border-accent/20 bg-white/70 p-4 shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)] backdrop-blur sm:p-6 md:p-8">
+        <h1 className="font-display text-2xl uppercase tracking-[0.12em] sm:text-3xl sm:tracking-[0.2em]">
           Contenido
         </h1>
-        <p className="mt-2 text-sm text-muted">
+        <p className="mt-2 break-words text-sm text-muted">
           Edita textos y contenidos visuales de la landing.
         </p>
 
         <div className="mt-8 grid gap-6">
           <details
-            className="rounded-2xl border border-accent/15 bg-white/80 p-5"
+            className="rounded-2xl border border-accent/15 bg-white/80 p-4 sm:p-5"
             open
           >
             <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
@@ -407,17 +419,46 @@ export default function AdminContentForm({
                 </div>
                 <div className="grid gap-3">
                   <div className="overflow-hidden rounded-2xl border border-accent/20 bg-bg p-3">
-                    <img
-                      className="h-20 w-full object-contain"
-                      src={studio.logo.wordmarkSrc}
-                      alt={studio.logo.alt}
-                    />
+                    {hasCustomWordmark ? (
+                      <img
+                        className="h-20 w-full object-contain"
+                        src={studio.logo.wordmarkSrc}
+                        alt={studio.logo.alt}
+                      />
+                    ) : (
+                      <div className="flex h-20 min-w-0 items-center gap-2 overflow-hidden text-accent">
+                        <span className="truncate text-xl font-semibold uppercase tracking-[0.08em]">
+                          {wordmarkCore}
+                        </span>
+                        <span
+                          aria-hidden
+                          className="h-1 w-1 shrink-0 rounded-full bg-accent/45"
+                        />
+                        <span className="truncate text-sm font-semibold uppercase tracking-[0.16em] text-accent/82">
+                          {wordmarkTail}
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <span className="text-xs font-semibold uppercase tracking-wide text-muted">
                     Wordmark actual
                   </span>
                 </div>
               </div>
+              <label className="grid gap-2 text-sm font-semibold">
+                Wordmark (texto)
+                <input
+                  className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+                  type="text"
+                  name="name"
+                  defaultValue={studio.name}
+                  required
+                />
+                <span className="text-xs font-medium text-muted">
+                  Si no subes imagen para el wordmark, se muestra este texto en
+                  el header.
+                </span>
+              </label>
               <label className="grid gap-2 text-sm font-semibold">
                 Alt del logo
                 <input
@@ -438,7 +479,9 @@ export default function AdminContentForm({
                     >
                       Seleccionar imagen
                     </label>
-                    <span className="text-xs text-muted">{logoFileName}</span>
+                    <span className="max-w-full break-all text-xs text-muted">
+                      {logoFileName}
+                    </span>
                   </div>
                   <input
                     id="logoImageSeo"
@@ -458,7 +501,9 @@ export default function AdminContentForm({
                     >
                       Seleccionar imagen
                     </label>
-                    <span className="text-xs text-muted">{wordmarkFileName}</span>
+                    <span className="max-w-full break-all text-xs text-muted">
+                      {wordmarkFileName}
+                    </span>
                   </div>
                   <input
                     id="wordmarkImageSeo"
@@ -474,7 +519,7 @@ export default function AdminContentForm({
           </details>
 
           <details
-            className="rounded-2xl border border-accent/15 bg-white/80 p-5"
+            className="rounded-2xl border border-accent/15 bg-white/80 p-4 sm:p-5"
             open
           >
             <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
@@ -506,7 +551,7 @@ export default function AdminContentForm({
             </div>
           </details>
 
-          <details className="rounded-2xl border border-accent/15 bg-white/80 p-5">
+          <details className="rounded-2xl border border-accent/15 bg-white/80 p-4 sm:p-5">
             <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
               Plano y ubicacion
             </summary>
@@ -545,7 +590,9 @@ export default function AdminContentForm({
                     >
                       Seleccionar imagen
                     </label>
-                    <span className="text-xs text-muted">{floorPlanFileName}</span>
+                    <span className="max-w-full break-all text-xs text-muted">
+                      {floorPlanFileName}
+                    </span>
                   </div>
                   <input
                     id="floorPlanImage"
@@ -578,7 +625,7 @@ export default function AdminContentForm({
             </div>
           </details>
 
-          <details className="rounded-2xl border border-accent/15 bg-white/80 p-5">
+          <details className="rounded-2xl border border-accent/15 bg-white/80 p-4 sm:p-5">
             <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
               SEO y sitio
             </summary>
@@ -629,7 +676,9 @@ export default function AdminContentForm({
                   >
                     Seleccionar imagen
                   </label>
-                  <span className="text-xs text-muted">{seoOgFileName}</span>
+                  <span className="max-w-full break-all text-xs text-muted">
+                    {seoOgFileName}
+                  </span>
                 </div>
                 <input
                   id="seoOgImageFile"
@@ -646,7 +695,7 @@ export default function AdminContentForm({
             </div>
           </details>
 
-          <details className="rounded-2xl border border-accent/15 bg-white/80 p-5">
+          <details className="rounded-2xl border border-accent/15 bg-white/80 p-4 sm:p-5">
             <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
               Datos de contacto
             </summary>
@@ -702,7 +751,7 @@ export default function AdminContentForm({
 
           <details
             id="precios"
-            className="rounded-2xl border border-accent/15 bg-white/80 p-5"
+            className="rounded-2xl border border-accent/15 bg-white/80 p-4 sm:p-5"
           >
             <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
               Listas y bloques
@@ -767,7 +816,7 @@ export default function AdminContentForm({
             </div>
           </details>
 
-          <details className="rounded-2xl border border-accent/15 bg-white/80 p-5">
+          <details className="rounded-2xl border border-accent/15 bg-white/80 p-4 sm:p-5">
             <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
               Politicas y condiciones
             </summary>
@@ -793,8 +842,8 @@ export default function AdminContentForm({
         </div>
       </div>
 
-      <div className="rounded-3xl border border-accent/20 bg-white/70 p-8 shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)] backdrop-blur">
-        <h2 className="font-display text-2xl uppercase tracking-[0.2em]">
+      <div className="rounded-3xl border border-accent/20 bg-white/70 p-4 shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)] backdrop-blur sm:p-6 md:p-8">
+        <h2 className="font-display text-xl uppercase tracking-[0.12em] sm:text-2xl sm:tracking-[0.2em]">
           Carrusel
         </h2>
         <p className="mt-2 text-sm text-muted">
@@ -803,7 +852,7 @@ export default function AdminContentForm({
 
         <div className="mt-8 grid gap-6">
 
-          <details className="rounded-2xl border border-accent/15 bg-white/80 p-5">
+          <details className="rounded-2xl border border-accent/15 bg-white/80 p-4 sm:p-5">
             <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
               Galeria del carrusel
             </summary>
@@ -904,7 +953,7 @@ export default function AdminContentForm({
             </div>
           </details>
 
-          <details className="rounded-2xl border border-accent/15 bg-white/80 p-5">
+          <details className="rounded-2xl border border-accent/15 bg-white/80 p-4 sm:p-5">
             <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wide text-fg/80">
               Imagenes de incluidos y extras
             </summary>

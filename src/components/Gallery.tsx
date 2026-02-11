@@ -215,7 +215,7 @@ export default function Gallery({ studio }: GalleryProps) {
   return (
     <section
       id="galeria"
-      className="scroll-mt-24 bg-bg pt-1 pb-2 md:pt-6 md:pb-6"
+      className="scroll-mt-24 bg-bg pt-1 pb-4 md:pt-6 md:pb-6"
     >
       <Container>
         <div className="mb-5 flex flex-col items-center gap-4 md:mb-6 md:gap-5">
@@ -260,7 +260,7 @@ export default function Gallery({ studio }: GalleryProps) {
               </button>
             </div>
 
-            <div className="w-full">
+            <div className="col-span-2 w-full sm:col-span-1">
               <a href={bookingLink} className={bookingActionButtonClass}>
                 <span className="button-label">{primaryCta}</span>
               </a>

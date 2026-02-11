@@ -12,6 +12,7 @@ type ExtraPriceItem = {
 type AdminPricingModalProps = {
   basePrice: number;
   extras: ExtraPriceItem[];
+  triggerClassName?: string;
 };
 
 type SaveStatus = "idle" | "saving" | "error";
@@ -35,6 +36,7 @@ const stripPriceSuffix = (label: string) =>
 export default function AdminPricingModal({
   basePrice,
   extras,
+  triggerClassName,
 }: AdminPricingModalProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
@@ -162,7 +164,9 @@ export default function AdminPricingModal({
     <>
       <button
         type="button"
-        className="inline-flex items-center justify-center rounded-full border border-accent/40 px-5 py-2 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent2 hover:text-accent2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2"
+        className={`inline-flex items-center justify-center rounded-full border border-accent px-5 py-2 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent2 hover:text-accent2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2 ${
+          triggerClassName ?? ""
+        }`}
         onClick={openModal}
       >
         Modificar precios
@@ -170,7 +174,7 @@ export default function AdminPricingModal({
 
       {isOpen && typeof document !== "undefined"
         ? createPortal(
-            <div className="fixed inset-0 z-[130] flex items-center justify-center bg-black/65 px-4 py-6 backdrop-blur-[2px]">
+            <div className="fixed inset-0 z-[130] flex items-start justify-center overflow-y-auto bg-black/65 px-3 py-4 backdrop-blur-[2px] sm:items-center sm:px-4 sm:py-6">
               <button
                 type="button"
                 aria-label="Cerrar precios"
@@ -182,7 +186,7 @@ export default function AdminPricingModal({
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="admin-pricing-title"
-                className="relative z-10 w-full max-w-2xl rounded-3xl border border-accent/25 bg-bg/95 p-6 text-fg shadow-[0_34px_70px_-42px_rgba(0,0,0,0.8)]"
+                className="relative z-10 w-full max-w-2xl max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-3xl border border-accent/25 bg-bg/95 p-4 text-fg shadow-[0_34px_70px_-42px_rgba(0,0,0,0.8)] sm:max-h-[calc(100dvh-3rem)] sm:p-6"
               >
                 <button
                   type="button"
@@ -212,11 +216,11 @@ export default function AdminPricingModal({
                   Modificar precios
                 </p>
 
-                <form className="mt-6 grid gap-4" onSubmit={handleSave} noValidate>
+                <form className="mt-5 grid gap-4 sm:mt-6" onSubmit={handleSave} noValidate>
                   <label className="grid gap-2 text-sm font-semibold">
                     Precio base por hora
                     <input
-                      className="rounded-2xl border border-accent/25 bg-bg px-4 py-3 text-sm text-fg placeholder:text-muted outline-none transition focus:border-accent"
+                      className="w-full min-w-0 rounded-2xl border border-accent/25 bg-bg px-4 py-3 text-sm text-fg placeholder:text-muted outline-none transition focus:border-accent"
                       type="text"
                       inputMode="numeric"
                       value={basePriceInput}
@@ -250,7 +254,7 @@ export default function AdminPricingModal({
                           >
                             <span>{stripPriceSuffix(extra.label) || `Extra ${index + 1}`}</span>
                             <input
-                              className="rounded-2xl border border-accent/25 bg-bg px-4 py-2 text-sm text-fg placeholder:text-muted outline-none transition focus:border-accent"
+                              className="w-full min-w-0 rounded-2xl border border-accent/25 bg-bg px-4 py-2 text-sm text-fg placeholder:text-muted outline-none transition focus:border-accent"
                               type="text"
                               inputMode="numeric"
                               value={extraPriceInputs[index] || ""}
@@ -279,18 +283,18 @@ export default function AdminPricingModal({
                     </div>
                   ) : null}
 
-                  <div className="flex flex-wrap items-center justify-end gap-3 pt-1">
+                  <div className="flex flex-col gap-3 pt-1 sm:flex-row sm:items-center sm:justify-end">
                     <button
                       type="button"
                       onClick={closeModal}
-                      className="inline-flex items-center justify-center rounded-full border border-accent/30 px-5 py-2 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10"
+                      className="inline-flex w-full items-center justify-center rounded-full border border-accent/30 px-5 py-2 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10 sm:w-auto"
                     >
                       Cancelar
                     </button>
                     <button
                       type="submit"
                       disabled={status === "saving"}
-                      className="inline-flex items-center justify-center rounded-full bg-accent px-5 py-2 text-xs font-semibold uppercase tracking-wide text-bg transition hover:bg-accent2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2 disabled:cursor-not-allowed disabled:opacity-70"
+                      className="inline-flex w-full items-center justify-center rounded-full bg-accent px-5 py-2 text-xs font-semibold uppercase tracking-wide text-bg transition hover:bg-accent2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2 disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
                     >
                       {status === "saving" ? "Guardando..." : "Guardar precios"}
                     </button>

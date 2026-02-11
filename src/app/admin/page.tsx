@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import AdminPricingModal from "@/components/AdminPricingModal";
+import AdminMetricsCarousel from "@/components/AdminMetricsCarousel";
 import BrandMark from "@/components/BrandMark";
 import Container from "@/components/Container";
 import UserMenu from "@/components/UserMenu";
@@ -87,7 +88,6 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   const [
     totalUsers,
     totalBookings,
-    paidBookings,
     pendingBookings,
     hoursAgg,
     totalRevenueAgg,
@@ -95,7 +95,6 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   ] = await Promise.all([
     prisma.user.count(),
     prisma.booking.count(),
-    prisma.booking.count({ where: { status: "paid" } }),
     prisma.booking.count({ where: { status: "pending_payment" } }),
     prisma.booking.aggregate({ _sum: { hours: true } }),
     prisma.booking.aggregate({ _sum: { total: true } }),
@@ -107,7 +106,33 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   const totalRevenue = totalRevenueAgg._sum.total ?? 0;
   const paidRevenue = paidRevenueAgg._sum.total ?? 0;
   const paidRevenueDisplay = paidRevenue || totalRevenue;
-  const avgTicket = totalBookings ? Math.round(totalRevenue / totalBookings) : 0;
+  const dashboardMetrics = [
+    {
+      label: "Visitas",
+      value: String(totalVisits),
+      detail: "Acumuladas.",
+    },
+    {
+      label: "Usuarios",
+      value: String(totalUsers),
+      detail: "Registrados totales",
+    },
+    {
+      label: "Reservas",
+      value: String(totalBookings),
+      detail: "Totales",
+    },
+    {
+      label: "Pagado",
+      value: `$${paidRevenueDisplay.toLocaleString("es-AR")}`,
+      detail: "Ingresos cobrados",
+    },
+    {
+      label: "Horas",
+      value: String(totalHours),
+      detail: `Pendientes: ${pendingBookings}`,
+    },
+  ];
 
   const now = new Date();
   const dayLabel = new Intl.DateTimeFormat("es-AR", {
@@ -227,13 +252,35 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
       showTotalRevenueFallback ? bucket.totalRevenue : bucket.revenue
     )
   );
-return (
+  const periodOptions: { key: DashboardPeriod; label: string }[] = [
+    { key: "week", label: "Semana" },
+    { key: "month", label: "Mes" },
+    { key: "year", label: "A\u00f1o" },
+  ];
+
+  const resolvePeriodHref = (period: DashboardPeriod) =>
+    period === "week" ? "/admin" : `/admin?period=${period}`;
+
+  return (
     <div className="admin-dashboard min-h-screen bg-bg text-fg">
-      <header className="border-b border-accent/20 bg-bg/95">
-        <Container className="flex items-center justify-between py-4">
-          <BrandMark studio={studio} />
-          <div className="flex items-center gap-4">
-            <ThemeToggle />
+      <header className="relative z-50 border-b border-accent/20 bg-bg/95 backdrop-blur">
+        <Container className="flex items-center justify-between gap-2.5 px-3 py-2.5 sm:px-6 md:py-4">
+          <div className="min-w-0 flex items-center">
+            <div className="md:hidden">
+              <BrandMark
+                studio={studio}
+                size={36}
+                wordmarkScale={0.9}
+                gapClassName="gap-2 sm:gap-2.5"
+                className="max-w-[58vw] sm:max-w-full"
+              />
+            </div>
+            <div className="hidden md:block">
+              <BrandMark studio={studio} />
+            </div>
+          </div>
+          <div className="flex shrink-0 items-center gap-2 md:gap-4">
+            <ThemeToggle className="h-9 w-9 md:h-10 md:w-10" />
             <UserMenu
               user={{
                 email: user.email,
@@ -250,15 +297,15 @@ return (
         <Container>
           {isAdmin && (
             <div className="rounded-3xl border border-accent/20 bg-white/70 p-5 shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)] backdrop-blur">
-              <div className="flex flex-wrap items-center justify-center gap-3">
+              <div className="mx-auto grid w-full max-w-[21rem] grid-cols-1 gap-3 md:max-w-none md:flex md:flex-wrap md:items-center md:justify-center">
                 <Link
-                  className="inline-flex items-center justify-center rounded-full bg-accent px-5 py-2 text-xs font-semibold uppercase tracking-wide text-bg transition hover:bg-accent2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2"
+                  className="inline-flex w-full items-center justify-center rounded-full border border-accent px-5 py-2 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent2 hover:text-accent2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2 md:w-auto"
                   href="/admin/users"
                 >
                   Ver usuarios
                 </Link>
                 <Link
-                  className="inline-flex items-center justify-center rounded-full border border-accent px-5 py-2 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent2 hover:text-accent2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2"
+                  className="inline-flex w-full items-center justify-center rounded-full border border-accent px-5 py-2 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent2 hover:text-accent2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2 md:w-auto"
                   href="/admin/content"
                 >
                   Editar contenido
@@ -266,9 +313,10 @@ return (
                 <AdminPricingModal
                   basePrice={pricingBasePrice}
                   extras={pricingExtras}
+                  triggerClassName="w-full md:w-auto"
                 />
                 <Link
-                  className="inline-flex items-center justify-center rounded-full border border-accent/40 px-5 py-2 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent2 hover:text-accent2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2"
+                  className="inline-flex w-full items-center justify-center rounded-full bg-accent px-5 py-2 text-xs font-semibold uppercase tracking-wide text-bg transition hover:bg-accent2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2 md:w-auto"
                   href="/admin/agenda"
                 >
                   Gestionar agenda
@@ -277,74 +325,23 @@ return (
             </div>
           )}
 
-          <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-            <div className="rounded-2xl border border-accent/20 bg-white/70 p-5 shadow-[0_24px_50px_-40px_rgba(30,15,20,0.5)] backdrop-blur">
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted">
-                Visitas
-              </p>
-              <p className="mt-3 font-display text-3xl uppercase tracking-[0.08em] text-fg">
-                {totalVisits}
-              </p>
-              <p className="mt-1 text-xs text-muted">Acumuladas.</p>
-            </div>
-            <div className="rounded-2xl border border-accent/20 bg-white/70 p-5 shadow-[0_24px_50px_-40px_rgba(30,15,20,0.5)] backdrop-blur">
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted">
-                Usuarios
-              </p>
-              <p className="mt-3 font-display text-3xl uppercase tracking-[0.08em] text-fg">
-                {totalUsers}
-              </p>
-              <p className="mt-1 text-xs text-muted">Registrados totales</p>
-            </div>
-            <div className="rounded-2xl border border-accent/20 bg-white/70 p-5 shadow-[0_24px_50px_-40px_rgba(30,15,20,0.5)] backdrop-blur">
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted">
-                Reservas
-              </p>
-              <p className="mt-3 font-display text-3xl uppercase tracking-[0.08em] text-fg">
-                {totalBookings}
-              </p>
-              <p className="mt-1 text-xs text-muted">Totales</p>
-            </div>
-            <div className="rounded-2xl border border-accent/20 bg-white/70 p-5 shadow-[0_24px_50px_-40px_rgba(30,15,20,0.5)] backdrop-blur">
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted">
-                Pagado
-              </p>
-              <p className="mt-3 font-display text-3xl uppercase tracking-[0.08em] text-fg">
-                ${paidRevenueDisplay.toLocaleString("es-AR")}
-              </p>
-              <p className="mt-1 text-xs text-muted">Ingresos cobrados</p>
-            </div>
-            <div className="rounded-2xl border border-accent/20 bg-white/70 p-5 shadow-[0_24px_50px_-40px_rgba(30,15,20,0.5)] backdrop-blur">
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted">
-                Horas
-              </p>
-              <p className="mt-3 font-display text-3xl uppercase tracking-[0.08em] text-fg">
-                {totalHours}
-              </p>
-              <p className="mt-1 text-xs text-muted">
-                Pendientes: {pendingBookings}
-              </p>
-            </div>
-          </div>
+          <AdminMetricsCarousel metrics={dashboardMetrics} />
 
-          <div className="mt-8 rounded-3xl border border-accent/20 bg-white/70 p-4 shadow-[0_24px_50px_-40px_rgba(30,15,20,0.5)] backdrop-blur">
+          <div className="mt-8 rounded-3xl border border-accent/20 bg-white/70 p-4 shadow-[0_24px_50px_-40px_rgba(30,15,20,0.5)] backdrop-blur md:hidden">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted">
-                Vista de datos
-              </p>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted">
+                  Vista de datos
+                </p>
+                <p className="mt-1 text-[11px] text-muted">Controles de visualizacion</p>
+              </div>
               <div className="inline-flex items-center rounded-full border border-accent/25 bg-white/80 p-1">
-                {([
-                  { key: "week", label: "Semana" },
-                  { key: "month", label: "Mes" },
-                  { key: "year", label: "A\u00f1o" },
-                ] as { key: DashboardPeriod; label: string }[]).map((option) => {
+                {periodOptions.map((option) => {
                   const active = selectedPeriod === option.key;
-                  const href =
-                    option.key === "week" ? "/admin" : `/admin?period=${option.key}`;
                   return (
                     <Link
-                      key={option.key}
-                      href={href}
+                      key={`mobile-${option.key}`}
+                      href={resolvePeriodHref(option.key)}
                       className={`rounded-full px-4 py-1.5 text-[10px] font-semibold uppercase tracking-wide transition ${
                         active
                           ? "bg-accent text-bg shadow-[0_8px_16px_-12px_rgba(139,13,90,0.9)]"
@@ -359,8 +356,34 @@ return (
             </div>
           </div>
 
-          <div className="mt-8 grid gap-4 lg:grid-cols-2">
-            <div className="flex min-h-[24rem] flex-col rounded-3xl border border-accent/20 bg-white/70 p-6 shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)] backdrop-blur">
+          <div className="mt-8 hidden rounded-3xl border border-accent/20 bg-white/70 p-4 shadow-[0_24px_50px_-40px_rgba(30,15,20,0.5)] backdrop-blur md:block">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted">
+                Vista de datos
+              </p>
+              <div className="inline-flex items-center rounded-full border border-accent/25 bg-white/80 p-1">
+                {periodOptions.map((option) => {
+                  const active = selectedPeriod === option.key;
+                  return (
+                    <Link
+                      key={option.key}
+                      href={resolvePeriodHref(option.key)}
+                      className={`rounded-full px-4 py-1.5 text-[10px] font-semibold uppercase tracking-wide transition ${
+                        active
+                          ? "bg-accent text-bg shadow-[0_8px_16px_-12px_rgba(139,13,90,0.9)]"
+                          : "text-muted hover:bg-accent/10"
+                      }`}
+                    >
+                      {option.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mt-8 md:grid md:overflow-visible md:pb-0 lg:grid-cols-2">
+            <div className="flex min-h-[24rem] min-w-full snap-center flex-col rounded-3xl border border-accent/20 bg-white/70 p-6 shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)] backdrop-blur md:min-w-0">
               <div className="flex items-baseline justify-between">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted">
@@ -398,7 +421,7 @@ return (
                 ))}
               </div>
             </div>
-            <div className="flex min-h-[24rem] flex-col rounded-3xl border border-accent/20 bg-white/70 p-6 shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)] backdrop-blur">
+            <div className="flex min-h-[24rem] min-w-full snap-center flex-col rounded-3xl border border-accent/20 bg-white/70 p-6 shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)] backdrop-blur md:min-w-0">
               <div className="flex items-baseline justify-between">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted">

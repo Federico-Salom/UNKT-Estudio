@@ -10,9 +10,9 @@ export default async function Home() {
   const studio = await getStudioContent();
 
   return (
-    <div className="min-h-screen bg-bg text-fg">
+    <div className="flex min-h-screen flex-col bg-bg text-fg">
       <Header studio={studio} />
-      <main>
+      <main className="flex-1">
         <Hero studio={studio} />
         <Gallery studio={studio} />
       </main>

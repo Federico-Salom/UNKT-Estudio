@@ -64,7 +64,7 @@ export default function BrandMark({
       {showText ? (
         isDefaultWordmark ? (
           <span
-            className="inline-flex min-w-0 shrink items-center gap-2 whitespace-nowrap text-accent"
+            className="inline-flex min-w-0 max-w-full shrink items-center gap-2 overflow-hidden whitespace-nowrap text-accent"
             style={
               wordmarkOffsetY
                 ? {
@@ -75,7 +75,7 @@ export default function BrandMark({
             aria-label={studio.name}
           >
             <span
-              className="leading-none font-semibold uppercase tracking-[0.08em]"
+              className="truncate leading-none font-semibold uppercase tracking-[0.08em]"
               style={{
                 fontSize: brandCoreSize,
                 fontFamily: "var(--font-controls), 'Nunito Sans', sans-serif",
@@ -88,7 +88,7 @@ export default function BrandMark({
               className="h-1 w-1 shrink-0 self-center rounded-full bg-accent/45"
             />
             <span
-              className="leading-none font-semibold uppercase tracking-[0.16em] text-accent/82"
+              className="truncate leading-none font-semibold uppercase tracking-[0.16em] text-accent/82"
               style={{
                 fontSize: brandTailSize,
                 fontFamily: "var(--font-controls), 'Nunito Sans', sans-serif",

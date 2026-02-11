@@ -239,6 +239,27 @@ html[data-theme="dark"] .admin-users-page .admin-users-table {
   border-color: color-mix(in srgb, var(--accent2) 36%, transparent) !important;
 }
 
+html[data-theme="dark"] .admin-users-page .admin-users-list,
+html[data-theme="dark"] .admin-users-page .admin-users-detail {
+  border-color: color-mix(in srgb, var(--accent2) 34%, transparent) !important;
+  background: color-mix(in srgb, var(--bg) 86%, #24121a 14%) !important;
+}
+
+html[data-theme="dark"] .admin-users-page .admin-users-search {
+  background: color-mix(in srgb, var(--bg) 76%, #3a1924 24%) !important;
+  border-color: color-mix(in srgb, var(--accent2) 38%, transparent) !important;
+  color: var(--fg) !important;
+}
+
+html[data-theme="dark"] .admin-users-page .admin-users-search::placeholder {
+  color: color-mix(in srgb, var(--fg) 46%, #c3a2ad 54%);
+}
+
+html[data-theme="dark"] .admin-users-page .admin-users-search:focus {
+  border-color: color-mix(in srgb, var(--accent2) 72%, transparent) !important;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent2) 42%, transparent);
+}
+
 html[data-theme="dark"] .admin-users-page .admin-users-role-select {
   background: color-mix(in srgb, var(--bg) 76%, #3a1924 24%) !important;
   border-color: color-mix(in srgb, var(--accent2) 38%, transparent) !important;
