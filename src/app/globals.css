@@ -777,6 +777,112 @@ html[data-theme="dark"] .map-embed-overlay {
   z-index: 10;
 }
 
+.agenda-calendar .fc .fc-header-toolbar {
+  margin-bottom: 0.45rem !important;
+  padding: 0.45rem 0.6rem 0;
+  gap: 0.7rem;
+}
+
+.agenda-calendar .fc .fc-header-toolbar .fc-toolbar-chunk {
+  display: flex;
+  align-items: center;
+  gap: 0.42rem;
+}
+
+.agenda-calendar .fc .fc-header-toolbar .fc-toolbar-chunk:empty {
+  display: none;
+}
+
+.agenda-calendar .fc .agenda-toolbar-date-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+  padding: 0.28rem 0.7rem;
+  border-top: 1px solid var(--fc-border-color);
+  border-bottom: 1px solid var(--fc-border-color);
+  background: var(--fc-page-bg-color);
+  font-size: 0.84rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-align: center;
+  text-transform: lowercase;
+}
+
+.agenda-calendar .fc .agenda-toolbar-date-row::first-letter {
+  text-transform: lowercase;
+}
+
+.agenda-calendar .fc .agenda-toolbar-date-row--day {
+  color: #2d1820;
+  text-shadow: 0 1px 6px rgba(255, 255, 255, 0.35);
+}
+
+.agenda-calendar .fc .agenda-toolbar-date-row--night {
+  color: #f9edf1;
+  text-shadow: 0 2px 10px rgba(10, 7, 17, 0.55);
+}
+
+.agenda-calendar .fc .agenda-axis-window-toggle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  width: min(92%, 2.05rem);
+  min-width: 0;
+  max-width: 2.05rem;
+  height: 1.32rem;
+  padding: 0;
+  border: 1px solid transparent;
+  box-sizing: border-box;
+  font-size: 0.52rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 220ms ease,
+    border-color 220ms ease,
+    color 220ms ease,
+    box-shadow 220ms ease;
+}
+
+.agenda-calendar .fc .agenda-axis-toggle-host {
+  position: relative;
+  overflow: visible;
+}
+
+.agenda-calendar .fc .agenda-axis-window-toggle--day {
+  border-color: color-mix(in srgb, #b63f66 44%, transparent);
+  background: color-mix(in srgb, var(--accent) 88%, #ec7fa5 12%);
+  color: var(--bg);
+  box-shadow: 0 8px 16px -12px rgba(139, 13, 90, 0.9);
+}
+
+.agenda-calendar .fc .agenda-axis-window-toggle--day:hover {
+  background: color-mix(in srgb, var(--accent2) 86%, var(--accent) 14%);
+  border-color: color-mix(in srgb, #b63f66 54%, transparent);
+}
+
+.agenda-calendar .fc .agenda-axis-window-toggle--night {
+  border-color: color-mix(in srgb, #e27fa3 54%, transparent);
+  background: color-mix(in srgb, var(--accent2) 84%, #f08cb2 16%);
+  color: var(--bg);
+  box-shadow: 0 8px 18px -12px rgba(0, 0, 0, 0.82);
+}
+
+.agenda-calendar .fc .agenda-axis-window-toggle--night:hover {
+  background: color-mix(in srgb, var(--accent) 86%, var(--accent2) 14%);
+  border-color: color-mix(in srgb, #f0a8c3 72%, transparent);
+}
+
 /* Legacy day-editor modal fallback: keep it compact and scrollable. */
 .fixed.inset-0.z-50.flex.items-center.justify-center.px-4
   > .relative.w-full.max-w-2xl.rounded-3xl {
@@ -1276,16 +1382,27 @@ html[data-theme="dark"] .agenda-panel--day::after {
 
 @media (max-width: 768px) {
   .agenda-panel {
-    background: transparent !important;
-    box-shadow: none !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
+    box-shadow: 0 28px 62px -42px rgba(0, 0, 0, 0.92) !important;
   }
 
-  .agenda-panel::before,
-  .agenda-panel::after {
-    opacity: 0 !important;
-    transform: none !important;
+  .agenda-panel--night::before {
+    opacity: 0.9 !important;
+    transform: translate3d(0, 0, 0) scale(1) !important;
+  }
+
+  .agenda-panel--night::after {
+    opacity: 0.28 !important;
+    transform: translate3d(0, 0, 0) !important;
+  }
+
+  .agenda-calendar .fc .fc-header-toolbar {
+    margin-bottom: 0.35rem !important;
+    padding: 0.35rem 0.4rem 0;
+    gap: 0.45rem;
+  }
+
+  .agenda-calendar .fc .fc-header-toolbar .fc-toolbar-chunk {
+    gap: 0.28rem;
   }
 
   .agenda-calendar .fc .fc-daygrid-day-frame {

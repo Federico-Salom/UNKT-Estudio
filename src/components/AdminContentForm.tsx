@@ -34,6 +34,7 @@ type AdminContentFormProps = {
 };
 
 type Status = "idle" | "saving" | "saved" | "error";
+const AGENDA_HELP_GUIDE_PREF_KEY = "unkt_admin_agenda_hide_help_guides";
 
 const errorMessages: Record<string, string> = {
   unauthorized: "Tu sesión expiró. Inicia sesión nuevamente.",
@@ -65,6 +66,7 @@ export default function AdminContentForm({
 }: AdminContentFormProps) {
   const router = useRouter();
   const [status, setStatus] = useState<Status>("idle");
+  const [agendaHelpHidden, setAgendaHelpHidden] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [logoFileName, setLogoFileName] = useState("Ningun archivo seleccionado");
@@ -109,12 +111,41 @@ export default function AdminContentForm({
   const hideTimer = useRef<number | null>(null);
 
   useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const syncAgendaHelpPreference = () => {
+      try {
+        setAgendaHelpHidden(
+          window.localStorage.getItem(AGENDA_HELP_GUIDE_PREF_KEY) === "1"
+        );
+      } catch {
+        setAgendaHelpHidden(false);
+      }
+    };
+
+    syncAgendaHelpPreference();
+    window.addEventListener("storage", syncAgendaHelpPreference);
+    return () => window.removeEventListener("storage", syncAgendaHelpPreference);
+  }, []);
+
+  useEffect(() => {
     return () => {
       if (hideTimer.current) {
         window.clearTimeout(hideTimer.current);
       }
     };
   }, []);
+
+  const reactivateAgendaHelpGuides = () => {
+    try {
+      window.localStorage.setItem(AGENDA_HELP_GUIDE_PREF_KEY, "0");
+    } catch {
+      // Ignore storage failures.
+    }
+    setAgendaHelpHidden(false);
+  };
 
   useEffect(() => {
     galleryItemsRef.current = galleryItems;
@@ -388,12 +419,24 @@ export default function AdminContentForm({
       encType="multipart/form-data"
     >
       <div className="overflow-x-hidden rounded-3xl border border-accent/20 bg-white/70 p-5 shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)] backdrop-blur sm:p-7 md:p-8">
-        <h1 className="font-display text-xl uppercase tracking-[0.08em] sm:text-3xl sm:tracking-[0.2em]">
-          Contenido
-        </h1>
-        <p className="mt-2 break-words text-sm leading-relaxed text-muted">
-          Edita textos y contenidos visuales de la landing.
-        </p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 className="font-display text-xl uppercase tracking-[0.08em] sm:text-3xl sm:tracking-[0.2em]">
+              Contenido
+            </h1>
+            <p className="mt-2 break-words text-sm leading-relaxed text-muted">
+              Edita textos y contenidos visuales de la landing.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={reactivateAgendaHelpGuides}
+            disabled={!agendaHelpHidden}
+            className="inline-flex h-9 items-center justify-center rounded-full border border-accent/32 bg-accent/10 px-4 text-[10px] font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/20 disabled:cursor-not-allowed disabled:opacity-55"
+          >
+            {agendaHelpHidden ? "Reactivar ayudas" : "Ayudas activas"}
+          </button>
+        </div>
 
         <div className="mt-5 grid gap-4 sm:mt-8 sm:gap-6">
           <details

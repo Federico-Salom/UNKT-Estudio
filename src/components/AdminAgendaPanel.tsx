@@ -68,6 +68,7 @@ type AdminAgendaPanelProps = {
 
 type ToastStatus = "idle" | "saving" | "saved" | "error";
 type TimeWindowMode = "am" | "pm";
+const HELP_GUIDE_PREF_KEY = "unkt_admin_agenda_hide_help_guides";
 
 const timeWindowConfig: Record<
   TimeWindowMode,
@@ -220,8 +221,10 @@ export default function AdminAgendaPanel({
   const [visibleRange, setVisibleRange] = useState<VisibleRange | null>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showHelpGuide, setShowHelpGuide] = useState(false);
+  const [hideHelpGuides, setHideHelpGuides] = useState(false);
   const [status, setStatus] = useState<ToastStatus>("idle");
   const [message, setMessage] = useState("");
+  const [calendarDateRowLabel, setCalendarDateRowLabel] = useState("");
   const hideTimer = useRef<number | null>(null);
   const helpButtonRef = useRef<HTMLButtonElement | null>(null);
   const helpPopoverRef = useRef<HTMLDivElement | null>(null);
@@ -292,6 +295,17 @@ export default function AdminAgendaPanel({
   }, []);
 
   useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    try {
+      setHideHelpGuides(window.localStorage.getItem(HELP_GUIDE_PREF_KEY) === "1");
+    } catch {
+      setHideHelpGuides(false);
+    }
+  }, []);
+
+  useEffect(() => {
     setLocalSlots(slots);
   }, [slots]);
 
@@ -349,6 +363,182 @@ export default function AdminAgendaPanel({
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [showHelpGuide]);
+
+  const setHelpGuidesHidden = (hidden: boolean) => {
+    setHideHelpGuides(hidden);
+    if (hidden) {
+      setShowHelpGuide(false);
+    }
+    if (typeof window === "undefined") {
+      return;
+    }
+    try {
+      window.localStorage.setItem(HELP_GUIDE_PREF_KEY, hidden ? "1" : "0");
+    } catch {
+      // Ignore storage failures (private mode / disabled storage)
+    }
+  };
+
+  useEffect(() => {
+    const container = calendarContainerRef.current;
+    if (!container) {
+      return;
+    }
+
+    const clearAxisToggle = () => {
+      const existing = container.querySelectorAll<HTMLButtonElement>(
+        ".agenda-axis-window-toggle"
+      );
+      existing.forEach((button) => {
+        button.onclick = null;
+        button.remove();
+      });
+      const hosts = container.querySelectorAll<HTMLElement>(".agenda-axis-toggle-host");
+      hosts.forEach((host) => host.classList.remove("agenda-axis-toggle-host"));
+    };
+
+    if (isMonthView) {
+      clearAxisToggle();
+      return;
+    }
+
+    const attachButton = () => {
+      const axisCell =
+        container.querySelector<HTMLTableCellElement>(
+          ".fc .fc-timegrid-head thead .fc-timegrid-axis"
+        ) ??
+        container.querySelector<HTMLTableCellElement>(
+          ".fc .fc-timegrid thead .fc-timegrid-axis"
+        );
+      if (!axisCell) {
+        return false;
+      }
+
+      const axisHost = axisCell;
+      axisHost.classList.add("agenda-axis-toggle-host");
+
+      let button = axisHost.querySelector<HTMLButtonElement>(
+        ".agenda-axis-window-toggle"
+      );
+      if (!button) {
+        button = document.createElement("button");
+        button.type = "button";
+        button.className = "agenda-axis-window-toggle";
+        axisHost.appendChild(button);
+      }
+
+      button.textContent = isPmWindow ? "PM" : "AM";
+      button.setAttribute("aria-label", isPmWindow ? "Cambiar a AM" : "Cambiar a PM");
+      button.classList.toggle("agenda-axis-window-toggle--night", useDarkMonthDetailPalette);
+      button.classList.toggle(
+        "agenda-axis-window-toggle--day",
+        !useDarkMonthDetailPalette
+      );
+      button.onclick = () =>
+        setTimeWindowMode((prev) => (prev === "am" ? "pm" : "am"));
+
+      return true;
+    };
+
+    let frameId: number | null = null;
+    let attempts = 0;
+    const tryAttach = () => {
+      if (attachButton()) {
+        return;
+      }
+      attempts += 1;
+      if (attempts < 30) {
+        frameId = window.requestAnimationFrame(tryAttach);
+      }
+    };
+
+    clearAxisToggle();
+    tryAttach();
+
+    return () => {
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
+      clearAxisToggle();
+    };
+  }, [
+    isMonthView,
+    isPmWindow,
+    useDarkMonthDetailPalette,
+    availabilityView,
+    visibleRange?.startISO,
+    visibleRange?.endISO,
+  ]);
+
+  useEffect(() => {
+    const container = calendarContainerRef.current;
+    if (!container) {
+      return;
+    }
+
+    const clearDateRow = () => {
+      const existing = container.querySelectorAll<HTMLElement>(
+        ".agenda-toolbar-date-row"
+      );
+      existing.forEach((row) => row.remove());
+    };
+
+    const attachDateRow = () => {
+      const toolbar = container.querySelector<HTMLElement>(".fc .fc-header-toolbar");
+      if (!toolbar) {
+        return false;
+      }
+
+      const title = toolbar
+        .querySelector<HTMLElement>(".fc-toolbar-title")
+        ?.textContent?.trim();
+      const label = calendarDateRowLabel || title || "";
+      if (!label) {
+        return false;
+      }
+
+      let row = container.querySelector<HTMLElement>(".agenda-toolbar-date-row");
+      if (!row) {
+        row = document.createElement("div");
+        row.className = "agenda-toolbar-date-row";
+        toolbar.insertAdjacentElement("afterend", row);
+      }
+
+      row.textContent = label;
+      row.classList.toggle("agenda-toolbar-date-row--night", useDarkMonthDetailPalette);
+      row.classList.toggle("agenda-toolbar-date-row--day", !useDarkMonthDetailPalette);
+      return true;
+    };
+
+    let frameId: number | null = null;
+    let attempts = 0;
+    const tryAttach = () => {
+      if (attachDateRow()) {
+        return;
+      }
+      attempts += 1;
+      if (attempts < 30) {
+        frameId = window.requestAnimationFrame(tryAttach);
+      }
+    };
+
+    clearDateRow();
+    tryAttach();
+
+    return () => {
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
+      clearDateRow();
+    };
+  }, [
+    calendarDateRowLabel,
+    availabilityView,
+    visibleRange?.startISO,
+    visibleRange?.endISO,
+    useDarkMonthDetailPalette,
+    isMobile,
+  ]);
 
   const showToast = (nextStatus: ToastStatus, text: string) => {
     if (hideTimer.current) {
@@ -1092,10 +1282,10 @@ export default function AdminAgendaPanel({
       )}
 
       <section
-        className={`agenda-panel rounded-3xl border p-4 backdrop-blur transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] sm:p-8 ${
+        className={`agenda-panel agenda-calendar rounded-3xl p-4 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] sm:p-8 ${
           useDarkMonthDetailPalette
-            ? "agenda-panel--night border-accent2/40 bg-bg/95 text-fg shadow-[0_40px_90px_-55px_rgba(0,0,0,0.95)]"
-            : "agenda-panel--day border-accent/20 bg-white/70 text-fg shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)]"
+            ? "agenda-panel--night agenda-calendar--night bg-bg text-fg shadow-[0_40px_90px_-55px_rgba(0,0,0,0.95)]"
+            : "agenda-panel--day agenda-calendar--day bg-white text-fg shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)]"
         }`}
       >
         <div className="agenda-header-layer flex flex-wrap items-center justify-between gap-4">
@@ -1104,118 +1294,138 @@ export default function AdminAgendaPanel({
               Disponibilidad
             </h1>
           </div>
-          <div className="relative flex flex-col items-end gap-2">
-            <button
-              ref={helpButtonRef}
-              type="button"
-              onClick={() => setShowHelpGuide((prev) => !prev)}
-              className={`inline-flex h-9 w-9 items-center justify-center rounded-full border text-base font-bold leading-none transition ${
-                useDarkMonthDetailPalette
-                  ? "border-accent2/45 bg-bg/88 text-fg hover:border-accent2 hover:bg-accent2/16"
-                  : "border-accent/30 bg-white/90 text-accent hover:border-accent/55 hover:bg-accent/10"
-              }`}
-              aria-label="Abrir ayuda de agenda"
-              aria-expanded={showHelpGuide}
-              aria-haspopup="dialog"
-              aria-controls="agenda-help-popover"
-            >
-              ?
-            </button>
-            {showHelpGuide && (
-              <div
-                ref={helpPopoverRef}
-                id="agenda-help-popover"
-                role="dialog"
-                aria-label="Guia de agenda"
-                className={`absolute right-0 top-11 z-[40] w-[min(18rem,85vw)] rounded-2xl border p-4 text-left shadow-[0_24px_52px_-30px_rgba(0,0,0,0.75)] ${
-                  useDarkMonthDetailPalette
-                    ? "border-accent2/42 bg-bg/96 text-fg"
-                    : "border-accent/24 bg-white text-fg"
-                }`}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <strong className="text-xs uppercase tracking-wide text-fg">
-                    Guia rapida
-                  </strong>
+          <div className="flex flex-col items-end gap-2">
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              {!hideHelpGuides && (
+                <div className="relative">
                   <button
+                    ref={helpButtonRef}
                     type="button"
-                    onClick={() => setShowHelpGuide(false)}
-                    className={`inline-flex h-7 w-7 items-center justify-center rounded-full border text-xs transition ${
+                    onClick={() => setShowHelpGuide((prev) => !prev)}
+                    className={`inline-flex h-9 w-9 items-center justify-center rounded-full border text-base font-bold leading-none transition ${
                       useDarkMonthDetailPalette
-                        ? "border-accent2/40 bg-bg/82 text-fg hover:border-accent2"
-                        : "border-accent/25 bg-bg text-muted hover:border-accent/55"
+                        ? "border-accent2/45 bg-bg/88 text-fg hover:border-accent2 hover:bg-accent2/16"
+                        : "border-accent/30 bg-white/90 text-accent hover:border-accent/55 hover:bg-accent/10"
                     }`}
-                    aria-label="Cerrar ayuda"
+                    aria-label="Abrir ayuda de agenda"
+                    aria-expanded={showHelpGuide}
+                    aria-haspopup="dialog"
+                    aria-controls="agenda-help-popover"
                   >
-                    x
+                    ?
                   </button>
+                  {showHelpGuide && (
+                    <div
+                      ref={helpPopoverRef}
+                      id="agenda-help-popover"
+                      role="dialog"
+                      aria-label="Guia de agenda"
+                      className={`absolute right-0 top-11 z-[40] w-[min(18rem,85vw)] rounded-2xl border p-4 text-left shadow-[0_24px_52px_-30px_rgba(0,0,0,0.75)] ${
+                        useDarkMonthDetailPalette
+                          ? "border-accent2/42 bg-bg/96 text-fg"
+                          : "border-accent/24 bg-white text-fg"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <strong className="text-xs uppercase tracking-wide text-fg">
+                          Guia rapida
+                        </strong>
+                        <button
+                          type="button"
+                          onClick={() => setShowHelpGuide(false)}
+                          className={`inline-flex h-7 w-7 items-center justify-center rounded-full border text-xs transition ${
+                            useDarkMonthDetailPalette
+                              ? "border-accent2/40 bg-bg/82 text-fg hover:border-accent2"
+                              : "border-accent/25 bg-bg text-muted hover:border-accent/55"
+                          }`}
+                          aria-label="Cerrar ayuda"
+                        >
+                          x
+                        </button>
+                      </div>
+
+                      <p className="mt-2 text-xs leading-relaxed text-muted">
+                        Referencia de colores y uso rapido de la agenda.
+                      </p>
+
+                      <div className="mt-3 grid gap-2 text-[11px] font-semibold uppercase tracking-wide">
+                        <span
+                          className={`inline-flex h-8 items-center gap-2 rounded-full px-3 ${
+                            useDarkMonthDetailPalette
+                              ? "border border-accent2/28 bg-bg/82 text-fg"
+                              : "border border-accent/20 bg-bg/60 text-fg"
+                          }`}
+                        >
+                          <span
+                            className="h-3 w-3 rounded-full"
+                            style={{ background: activeSlotColors.available.bg }}
+                          />
+                          Disponible
+                        </span>
+                        <span
+                          className={`inline-flex h-8 items-center gap-2 rounded-full px-3 ${
+                            useDarkMonthDetailPalette
+                              ? "border border-accent2/28 bg-bg/82 text-fg"
+                              : "border border-accent/20 bg-bg/60 text-fg"
+                          }`}
+                        >
+                          <span
+                            className="h-3 w-3 rounded-full"
+                            style={{ background: activeSlotColors.booked.bg }}
+                          />
+                          Reservado
+                        </span>
+                      </div>
+
+                      <ul className="mt-3 space-y-1.5 text-xs leading-relaxed text-muted">
+                        <li>Toque o arrastre para crear horarios disponibles.</li>
+                        <li>Toque una reserva para ver datos y limpiar solapes.</li>
+                        <li>Use el boton limpiar para borrar la vista actual.</li>
+                      </ul>
+
+                      <label
+                        className={`mt-4 flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-[11px] font-semibold tracking-wide ${
+                          useDarkMonthDetailPalette
+                            ? "border-accent2/28 bg-bg/82 text-fg"
+                            : "border-accent/20 bg-bg/60 text-fg"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          className="h-3.5 w-3.5 accent-accent2"
+                          checked={hideHelpGuides}
+                          onChange={(event) =>
+                            setHelpGuidesHidden(event.target.checked)
+                          }
+                        />
+                        No mostrar ayudas otra vez
+                      </label>
+                    </div>
+                  )}
                 </div>
-
-                <p className="mt-2 text-xs leading-relaxed text-muted">
-                  Referencia de colores y uso rapido de la agenda.
-                </p>
-
-                <div className="mt-3 grid gap-2 text-[11px] font-semibold uppercase tracking-wide">
-                  <span
-                    className={`inline-flex h-8 items-center gap-2 rounded-full px-3 ${
-                      useDarkMonthDetailPalette
-                        ? "border border-accent2/28 bg-bg/82 text-fg"
-                        : "border border-accent/20 bg-bg/60 text-fg"
-                    }`}
-                  >
-                    <span
-                      className="h-3 w-3 rounded-full"
-                      style={{ background: activeSlotColors.available.bg }}
-                    />
-                    Disponible
-                  </span>
-                  <span
-                    className={`inline-flex h-8 items-center gap-2 rounded-full px-3 ${
-                      useDarkMonthDetailPalette
-                        ? "border border-accent2/28 bg-bg/82 text-fg"
-                        : "border border-accent/20 bg-bg/60 text-fg"
-                    }`}
-                  >
-                    <span
-                      className="h-3 w-3 rounded-full"
-                      style={{ background: activeSlotColors.booked.bg }}
-                    />
-                    Reservado
-                  </span>
-                </div>
-
-                <ul className="mt-3 space-y-1.5 text-xs leading-relaxed text-muted">
-                  <li>Toque o arrastre para crear horarios disponibles.</li>
-                  <li>Toque una reserva para ver datos y limpiar solapes.</li>
-                  <li>Use el boton limpiar para borrar la vista actual.</li>
-                </ul>
-              </div>
-            )}
-            {!isMonthView && (
+              )}
               <button
                 type="button"
-                onClick={() =>
-                  setTimeWindowMode((prev) => (prev === "am" ? "pm" : "am"))
-                }
-                className={`inline-flex items-center justify-center rounded-full border px-4 py-2 text-[10px] font-semibold uppercase tracking-wide transition-all duration-500 ease-out ${
+                onClick={requestClearVisibleRange}
+                disabled={!visibleRange || status === "saving"}
+                className={`inline-flex h-9 items-center justify-center rounded-full border px-4 text-[10px] font-semibold uppercase tracking-wide transition disabled:cursor-not-allowed disabled:opacity-60 ${
                   useDarkMonthDetailPalette
-                    ? "border-accent2/50 bg-accent2 text-bg shadow-[0_10px_24px_-14px_rgba(0,0,0,0.8)] hover:bg-accent"
-                    : "border-accent/35 bg-accent text-bg shadow-[0_10px_20px_-14px_rgba(139,13,90,0.9)] hover:bg-accent2"
+                    ? monthDetailSecondaryButtonClass
+                    : "border-accent/35 bg-accent/10 text-accent hover:border-accent hover:bg-accent/20"
                 }`}
-                aria-pressed={isPmWindow}
               >
-                {isPmWindow ? "PM" : "AM"}
+                {getClearButtonLabel()}
               </button>
-            )}
+            </div>
           </div>
         </div>
 
         <div
           ref={calendarContainerRef}
-          className={`agenda-calendar agenda-calendar-layer mt-6 relative overflow-hidden rounded-2xl border p-2 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] sm:p-3 ${
+          className={`agenda-calendar-layer mt-6 relative overflow-hidden rounded-2xl border transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
             useDarkMonthDetailPalette
-              ? "agenda-calendar--night border-accent2/35 bg-bg/90"
-              : "agenda-calendar--day border-accent/15"
+              ? "border-accent2/35"
+              : "border-accent/15"
           }`}
         >
           {selectedBooking && (
@@ -1315,6 +1525,7 @@ export default function AdminAgendaPanel({
                 arg.view.currentEnd instanceof Date ? arg.view.currentEnd : arg.end;
               const startISO = currentStart.toISOString();
               const endISO = currentEnd.toISOString();
+              setCalendarDateRowLabel(arg.view.title);
 
               setSelectedBooking((prev) => (prev ? null : prev));
               setAvailabilityView((prev) =>
@@ -1375,8 +1586,8 @@ export default function AdminAgendaPanel({
               void handleDeleteSlot(info.event.id);
             }}
             headerToolbar={{
-              left: "prev,next today",
-              center: "title",
+              left: "prev,today,next",
+              center: "",
               right: isMobile
                 ? "dayGridMonth,timeGridDay"
                 : "dayGridMonth,timeGridWeek,timeGridDay",
@@ -1399,20 +1610,6 @@ export default function AdminAgendaPanel({
           />
         </div>
 
-        <div className="mt-4 flex justify-end">
-          <button
-            type="button"
-            onClick={requestClearVisibleRange}
-            disabled={!visibleRange || status === "saving"}
-            className={`inline-flex h-9 items-center justify-center rounded-full border px-4 text-[10px] font-semibold uppercase tracking-wide transition disabled:cursor-not-allowed disabled:opacity-60 ${
-              useDarkMonthDetailPalette
-                ? monthDetailSecondaryButtonClass
-                : "border-accent/35 bg-accent/10 text-accent hover:border-accent hover:bg-accent/20"
-            }`}
-          >
-            {getClearButtonLabel()}
-          </button>
-        </div>
       </section>
     </div>
   );
