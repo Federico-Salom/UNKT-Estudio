@@ -750,6 +750,48 @@ html[data-theme="dark"] .booking-page .booking-calendar .fc .fc-daygrid-event {
   min-width: 0 !important;
 }
 
+.booking-page main,
+.booking-page .booking-card,
+.booking-page .booking-form,
+.booking-page .booking-calendar,
+.booking-page .booking-calendar .fc .fc-header-toolbar,
+.booking-page .booking-calendar .fc .fc-toolbar-chunk {
+  min-width: 0;
+}
+
+.booking-page .booking-card {
+  overflow-x: hidden;
+}
+
+.booking-page .booking-form input:not([type="checkbox"]):not([type="radio"]),
+.booking-page .booking-form textarea {
+  width: 100%;
+  max-width: 100%;
+}
+
+.booking-page .booking-calendar .fc .fc-header-toolbar {
+  gap: 0.35rem;
+}
+
+@media (max-width: 420px) {
+  .booking-page .booking-calendar .fc .fc-header-toolbar {
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 0.4rem !important;
+  }
+
+  .booking-page .booking-calendar .fc .fc-toolbar-title {
+    font-size: 0.88rem;
+    letter-spacing: 0.02em;
+    text-align: center;
+  }
+
+  .booking-page .booking-calendar .fc .fc-button {
+    font-size: 0.6rem;
+    padding: 0.32rem 0.4rem;
+  }
+}
+
 html[data-theme="dark"]
   .booking-page
   .booking-slot-button[data-slot-selected="false"] {

@@ -345,7 +345,7 @@ export async function POST(request: NextRequest) {
     {
       ok: true,
       bookingId: result.booking.id,
-      redirectTo: `/pago/${result.booking.id}`,
+      redirectTo: `/checkout?bookingId=${result.booking.id}`,
     },
     { status: 201 }
   );

@@ -80,6 +80,19 @@ model Booking {
   updatedAt DateTime          @updatedAt
 }
 
+model Payment {
+  id                String   @id @default(uuid())
+  amount            Int
+  title             String
+  payerEmail        String?
+  externalReference String?
+  mpPreferenceId    String?
+  mpPaymentId       String?  @unique
+  status            String   @default("pending")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
 model SiteMetric {
   id        String   @id @default("global")
   visits    Int      @default(0)

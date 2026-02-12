@@ -71,8 +71,8 @@ export default async function ReservarPage() {
     <div className="booking-page min-h-screen bg-bg text-fg">
       <Header studio={studio} />
 
-      <main className="flex min-h-[calc(100vh-80px)] items-center justify-center px-6 py-16">
-        <div className="booking-card w-full max-w-2xl rounded-3xl border border-accent/20 bg-white/70 p-8 shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)] backdrop-blur">
+      <main className="flex min-h-[calc(100vh-80px)] items-center justify-center px-3 py-10 sm:px-6 sm:py-16">
+        <div className="booking-card w-full min-w-0 max-w-2xl rounded-3xl border border-accent/20 bg-white/70 p-4 shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)] backdrop-blur sm:p-8">
           <h1 className="font-display text-3xl uppercase tracking-[0.2em]">
             Agendar sesión
           </h1>

@@ -520,7 +520,7 @@ export default function BookingForm({
 
   return (
     <form
-      className="booking-form mt-6 grid gap-4"
+      className="booking-form mt-6 grid min-w-0 gap-4"
       onSubmit={handleSubmit}
       noValidate
     >
@@ -584,14 +584,14 @@ export default function BookingForm({
         </>
       )}
 
-      <div className="grid gap-3">
+      <div className="grid min-w-0 gap-3">
         <p className="text-sm font-semibold">Seleccioná un día</p>
         <p className="text-xs text-muted">
           La reserva mínima es de 2 horas consecutivas. Además, se reserva 1
           hora posterior para mantenimiento. Podés tocar la primera y la última
           hora para completar el rango automáticamente.
         </p>
-        <div className="booking-calendar overflow-hidden rounded-2xl border border-accent/15 bg-white/80 p-3">
+        <div className="booking-calendar min-w-0 overflow-hidden rounded-2xl border border-accent/15 bg-white/80 p-2 sm:p-3">
           <FullCalendar
             plugins={[dayGridPlugin, interactionPlugin]}
             locales={[esLocale]}
@@ -639,7 +639,7 @@ export default function BookingForm({
           </div>
         )}
         {selectedSlots.length > 0 && (
-          <div className="rounded-2xl border border-accent/15 bg-white/70 p-2">
+          <div className="rounded-2xl border border-accent/15 bg-white/70 p-2 min-w-0">
             <div className="grid max-h-[44vh] grid-cols-1 gap-1.5 overflow-y-auto overscroll-contain pr-1 sm:max-h-80">
               {selectedSlots.map((slot) => {
                 const label = formatRangeLabel(slot.start, slot.end);

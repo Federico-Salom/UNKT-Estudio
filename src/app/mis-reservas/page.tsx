@@ -241,7 +241,7 @@ export default async function MisReservasPage() {
 
                     <div className="mt-5">
                       <Link
-                        href={`/pago/${booking.id}`}
+                        href={`/checkout?bookingId=${booking.id}`}
                         className="inline-flex items-center rounded-full border border-accent/35 bg-accent/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-accent transition hover:border-accent hover:bg-accent/20"
                       >
                         {booking.status === "pending_payment"
