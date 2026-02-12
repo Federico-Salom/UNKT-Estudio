@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/auth";
@@ -57,21 +57,21 @@ export async function POST(request: NextRequest) {
 
     if (password !== passwordConfirm) {
       return NextResponse.json(
-        { error: "Las contrasenas no coinciden." },
+        { error: "Las contraseñas no coinciden." },
         { status: 400 }
       );
     }
 
     if (password.length < 8) {
       return NextResponse.json(
-        { error: "La contrasena debe tener al menos 8 caracteres." },
+        { error: "La contraseña debe tener al menos 8 caracteres." },
         { status: 400 }
       );
     }
 
     if (!hasLettersAndNumbers(password)) {
       return NextResponse.json(
-        { error: "La contrasena debe incluir letras y numeros." },
+        { error: "La contraseña debe incluir letras y números." },
         { status: 400 }
       );
     }
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
     const now = new Date();
     if (!resetToken || resetToken.usedAt || resetToken.expiresAt <= now) {
       return NextResponse.json(
-        { error: "El enlace de recuperacion es invalido o vencio." },
+        { error: "El enlace de recuperación es inválido o venció." },
         { status: 400 }
       );
     }
@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
     ]);
 
     return NextResponse.json(
-      { ok: true, message: "Contrasena actualizada. Ya puedes iniciar sesion." },
+      { ok: true, message: "Contraseña actualizada. Ya puedes iniciar sesión." },
       { status: 200 }
     );
   } catch (error) {
@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "La base de datos no esta actualizada para recuperar contrasena. Ejecuta las migraciones de Prisma.",
+            "La base de datos no está actualizada para recuperar contraseña. Ejecuta las migraciones de Prisma.",
         },
         { status: 503 }
       );
@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
 
     console.error("Password reset failed:", error);
     return NextResponse.json(
-      { error: "No se pudo restablecer la contrasena." },
+      { error: "No se pudo restablecer la contraseña." },
       { status: 500 }
     );
   }

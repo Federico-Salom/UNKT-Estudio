@@ -114,7 +114,7 @@ export default async function PagoPage({ params, searchParams }: PagoPageProps) 
     : resolvedSearchParams?.status;
 
   return (
-    <div className="min-h-screen bg-bg text-fg">
+    <div className="auth-page min-h-screen bg-bg text-fg">
       <header className="border-b border-accent/20 bg-bg/95">
         <Container className="flex items-center justify-between py-4">
           <BrandMark studio={studio} />

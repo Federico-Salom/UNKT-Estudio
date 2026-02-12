@@ -12,6 +12,7 @@ export default function VisitTracker() {
     if (
       path.startsWith("/admin") ||
       path.startsWith("/account") ||
+      path.startsWith("/mis-reservas") ||
       path.startsWith("/login")
     ) {
       return;

@@ -24,13 +24,13 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
         <Container className="flex items-center justify-between gap-2 px-3 py-3 sm:px-6 sm:py-4">
           <BrandMark studio={studio} showText={false} size={36} />
           <div className="flex items-center gap-2 sm:gap-4">
-            <ThemeToggle />
             <Link
               className="inline-flex h-9 items-center justify-center whitespace-nowrap rounded-full border border-accent/35 bg-accent/10 px-3 text-[11px] font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2 sm:h-10 sm:px-4 sm:text-xs"
               href="/login"
             >
-              Iniciar sesion
+              Volver
             </Link>
+            <ThemeToggle />
           </div>
         </Container>
       </header>
@@ -43,12 +43,12 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
           <RegisterForm serverError={error} />
 
           <div className="mt-6 flex flex-col items-center gap-3 text-center text-sm text-muted">
-            <span>Ya tienes cuenta?</span>
+            <span>¿Ya tienes cuenta?</span>
             <Link
               className="inline-flex items-center justify-center rounded-full border border-accent/35 bg-accent/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/20"
               href="/login"
             >
-              Inicia sesion
+              Inicia sesión
             </Link>
           </div>
         </div>

@@ -25,12 +25,12 @@ const roleLabels: Record<Role, string> = {
 };
 
 const errorMessages: Record<string, string> = {
-  unauthorized: "Tu sesion expiro. Inicia sesion nuevamente.",
+  unauthorized: "Tu sesión expiró. Inicia sesión nuevamente.",
   forbidden: "No tienes permisos para editar roles.",
   self: "No puedes cambiar tu propio rol.",
   last_admin: "Debe quedar al menos un administrador.",
-  invalid_role: "Rol invalido.",
-  missing_user: "Usuario invalido.",
+  invalid_role: "Rol inválido.",
+  missing_user: "Usuario inválido.",
   not_found: "Usuario no encontrado.",
 };
 
@@ -268,7 +268,7 @@ export default function AdminUsersPanel({
           <ul className="max-h-[26rem] space-y-2 overflow-y-auto p-2">
             {filteredUsers.length === 0 ? (
               <li className="rounded-xl border border-accent/15 bg-white/70 px-4 py-5 text-sm text-muted">
-                No hay usuarios que coincidan con tu busqueda.
+                No hay usuarios que coincidan con tu búsqueda.
               </li>
             ) : (
               filteredUsers.map((item) => {
@@ -403,7 +403,7 @@ export default function AdminUsersPanel({
                       </select>
                       {selectedIsSelf && (
                         <span className="text-[10px] font-semibold uppercase tracking-wide text-muted">
-                          Tu cuenta no se puede editar desde aca.
+                          Tu cuenta no se puede editar desde acá.
                         </span>
                       )}
                     </div>

@@ -3,10 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
+import { formatExtraPriceLabel } from "@/lib/booking";
 
 type ExtraPriceItem = {
-  label: string;
-  price: number;
+  id: string;
+  color: string;
+  priceSinPisar: number;
+  pricePisando: number;
 };
 
 type AdminPricingModalProps = {
@@ -25,13 +28,7 @@ const parsePriceInput = (value: string) => {
   return Math.round(parsed);
 };
 
-const formatArs = (value: number) => `$${Math.round(value).toLocaleString("es-AR")}`;
-
-const stripPriceSuffix = (label: string) =>
-  label
-    .replace(/\s*-\s*\$\s*[\d.,]+/g, "")
-    .replace(/\s*-\s*\d+(?:[.,]\d+)?\s*mil\b/gi, "")
-    .trim();
+const formatArs = (value: number) => formatExtraPriceLabel(value);
 
 export default function AdminPricingModal({
   basePrice,
@@ -41,15 +38,27 @@ export default function AdminPricingModal({
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [basePriceInput, setBasePriceInput] = useState(String(basePrice));
-  const [extraPriceInputs, setExtraPriceInputs] = useState<string[]>(
-    extras.map((item) => String(item.price))
+  const [extraPriceInputs, setExtraPriceInputs] = useState(
+    extras.map((item) => ({
+      id: item.id,
+      color: item.color,
+      priceSinPisar: String(item.priceSinPisar),
+      pricePisando: String(item.pricePisando),
+    }))
   );
   const [status, setStatus] = useState<SaveStatus>("idle");
   const [errorMessage, setErrorMessage] = useState("");
 
   const resetForm = () => {
     setBasePriceInput(String(basePrice));
-    setExtraPriceInputs(extras.map((item) => String(item.price)));
+    setExtraPriceInputs(
+      extras.map((item) => ({
+        id: item.id,
+        color: item.color,
+        priceSinPisar: String(item.priceSinPisar),
+        pricePisando: String(item.pricePisando),
+      }))
+    );
     setStatus("idle");
     setErrorMessage("");
   };
@@ -68,7 +77,14 @@ export default function AdminPricingModal({
   useEffect(() => {
     if (isOpen) return;
     setBasePriceInput(String(basePrice));
-    setExtraPriceInputs(extras.map((item) => String(item.price)));
+    setExtraPriceInputs(
+      extras.map((item) => ({
+        id: item.id,
+        color: item.color,
+        priceSinPisar: String(item.priceSinPisar),
+        pricePisando: String(item.pricePisando),
+      }))
+    );
   }, [basePrice, extras, isOpen]);
 
   useEffect(() => {
@@ -96,9 +112,15 @@ export default function AdminPricingModal({
     [basePriceInput]
   );
 
-  const handleExtraPriceChange = (index: number, value: string) => {
+  const handleExtraPriceChange = (
+    index: number,
+    key: "priceSinPisar" | "pricePisando",
+    value: string
+  ) => {
     setExtraPriceInputs((prev) =>
-      prev.map((item, currentIndex) => (currentIndex === index ? value : item))
+      prev.map((item, currentIndex) =>
+        currentIndex === index ? { ...item, [key]: value } : item
+      )
     );
   };
 
@@ -108,7 +130,11 @@ export default function AdminPricingModal({
     setErrorMessage("");
 
     const parsedBasePrice = parsePriceInput(basePriceInput);
-    const parsedExtraPrices = extraPriceInputs.map(parsePriceInput);
+    const parsedExtraPrices = extraPriceInputs.map((item) => ({
+      id: item.id,
+      priceSinPisar: parsePriceInput(item.priceSinPisar),
+      pricePisando: parsePriceInput(item.pricePisando),
+    }));
 
     if (!Number.isFinite(parsedBasePrice) || parsedBasePrice <= 0) {
       setStatus("error");
@@ -118,7 +144,11 @@ export default function AdminPricingModal({
 
     if (
       parsedExtraPrices.some(
-        (value) => !Number.isFinite(value) || value < 0
+        (item) =>
+          !Number.isFinite(item.priceSinPisar) ||
+          item.priceSinPisar < 0 ||
+          !Number.isFinite(item.pricePisando) ||
+          item.pricePisando < 0
       )
     ) {
       setStatus("error");
@@ -186,7 +216,7 @@ export default function AdminPricingModal({
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="admin-pricing-title"
-                className="relative z-10 w-full max-w-2xl max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-3xl border border-accent/25 bg-bg/95 p-4 text-fg shadow-[0_34px_70px_-42px_rgba(0,0,0,0.8)] sm:max-h-[calc(100dvh-3rem)] sm:p-6"
+                className="relative z-10 w-full max-w-3xl max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-3xl border border-accent/25 bg-bg/95 p-4 text-fg shadow-[0_34px_70px_-42px_rgba(0,0,0,0.8)] sm:max-h-[calc(100dvh-3rem)] sm:p-6"
               >
                 <button
                   type="button"
@@ -232,43 +262,78 @@ export default function AdminPricingModal({
                       Valor actual:{" "}
                       {Number.isFinite(normalizedBasePrice)
                         ? formatArs(normalizedBasePrice)
-                        : "invalido"}
+                        : "inválido"}
                     </span>
                   </label>
 
                   <div className="grid gap-3">
                     <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
-                      Extras
+                      Fondos extras
                     </p>
-                    {extras.length === 0 ? (
+                    {extraPriceInputs.length === 0 ? (
                       <div className="rounded-2xl border border-accent/15 bg-bg/80 px-4 py-3 text-sm text-muted">
-                        No hay extras configurados.
+                        No hay fondos configurados.
                       </div>
                     ) : (
-                      extras.map((extra, index) => {
-                        const parsedPrice = parsePriceInput(extraPriceInputs[index] || "");
+                      extraPriceInputs.map((extra, index) => {
+                        const parsedSinPisar = parsePriceInput(extra.priceSinPisar);
+                        const parsedPisando = parsePriceInput(extra.pricePisando);
+
                         return (
-                          <label
-                            key={`${extra.label}-${index}`}
-                            className="grid gap-2 rounded-2xl border border-accent/20 bg-bg/70 p-4 text-sm font-semibold"
+                          <div
+                            key={extra.id}
+                            className="grid gap-3 rounded-2xl border border-accent/20 bg-bg/70 p-4"
                           >
-                            <span>{stripPriceSuffix(extra.label) || `Extra ${index + 1}`}</span>
-                            <input
-                              className="w-full min-w-0 rounded-2xl border border-accent/25 bg-bg px-4 py-2 text-sm text-fg placeholder:text-muted outline-none transition focus:border-accent"
-                              type="text"
-                              inputMode="numeric"
-                              value={extraPriceInputs[index] || ""}
-                              onChange={(event) =>
-                                handleExtraPriceChange(index, event.target.value)
-                              }
-                              placeholder="0"
-                            />
-                            <span className="text-xs font-medium text-fg/75">
-                              {Number.isFinite(parsedPrice)
-                                ? formatArs(parsedPrice)
-                                : "invalido"}
-                            </span>
-                          </label>
+                            <p className="text-sm font-semibold">{extra.color}</p>
+
+                            <div className="grid gap-3 md:grid-cols-2">
+                              <label className="grid gap-2 text-sm font-semibold">
+                                Sin pisar
+                                <input
+                                  className="w-full min-w-0 rounded-2xl border border-accent/25 bg-bg px-4 py-2 text-sm text-fg placeholder:text-muted outline-none transition focus:border-accent"
+                                  type="text"
+                                  inputMode="numeric"
+                                  value={extra.priceSinPisar}
+                                  onChange={(event) =>
+                                    handleExtraPriceChange(
+                                      index,
+                                      "priceSinPisar",
+                                      event.target.value
+                                    )
+                                  }
+                                  placeholder="0"
+                                />
+                                <span className="text-xs font-medium text-fg/75">
+                                  {Number.isFinite(parsedSinPisar)
+                                    ? formatArs(parsedSinPisar)
+                                    : "inválido"}
+                                </span>
+                              </label>
+
+                              <label className="grid gap-2 text-sm font-semibold">
+                                Pisando
+                                <input
+                                  className="w-full min-w-0 rounded-2xl border border-accent/25 bg-bg px-4 py-2 text-sm text-fg placeholder:text-muted outline-none transition focus:border-accent"
+                                  type="text"
+                                  inputMode="numeric"
+                                  value={extra.pricePisando}
+                                  onChange={(event) =>
+                                    handleExtraPriceChange(
+                                      index,
+                                      "pricePisando",
+                                      event.target.value
+                                    )
+                                  }
+                                  placeholder="0"
+                                />
+                                <span className="text-xs font-medium text-fg/75">
+                                  {Number.isFinite(parsedPisando)
+                                    ? formatArs(parsedPisando)
+                                    : "inválido"}
+                                </span>
+                              </label>
+                            </div>
+                          </div>
                         );
                       })
                     )}

@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { prisma } from "@/lib/prisma";
@@ -7,7 +7,11 @@ import {
   getPasswordResetExpiration,
   hashPasswordResetToken,
 } from "@/lib/password-recovery";
-import { sendPasswordResetEmail } from "@/lib/password-reset-email";
+import {
+  getPasswordResetEmailMode,
+  sendPasswordResetEmail,
+  type PasswordResetEmailMode,
+} from "@/lib/password-reset-email";
 
 export const runtime = "nodejs";
 
@@ -20,7 +24,11 @@ type SQLiteCountRow = {
 };
 
 const GENERIC_SUCCESS_MESSAGE =
-  "Si existe una cuenta con ese correo, enviamos instrucciones para recuperar la contrasena.";
+  "Si existe una cuenta con ese correo, enviamos instrucciones para recuperar la contraseña.";
+const EMAIL_RECOVERY_DISABLED_MESSAGE =
+  "La recuperación por correo no está disponible por el momento. Contacta al equipo de soporte.";
+const EMAIL_RECOVERY_MANUAL_MESSAGE =
+  "La recuperación automática por correo está deshabilitada. Solicita restablecimiento manual al equipo de soporte.";
 const PASSWORD_RESET_REQUEST_WINDOW_MINUTES = 15;
 const PASSWORD_RESET_MAX_REQUESTS_BY_IP = 10;
 const PASSWORD_RESET_MAX_REQUESTS_BY_EMAIL = 3;
@@ -33,7 +41,32 @@ const isMissingResetTableError = (error: unknown) => {
   );
 };
 
+const getConfiguredAppBaseUrl = () => {
+  const configuredValue =
+    process.env.APP_URL?.trim() || process.env.NEXT_PUBLIC_APP_URL?.trim();
+
+  if (!configuredValue) {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(configuredValue);
+    const pathname = parsed.pathname.replace(/\/+$/, "");
+    return `${parsed.origin}${pathname}`;
+  } catch {
+    console.warn(
+      `[password-reset] APP_URL/NEXT_PUBLIC_APP_URL invalid: ${configuredValue}`
+    );
+    return configuredValue.replace(/\/+$/, "");
+  }
+};
+
 const getBaseUrl = (request: NextRequest) => {
+  const configuredBaseUrl = getConfiguredAppBaseUrl();
+  if (configuredBaseUrl) {
+    return configuredBaseUrl;
+  }
+
   const parsed = new URL(request.url);
   const host = request.headers.get("host") || parsed.host;
   const forwardedProto = request.headers.get("x-forwarded-proto");
@@ -155,6 +188,30 @@ const parseBody = async (request: NextRequest): Promise<RequestInput> => {
   return { email: String(formData.get("email") || "") };
 };
 
+const getSuccessPayloadForMode = (mode: PasswordResetEmailMode) => {
+  if (mode === "manual") {
+    return {
+      ok: true,
+      message: EMAIL_RECOVERY_MANUAL_MESSAGE,
+      nextStep: "support" as const,
+    };
+  }
+
+  if (mode === "disabled") {
+    return {
+      ok: true,
+      message: EMAIL_RECOVERY_DISABLED_MESSAGE,
+      nextStep: "support" as const,
+    };
+  }
+
+  return {
+    ok: true,
+    message: GENERIC_SUCCESS_MESSAGE,
+    nextStep: "email" as const,
+  };
+};
+
 export async function POST(request: NextRequest) {
   try {
     const { email } = await parseBody(request);
@@ -162,18 +219,20 @@ export async function POST(request: NextRequest) {
 
     if (!normalizedEmail || !isEmailFormatValid(normalizedEmail)) {
       return NextResponse.json(
-        { error: "Escribe un correo valido." },
+        { error: "Escribe un correo válido." },
         { status: 400 }
       );
     }
 
+    const emailMode = getPasswordResetEmailMode();
     const ipAddress = getClientIp(request);
     const limited = await isRateLimited(normalizedEmail, ipAddress);
     if (limited) {
-      return NextResponse.json(
-        { ok: true, message: GENERIC_SUCCESS_MESSAGE },
-        { status: 200 }
-      );
+      return NextResponse.json(getSuccessPayloadForMode(emailMode), { status: 200 });
+    }
+
+    if (emailMode === "disabled" || emailMode === "manual") {
+      return NextResponse.json(getSuccessPayloadForMode(emailMode), { status: 200 });
     }
 
     const user = await prisma.user.findUnique({
@@ -204,10 +263,20 @@ export async function POST(request: NextRequest) {
       const resetUrl = `${getBaseUrl(request)}/reset?token=${encodeURIComponent(resetToken)}`;
 
       try {
-        await sendPasswordResetEmail({
+        const sendResult = await sendPasswordResetEmail({
           to: normalizedEmail,
           resetUrl,
         });
+
+        if (!sendResult.delivered && sendResult.mode === "disabled") {
+          await prisma.passwordResetToken
+            .delete({ where: { id: createdToken.id } })
+            .catch(() => null);
+
+          return NextResponse.json(getSuccessPayloadForMode("disabled"), {
+            status: 200,
+          });
+        }
       } catch (error) {
         console.error("Failed to send password reset email:", error);
         await prisma.passwordResetToken
@@ -216,16 +285,13 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json(
-      { ok: true, message: GENERIC_SUCCESS_MESSAGE },
-      { status: 200 }
-    );
+    return NextResponse.json(getSuccessPayloadForMode(emailMode), { status: 200 });
   } catch (error) {
     if (isMissingResetTableError(error)) {
       return NextResponse.json(
         {
           error:
-            "La base de datos no esta actualizada para recuperar contrasena. Ejecuta las migraciones de Prisma.",
+            "La base de datos no está actualizada para recuperar contraseña. Ejecuta las migraciones de Prisma.",
         },
         { status: 503 }
       );
@@ -233,7 +299,7 @@ export async function POST(request: NextRequest) {
 
     console.error("Password recovery request failed:", error);
     return NextResponse.json(
-      { error: "No se pudo iniciar la recuperacion de contrasena." },
+      { error: "No se pudo iniciar la recuperación de contraseña." },
       { status: 500 }
     );
   }

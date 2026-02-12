@@ -42,7 +42,7 @@ export default function Footer({ studio }: FooterProps) {
               className={policyButtonClassName}
             >
               <span className="whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.14em] text-fg sm:text-xs sm:tracking-[0.16em]">
-                Politicas y condiciones
+                Políticas y condiciones
               </span>
             </button>
           </div>

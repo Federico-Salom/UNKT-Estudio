@@ -7,7 +7,7 @@ import Container from "@/components/Container";
 import ThemeToggle from "@/components/ThemeToggle";
 import UserMenu from "@/components/UserMenu";
 import { getSessionFromCookies } from "@/lib/auth";
-import { getExtraPrice, resolveBasePrice } from "@/lib/booking";
+import { normalizeExtraBackgrounds, resolveBasePrice } from "@/lib/booking";
 import { prisma } from "@/lib/prisma";
 import { getStudioContent } from "@/lib/studio-content";
 
@@ -30,10 +30,7 @@ export default async function AdminConfiguracionPage() {
   const studio = await getStudioContent();
   const createdAtLabel = user.createdAt.toLocaleString("es-AR");
   const pricingBasePrice = resolveBasePrice(studio.pricing.basePrice);
-  const pricingExtras = studio.extras.items.map((label) => ({
-    label,
-    price: getExtraPrice(label),
-  }));
+  const pricingExtras = normalizeExtraBackgrounds(studio.extras.backgrounds);
 
   return (
     <div className="admin-dashboard min-h-screen bg-bg text-fg">

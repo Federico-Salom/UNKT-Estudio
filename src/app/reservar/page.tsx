@@ -1,15 +1,48 @@
+import { redirect } from "next/navigation";
 import Header from "@/components/Header";
 import BookingForm from "@/components/BookingForm";
-import { buildExtraPriceMap, resolveBasePrice } from "@/lib/booking";
+import { getSessionFromCookies } from "@/lib/auth";
+import {
+  normalizeExtraBackgrounds,
+  resolveBasePrice,
+  resolveExtraMaxSelections,
+} from "@/lib/booking";
 import { getAvailabilityCutoffDate } from "@/lib/availability";
 import { prisma } from "@/lib/prisma";
 import { getStudioContent } from "@/lib/studio-content";
 
 export const dynamic = "force-dynamic";
+const hasValidName = (value: string) =>
+  /^[\p{L}\s'-]+$/u.test(value.trim()) &&
+  (value.trim().match(/\p{L}/gu) ?? []).length >= 2;
+const hasValidPhone = (value: string) => {
+  const digitsCount = value.replace(/\D/g, "").length;
+  return digitsCount >= 7 && digitsCount <= 15;
+};
 
 export default async function ReservarPage() {
+  const session = await getSessionFromCookies();
+  if (!session) {
+    redirect("/login");
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.userId },
+    select: {
+      name: true,
+      phone: true,
+      bookingContactVerified: true,
+    },
+  });
+
+  if (!user) {
+    redirect("/login");
+  }
+
   const studio = await getStudioContent();
   const basePrice = resolveBasePrice(studio.pricing.basePrice);
+  const extraBackgrounds = normalizeExtraBackgrounds(studio.extras.backgrounds);
+  const maxExtraSelections = resolveExtraMaxSelections(studio.extras.maxSelections);
   const cutoff = getAvailabilityCutoffDate();
 
   const slots = await prisma.availabilitySlot.findMany({
@@ -25,6 +58,14 @@ export default async function ReservarPage() {
     start: slot.start.toISOString(),
     end: slot.end.toISOString(),
   }));
+
+  const profileName = user.name?.trim() ?? "";
+  const profilePhone = user.phone?.trim() ?? "";
+  const isContactVerified = Boolean(
+    (user.bookingContactVerified || (profileName && profilePhone)) &&
+      hasValidName(profileName) &&
+      hasValidPhone(profilePhone)
+  );
 
   return (
     <div className="booking-page min-h-screen bg-bg text-fg">
@@ -50,10 +91,13 @@ export default async function ReservarPage() {
 
           <BookingForm
             slots={slotOptions}
-            extras={studio.extras.items}
+            extraBackgrounds={extraBackgrounds}
+            maxExtraSelections={maxExtraSelections}
             basePrice={basePrice}
-            extraPrices={buildExtraPriceMap(studio.extras.items)}
             policies={studio.footer.policies}
+            profileName={profileName}
+            profilePhone={profilePhone}
+            isContactVerified={isContactVerified}
           />
         </div>
       </main>

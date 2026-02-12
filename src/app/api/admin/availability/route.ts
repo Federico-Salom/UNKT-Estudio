@@ -23,7 +23,7 @@ const parseDateInput = (value: string) =>
 const ensureAdmin = async () => {
   const session = await getSessionFromCookies();
   if (!session) {
-    return { ok: false, response: errorResponse("Sesion expirada.", 401) };
+    return { ok: false, response: errorResponse("Sesión expirada.", 401) };
   }
 
   const user = await prisma.user.findUnique({
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
-    return errorResponse("Fecha u hora invalida.");
+    return errorResponse("Fecha u hora inválida.");
   }
   if (endDate <= startDate) {
     return errorResponse("El horario final debe ser mayor al inicial.");
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
 
   if (!candidateSlots.length) {
     return errorResponse(
-      "Solo puedes agregar horarios con al menos 2 horas de anticipacion."
+      "Solo puedes agregar horarios con al menos 2 horas de anticipación."
     );
   }
 
@@ -133,7 +133,7 @@ export async function PATCH(request: NextRequest) {
   const start = String(body.start || "");
   const end = String(body.end || "");
 
-  if (!slotId) return errorResponse("Horario invalido.");
+  if (!slotId) return errorResponse("Horario inválido.");
 
   const slot = await prisma.availabilitySlot.findUnique({
     where: { id: slotId },
@@ -162,14 +162,14 @@ export async function PATCH(request: NextRequest) {
     }
 
     if (Number.isNaN(nextStart.getTime()) || Number.isNaN(nextEnd.getTime())) {
-      return errorResponse("Fecha u hora invalida.");
+      return errorResponse("Fecha u hora inválida.");
     }
     if (nextEnd <= nextStart) {
       return errorResponse("El horario final debe ser mayor al inicial.");
     }
     if (nextStart.getTime() <= cutoff.getTime()) {
       return errorResponse(
-        "No se puede mover un horario pasado o con menos de 2 horas de anticipacion."
+        "No se puede mover un horario pasado o con menos de 2 horas de anticipación."
       );
     }
 
@@ -202,12 +202,12 @@ export async function PATCH(request: NextRequest) {
   }
 
   if (status !== "available") {
-    return errorResponse("Estado invalido.");
+    return errorResponse("Estado inválido.");
   }
 
   if (status === "available" && slot.start.getTime() <= cutoff.getTime()) {
     return errorResponse(
-      "No se puede habilitar un horario pasado o con menos de 2 horas de anticipacion."
+      "No se puede habilitar un horario pasado o con menos de 2 horas de anticipación."
     );
   }
 
@@ -238,10 +238,10 @@ export async function DELETE(request: NextRequest) {
     const endDate = parseDateInput(endISO);
 
     if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
-      return errorResponse("Rango de fechas invalido.");
+      return errorResponse("Rango de fechas inválido.");
     }
     if (endDate <= startDate) {
-      return errorResponse("El rango de fechas es invalido.");
+      return errorResponse("El rango de fechas es inválido.");
     }
 
     const isTimeGridView = viewType.startsWith("timeGrid");
@@ -294,7 +294,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ ok: true, deletedCount: deleted.count });
   }
-  if (!slotId) return errorResponse("Horario invalido.");
+  if (!slotId) return errorResponse("Horario inválido.");
 
   const slot = await prisma.availabilitySlot.findUnique({
     where: { id: slotId },

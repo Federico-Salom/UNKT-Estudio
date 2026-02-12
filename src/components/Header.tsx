@@ -1,10 +1,10 @@
-﻿import Container from "@/components/Container";
+import { cookies } from "next/headers";
+import Container from "@/components/Container";
 import BrandMark from "@/components/BrandMark";
 import UserMenu from "@/components/UserMenu";
 import ThemeToggle from "@/components/ThemeToggle";
 import type { StudioContent } from "@/content/studio";
-import { getSessionFromCookies } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { AUTH_COOKIE, getSessionFromCookies } from "@/lib/auth";
 
 type HeaderProps = {
   studio: StudioContent;
@@ -39,36 +39,21 @@ export default async function Header({ studio }: HeaderProps) {
 
 async function HeaderActions() {
   const session = await getSessionFromCookies();
-  if (!session) {
-    return (
-      <div className="flex shrink-0 items-center gap-2 md:gap-4">
-        <ThemeToggle className="h-9 w-9 md:h-10 md:w-10" />
-      </div>
-    );
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { id: session.userId },
-  });
-
-  if (!user) {
-    return (
-      <div className="flex shrink-0 items-center gap-2 md:gap-4">
-        <ThemeToggle className="h-9 w-9 md:h-10 md:w-10" />
-      </div>
-    );
-  }
-
-  const roleLabel = user.role === "admin" ? "Administrador" : "Usuario";
+  const cookieStore = await cookies();
+  const hasAuthCookie = cookieStore.has(AUTH_COOKIE);
+  const isAuthenticated = Boolean(session) || hasAuthCookie;
+  const roleLabel = session?.role === "admin" ? "Administrador" : "Usuario";
+  const email = session?.email || (isAuthenticated ? "Cuenta" : "Invitado");
 
   return (
     <div className="flex shrink-0 items-center gap-2 md:gap-4">
       <ThemeToggle className="h-9 w-9 md:h-10 md:w-10" />
       <UserMenu
         user={{
-          email: user.email,
+          email,
           roleLabel,
         }}
+        authenticated={isAuthenticated}
       />
     </div>
   );

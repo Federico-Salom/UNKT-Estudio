@@ -68,15 +68,15 @@ export default function AdminContentForm({
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [logoFileName, setLogoFileName] = useState("Ningun archivo seleccionado");
+  const [logoFileName, setLogoFileName] = useState("Ningún archivo seleccionado");
   const [wordmarkFileName, setWordmarkFileName] = useState(
-    "Ningun archivo seleccionado"
+    "Ningún archivo seleccionado"
   );
   const [seoOgFileName, setSeoOgFileName] = useState(
-    "Ningun archivo seleccionado"
+    "Ningún archivo seleccionado"
   );
   const [floorPlanFileName, setFloorPlanFileName] = useState(
-    "Ningun archivo seleccionado"
+    "Ningún archivo seleccionado"
   );
   const [galleryItems, setGalleryItems] = useState<GalleryFormItem[]>(() =>
     gallery.slice(0, 10).map((item, index) => ({
@@ -251,26 +251,26 @@ export default function AdminContentForm({
 
   const handleLogoFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    setLogoFileName(file ? file.name : "Ningun archivo seleccionado");
+    setLogoFileName(file ? file.name : "Ningún archivo seleccionado");
   };
 
   const handleWordmarkFileChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = event.target.files?.[0];
-    setWordmarkFileName(file ? file.name : "Ningun archivo seleccionado");
+    setWordmarkFileName(file ? file.name : "Ningún archivo seleccionado");
   };
 
   const handleSeoOgFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    setSeoOgFileName(file ? file.name : "Ningun archivo seleccionado");
+    setSeoOgFileName(file ? file.name : "Ningún archivo seleccionado");
   };
 
   const handleFloorPlanFileChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = event.target.files?.[0];
-    setFloorPlanFileName(file ? file.name : "Ningun archivo seleccionado");
+    setFloorPlanFileName(file ? file.name : "Ningún archivo seleccionado");
   };
 
   const handleGalleryUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -452,11 +452,11 @@ export default function AdminContentForm({
 
           <details className="rounded-2xl border border-accent/15 bg-white/80 p-4 sm:p-6">
             <summary className="cursor-pointer break-words pr-4 text-[11px] font-semibold uppercase tracking-[0.06em] text-fg/80 sm:text-sm sm:tracking-wide">
-              Ubicacion
+              Ubicación
             </summary>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <label className="grid gap-2 text-sm font-semibold">
-                Texto direccion
+                Texto dirección
                 <input
                   className="rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
                   type="text"
@@ -492,7 +492,7 @@ export default function AdminContentForm({
                 />
                 <span className="text-xs font-medium text-muted">
                   Ejemplo: https://tudominio.com. Si no pones protocolo, se
-                  completa automaticamente.
+                  completa automáticamente.
                 </span>
               </label>
               <label className="grid gap-2 text-sm font-semibold">
@@ -582,8 +582,8 @@ export default function AdminContentForm({
                     required
                   />
                   <span className="text-xs font-medium text-muted">
-                    Podes escribirlo con +, espacios o guiones. Se limpia
-                    automaticamente al generar el link.
+                    Podés escribirlo con +, espacios o guiones. Se limpia
+                    automáticamente al generar el enlace.
                   </span>
                 </label>
                 <label className="grid gap-2 text-sm font-semibold">
@@ -656,7 +656,7 @@ export default function AdminContentForm({
                   />
                 </label>
                 <label className="grid gap-2 text-sm font-semibold">
-                  Extras (uno por línea)
+                  Colores de fondos (uno por linea, maximo 5)
                   <textarea
                     className="min-h-[120px] rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
                     name="extrasItems"
@@ -669,11 +669,11 @@ export default function AdminContentForm({
 
           <details className="rounded-2xl border border-accent/15 bg-white/80 p-4 sm:p-6">
             <summary className="cursor-pointer break-words pr-4 text-[11px] font-semibold uppercase tracking-[0.06em] text-fg/80 sm:text-sm sm:tracking-wide">
-              Politicas y condiciones
+              Políticas y condiciones
             </summary>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <label className="grid gap-2 text-sm font-semibold">
-                Politica de cancelacion (un punto por linea)
+                Política de cancelación (un punto por línea)
                 <textarea
                   className="min-h-[140px] rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
                   name="footerPoliciesCancellation"
@@ -834,18 +834,18 @@ export default function AdminContentForm({
             </summary>
             <div className="mt-4 grid gap-4">
               <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-semibold uppercase tracking-wide text-muted">
-                <span>Hasta 10 imagenes. La nro 1 aparece primero en el carrusel del home.</span>
+                <span>Hasta 10 imágenes. La n.º 1 aparece primero en el carrusel del home.</span>
                 <span>{galleryItems.length}/10</span>
               </div>
 
               <label className="grid gap-2 text-sm font-semibold">
-                Subir imagenes
+                Subir imágenes
                 <div className="flex flex-wrap items-center gap-3">
                   <label
                     htmlFor="galleryUpload"
                     className="inline-flex items-center justify-center rounded-full border border-accent/30 px-4 py-2 text-[10px] font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10"
                   >
-                    Agregar imagenes
+                    Agregar imágenes
                   </label>
                   <span className="text-xs text-muted">
                     Arrastra para ordenar. Elimina para quitar.
@@ -863,7 +863,7 @@ export default function AdminContentForm({
 
               {galleryItems.length === 0 ? (
                 <div className="rounded-2xl border border-accent/15 bg-bg/80 px-4 py-3 text-sm text-muted">
-                  No hay imagenes cargadas.
+                  No hay imágenes cargadas.
                 </div>
               ) : (
                 <div className="grid gap-4 md:grid-cols-2">
@@ -987,7 +987,7 @@ export default function AdminContentForm({
 
           <details className="rounded-2xl border border-accent/15 bg-white/80 p-4 sm:p-6">
             <summary className="cursor-pointer break-words pr-4 text-[11px] font-semibold uppercase tracking-[0.06em] text-fg/80 sm:text-sm sm:tracking-wide">
-              Imagenes de incluidos y extras
+              Imágenes de incluidos y extras
             </summary>
             <div className="mt-4 grid gap-6">
               <div className="grid gap-3">
@@ -1192,6 +1192,7 @@ export default function AdminContentForm({
     </form>
   );
 }
+
 
 
 

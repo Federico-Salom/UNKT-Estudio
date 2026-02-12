@@ -1,6 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { studio } from "@/content/studio";
 import type { StudioContent } from "@/content/studio";
+import {
+  normalizeExtraBackgrounds,
+  resolveExtraMaxSelections,
+} from "@/lib/booking";
 
 const DEFAULT_ID = "main";
 const LEGACY_LOGO_SRC = "/logo.svg";
@@ -19,7 +23,7 @@ const DEFAULT_GALLERY = (() => {
   if (!validItems.length) {
     validItems.push({
       src: "/gallery-1.svg",
-      alt: "Area principal del estudio.",
+      alt: "Área principal del estudio.",
     });
   }
 
@@ -47,7 +51,7 @@ const LEGACY_LOCATION_URLS = new Set([
   "https://maps.google.com/?q=unkt+estudio",
   "https://maps.google.com/?q=unkt%2bestudio",
 ]);
-const LEGACY_EXTRA_ITEMS = ["Sillon", "Accesorios de acero"];
+const LEGACY_EXTRA_ITEMS = ["Sillón", "Accesorios de acero"];
 const normalizeListValue = (value: string) => value.trim().toLowerCase();
 const dedupeList = (items: string[]) => {
   const seen = new Set<string>();
@@ -83,6 +87,99 @@ const normalizeCatalogImages = (
       alt,
     };
   });
+
+const parseLegacyPrice = (value: string) => {
+  const moneyMatch = value.match(/\$\s*([\d.,]+)/);
+  if (moneyMatch?.[1]) {
+    const normalized = moneyMatch[1].replace(/\./g, "").replace(",", ".");
+    const parsed = Number(normalized);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return Math.round(parsed);
+    }
+  }
+
+  const thousandMatch = value.match(/(\d+(?:[.,]\d+)?)\s*mil/i);
+  if (thousandMatch?.[1]) {
+    const normalized = thousandMatch[1].replace(",", ".");
+    const parsed = Number(normalized);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return Math.round(parsed * 1000);
+    }
+  }
+
+  return null;
+};
+
+const resolveLegacyModePrice = (
+  items: string[],
+  mode: "sin_pisar" | "pisando"
+) => {
+  const normalizedModeItems = items.filter((item) => {
+    const normalized = normalizeListValue(item);
+    if (mode === "sin_pisar") {
+      return normalized.includes("sin pisar");
+    }
+    return normalized.includes("pisando") && !normalized.includes("sin pisar");
+  });
+
+  for (const item of normalizedModeItems) {
+    const parsed = parseLegacyPrice(item);
+    if (parsed !== null) {
+      return parsed;
+    }
+  }
+
+  return null;
+};
+
+const resolveExtrasBackgrounds = (content: StudioContent) => {
+  const legacyItems = dedupeList(
+    content.extras.items
+      .map((item) => String(item || "").trim())
+      .filter(Boolean)
+  );
+  const normalizedBackgrounds = normalizeExtraBackgrounds(content.extras.backgrounds);
+  const usableBackgrounds = normalizedBackgrounds.length
+    ? normalizedBackgrounds
+    : normalizeExtraBackgrounds(studio.extras.backgrounds);
+
+  const colorItems = dedupeList(
+    legacyItems.filter((item) => {
+      const normalized = normalizeListValue(item);
+      return !normalized.includes("pisando") && !normalized.includes("sin pisar");
+    })
+  );
+
+  const legacySinPisarPrice = resolveLegacyModePrice(legacyItems, "sin_pisar");
+  const legacyPisandoPrice = resolveLegacyModePrice(legacyItems, "pisando");
+
+  const mappedBackgrounds = (colorItems.length ? colorItems : usableBackgrounds.map((item) => item.color)).map(
+    (color, index) => {
+      const byColor = usableBackgrounds.find(
+        (background) => normalizeListValue(background.color) === normalizeListValue(color)
+      );
+      const byIndex = usableBackgrounds[index];
+      const source = byColor || byIndex;
+
+      return {
+        id: source?.id || `fondo-${index + 1}`,
+        color,
+        priceSinPisar:
+          source?.priceSinPisar ??
+          legacySinPisarPrice ??
+          studio.extras.backgrounds[0]?.priceSinPisar ??
+          0,
+        pricePisando:
+          source?.pricePisando ??
+          legacyPisandoPrice ??
+          studio.extras.backgrounds[0]?.pricePisando ??
+          0,
+      };
+    }
+  );
+
+  return normalizeExtraBackgrounds(mappedBackgrounds);
+};
 
 const serializeContent = (data: StudioContent) => {
   return JSON.stringify(data);
@@ -185,6 +282,10 @@ const normalizeAssetPaths = (content: StudioContent): StudioContent => {
     locationText: normalizedLocationText,
     locationUrl: normalizedLocationUrl,
   };
+  const normalizedExtrasBackgrounds = resolveExtrasBackgrounds(content);
+  const normalizedExtraItems = normalizedExtrasBackgrounds.map(
+    (background) => background.color
+  );
 
   const normalizedContent = {
     ...content,
@@ -213,8 +314,10 @@ const normalizeAssetPaths = (content: StudioContent): StudioContent => {
     },
     extras: {
       ...content.extras,
-      items: [...content.extras.items],
-      images: normalizeCatalogImages(content.extras.items, content.extras.images),
+      maxSelections: resolveExtraMaxSelections(content.extras.maxSelections),
+      items: normalizedExtraItems,
+      backgrounds: normalizedExtrasBackgrounds,
+      images: normalizeCatalogImages(normalizedExtraItems, content.extras.images),
     },
     gallery,
   };
@@ -242,7 +345,9 @@ const normalizeAssetPaths = (content: StudioContent): StudioContent => {
       ...normalizedContent.extras,
       title: studio.extras.title,
       subtitle: studio.extras.subtitle,
+      maxSelections: resolveExtraMaxSelections(studio.extras.maxSelections),
       items: [...studio.extras.items],
+      backgrounds: normalizeExtraBackgrounds(studio.extras.backgrounds),
       images: normalizeCatalogImages(studio.extras.items, studio.extras.images),
     },
   };

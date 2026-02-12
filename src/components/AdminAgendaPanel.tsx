@@ -167,7 +167,7 @@ const formatRangeLabel = (startIso: string, endIso: string) => {
   const startTime = formatTime(startIso);
   const endTime = formatTime(endIso);
   if (startTime === "00:00" && endTime === "00:00" && durationHours >= 23) {
-    return "Todo el dia";
+    return "Todo el día";
   }
   return `${startTime} - ${endTime}`;
 };
@@ -551,8 +551,8 @@ export default function AdminAgendaPanel({
     }
     if (availabilityView.includes("Day")) {
       return effectiveTimeWindowMode === "pm"
-        ? "la franja PM del dia visible (12:00 a 24:00)"
-        : "la franja AM del dia visible (00:00 a 12:00)";
+        ? "la franja PM del día visible (12:00 a 24:00)"
+        : "la franja AM del día visible (00:00 a 12:00)";
     }
     return "todo el mes visible";
   };
@@ -1141,7 +1141,7 @@ export default function AdminAgendaPanel({
             <ul className="mt-4 space-y-2 text-sm leading-relaxed text-muted">
               <li>Toque o arrastre para crear horarios disponibles.</li>
               <li>Toque una reserva para ver datos y limpiar solapes.</li>
-              <li>Use el boton limpiar para borrar la vista actual.</li>
+              <li>Usa el botón Limpiar para borrar la vista actual.</li>
             </ul>
 
             <label
@@ -1185,7 +1185,7 @@ export default function AdminAgendaPanel({
                   id="month-detail-title"
                   className={`text-sm font-semibold uppercase tracking-wide ${monthDetailHeadingClass}`}
                 >
-                  Detalle del dia
+                  Detalle del día
                 </h3>
                 <p className={`mt-1 text-sm ${monthDetailMutedClass}`}>
                   {monthDetailData.dayLabel}
@@ -1258,7 +1258,7 @@ export default function AdminAgendaPanel({
                     })
                   ) : (
                     <p className={`text-xs ${monthDetailMutedClass}`}>
-                      No hay reservas en este dia.
+                      No hay reservas en este día.
                     </p>
                   )}
                 </div>
@@ -1307,7 +1307,7 @@ export default function AdminAgendaPanel({
                     })
                   ) : (
                     <p className={`text-xs ${monthDetailMutedClass}`}>
-                      No hay horarios disponibles en este dia.
+                      No hay horarios disponibles en este día.
                     </p>
                   )}
                 </div>

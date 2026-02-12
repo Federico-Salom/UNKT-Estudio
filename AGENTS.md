@@ -1,52 +1,58 @@
 # AGENTS
 
-Guia rapida para agentes que trabajen en este repo.
+Guía rápida para agentes que trabajen en este repo.
 
 ## Objetivo
 - Proyecto: web de UNKT Estudio (Next.js + Prisma + Tailwind).
-- Mantener foco en UX admin prolija en mobile y desktop.
-- Priorizar cambios completos (no solo propuesta): implementar y validar.
+- Foco: UX admin prolija en mobile y desktop.
+- Entregables: cambios completos (implementar + validar), no solo propuesta.
 
-## Stack y comandos
+## Stack
 - Node + npm
 - Next.js App Router (`src/app`)
 - Prisma + SQLite
 - Tailwind CSS v4
+- TypeScript
 
-Comandos utiles:
+## Comandos
 - `npm install`
 - `npm run dev`
 - `npm run lint`
 - `npm run build`
 
-## Rutas clave
-- Publico: `src/app/page.tsx`, `src/components/*` de landing
+## Estructura / rutas clave
+- Público:
+  - `src/app/page.tsx`
+  - `src/components/*` (landing)
+
 - Admin:
   - `/admin` -> panel principal (accesos + carrusel)
-  - `/admin/metricas` -> vista de datos + graficos + historico
+  - `/admin/metricas` -> datos + gráficos + histórico
   - `/admin/configuracion` -> usuarios, contenido, precios
   - `/admin/agenda`
   - `/admin/users`
   - `/admin/content`
 
-## Convenciones UI (importante)
+## Convenciones UI (admin)
 - En rutas `/admin*`, usar `BrandMark` con `showText={false}`.
-- En subpaginas admin (`users`, `content`, `agenda`, `metricas`, `configuracion`), mantener boton `Volver` junto a `ThemeToggle`.
-- Mantener labels y copy en espanol.
-- Si un control queda cortado en mobile, preferir modal centrado bloqueante antes que popover anclado.
-- Evitar sobrecargar `/admin`: funcionalidades avanzadas en secciones especificas (ej. metricas/configuracion).
+- En subpáginas admin (`users`, `content`, `agenda`, `metricas`, `configuracion`):
+  - mantener botón `Volver` junto a `ThemeToggle`.
+- Mantener labels y copy en español (rioplatense neutral).
+- Si un control se corta en mobile: preferir modal centrado bloqueante antes que popover anclado.
+- No sobrecargar `/admin`: features avanzadas van a secciones específicas (ej. `metricas`, `configuracion`).
 
-## Convenciones de codigo
-- Mantener TypeScript claro, sin `any` salvo necesidad real.
+## Convenciones de código
+- TypeScript claro, sin `any` salvo necesidad real y justificada.
 - Reusar componentes existentes antes de crear nuevos.
-- Seguir clases/utilidades visuales del proyecto (bordes redondeados, `border-accent`, `bg-white/70`, etc.).
-- No introducir dependencias nuevas salvo necesidad fuerte.
+- Mantener el lenguaje visual del proyecto (bordes redondeados, `border-accent`, `bg-white/70`, etc.).
+- No agregar dependencias nuevas salvo necesidad fuerte (si se agrega, explicar por qué y alternativa descartada).
 
-## Seguridad y acceso
-- Toda pagina admin debe validar sesion con `getSessionFromCookies()`.
-- Si usuario no es admin: redirigir a `/admin` o `/account` segun contexto existente.
+## Seguridad / acceso
+- Toda página admin debe validar sesión con `getSessionFromCookies()`.
+- Si el usuario no es admin:
+  - redirigir a `/admin` o `/account` según el contexto existente.
 
-## Validacion minima al terminar
-- Correr `eslint` sobre archivos modificados.
-- Si no se pudo correr, explicitarlo en la respuesta final.
-
+## Validación mínima al terminar
+- Ejecutar `npm run lint` en los archivos tocados.
+- Ideal: `npm run build` si el cambio toca routing / server components / Prisma.
+- Si no se pudo correr, explicitarlo al final con motivo (ej. faltan env vars).

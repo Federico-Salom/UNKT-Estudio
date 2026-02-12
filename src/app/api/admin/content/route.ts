@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 import { getSessionFromCookies } from "@/lib/auth";
+import { normalizeExtraBackgrounds, resolveExtraMaxSelections } from "@/lib/booking";
 import { prisma } from "@/lib/prisma";
 import { getStudioContent, updateStudioContent } from "@/lib/studio-content";
 import { studio } from "@/content/studio";
@@ -43,6 +44,70 @@ const parseList = (value: FormDataEntryValue | null, fallback: string[]) => {
     .map((line) => line.trim())
     .filter(Boolean);
   return lines.length ? lines : fallback;
+};
+
+const normalizeColorKey = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+
+const clampExtraColors = (items: string[], fallback: string[]) => {
+  const source = items.length ? items : fallback;
+  const seen = new Set<string>();
+  const colors: string[] = [];
+
+  for (const item of source) {
+    const color = item.trim();
+    const key = normalizeColorKey(color);
+    if (!key || seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    colors.push(color);
+    if (colors.length >= 5) {
+      break;
+    }
+  }
+
+  return colors;
+};
+
+const buildExtraBackgroundsFromColors = ({
+  colors,
+  currentBackgrounds,
+}: {
+  colors: string[];
+  currentBackgrounds: StudioContent["extras"]["backgrounds"];
+}) => {
+  const normalizedCurrent = normalizeExtraBackgrounds(currentBackgrounds);
+  const byColor = new Map(
+    normalizedCurrent.map((background) => [normalizeColorKey(background.color), background])
+  );
+
+  return normalizeExtraBackgrounds(
+    colors.map((color, index) => {
+      const bySameColor = byColor.get(normalizeColorKey(color));
+      const byIndex = normalizedCurrent[index];
+      const source = bySameColor || byIndex || studio.extras.backgrounds[index];
+
+      return {
+        id: source?.id || `fondo-${index + 1}`,
+        color,
+        priceSinPisar:
+          source?.priceSinPisar ??
+          studio.extras.backgrounds[0]?.priceSinPisar ??
+          0,
+        pricePisando:
+          source?.pricePisando ??
+          studio.extras.backgrounds[0]?.pricePisando ??
+          0,
+      };
+    })
+  );
 };
 
 const stripLegacyContentFields = (content: StudioContent) => {
@@ -265,9 +330,21 @@ export async function POST(request: NextRequest) {
     formData.get("includedItems"),
     current.included.items
   );
-  const nextExtraItems = parseList(formData.get("extrasItems"), current.extras.items);
+  const requestedExtraColors = parseList(
+    formData.get("extrasItems"),
+    current.extras.items
+  );
+  const nextExtraItems = clampExtraColors(requestedExtraColors, current.extras.items);
+  const nextExtraBackgrounds = buildExtraBackgroundsFromColors({
+    colors: nextExtraItems,
+    currentBackgrounds: current.extras.backgrounds,
+  });
   nextContent.included.items = nextIncludedItems;
   nextContent.extras.items = nextExtraItems;
+  nextContent.extras.backgrounds = nextExtraBackgrounds;
+  nextContent.extras.maxSelections = resolveExtraMaxSelections(
+    current.extras.maxSelections
+  );
   nextContent.included.images = await buildCatalogImages({
     orderRaw: formData.get("includedImagesOrder"),
     filePrefix: "includedImageFile_",

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Container from "@/components/Container";
 import type { StudioContent } from "@/content/studio";
+import { formatExtraPriceLabel } from "@/lib/booking";
 
 type GalleryProps = {
   studio: StudioContent;
@@ -11,6 +12,11 @@ type GalleryProps = {
 
 const stripAccents = (value: string) =>
   value.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+const normalizeColorKey = (value: string) =>
+  stripAccents(value.toLowerCase())
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
 
 const buildMapEmbedUrl = (locationUrl: string, fallbackQuery: string) => {
   if (!locationUrl) {
@@ -206,6 +212,26 @@ export default function Gallery({ studio }: GalleryProps) {
   const selectedCatalogImageAlt =
     (selectedCatalogImage?.alt || "").trim() ||
     (isSelectedCatalogItem ? `Imagen de ${selectedCatalogItem.label}` : "");
+  const extrasByColor = new Map(
+    studio.extras.backgrounds.map((background) => [
+      normalizeColorKey(background.color),
+      background,
+    ])
+  );
+  const selectedExtraBackground =
+    activeCatalogModal === "extras" && isSelectedCatalogItem
+      ? extrasByColor.get(normalizeColorKey(selectedCatalogItem.label)) ||
+        studio.extras.backgrounds[selectedCatalogItem.index] ||
+        null
+      : null;
+  const selectedExtraSinPisarPrice =
+    selectedExtraBackground !== null
+      ? formatExtraPriceLabel(selectedExtraBackground.priceSinPisar)
+      : "";
+  const selectedExtraPisandoPrice =
+    selectedExtraBackground !== null
+      ? formatExtraPriceLabel(selectedExtraBackground.pricePisando)
+      : "";
 
   const topActionButtonClass =
     "inline-flex h-9 w-full items-center justify-center rounded-full border border-accent/30 bg-bg/90 px-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-accent shadow-[0_12px_26px_-18px_rgba(0,0,0,0.45)] transition hover:border-accent hover:bg-bg sm:px-3 md:h-11 md:px-5 md:text-[13px] md:tracking-[0.12em]";
@@ -246,7 +272,7 @@ export default function Gallery({ studio }: GalleryProps) {
                 onClick={openLocationModal}
                 className={topActionButtonClass}
               >
-                <span className="button-label">Ubicacion</span>
+                <span className="button-label">Ubicación</span>
               </button>
             </div>
 
@@ -395,6 +421,12 @@ export default function Gallery({ studio }: GalleryProps) {
                 {activeCatalogModal === "included" ? "Incluidos" : "Extras"}
               </p>
             </div>
+            {activeCatalogModal === "extras" ? (
+              <p className="mt-2 text-xs text-muted">
+                Hasta {studio.extras.maxSelections} colores por reserva. Cada color se
+                cobra por separado.
+              </p>
+            ) : null}
 
             <div className="mt-4 flex flex-wrap gap-2">
               {activeCatalogItems.map((item, index) => {
@@ -435,6 +467,16 @@ export default function Gallery({ studio }: GalleryProps) {
                       ? studio.included.subtitle
                       : studio.extras.subtitle}
                   </p>
+                  {activeCatalogModal === "extras" && selectedExtraBackground ? (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <span className="inline-flex rounded-full border border-accent/30 bg-bg px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-accent">
+                        Sin pisar - {selectedExtraSinPisarPrice}
+                      </span>
+                      <span className="inline-flex rounded-full border border-accent bg-accent px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-bg">
+                        Pisando - {selectedExtraPisandoPrice}
+                      </span>
+                    </div>
+                  ) : null}
 
                   <div className="mt-4 overflow-hidden rounded-2xl border border-accent/20 bg-bg">
                     {selectedCatalogImageSrc ? (
@@ -445,14 +487,14 @@ export default function Gallery({ studio }: GalleryProps) {
                       />
                     ) : (
                       <div className="flex h-52 items-center justify-center px-4 text-center text-sm text-muted">
-                        Sin imagen de referencia para esta opcion.
+                        Sin imagen de referencia para esta opción.
                       </div>
                     )}
                   </div>
                 </>
               ) : (
                 <p className="text-sm text-muted">
-                  Elegi una opcion para visualizar su detalle.
+                  Elegí una opción para visualizar su detalle.
                 </p>
               )}
             </div>
@@ -514,13 +556,16 @@ export default function Gallery({ studio }: GalleryProps) {
                 className="min-w-full p-2"
                 style={{ width: `${planZoom * 100}%` }}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={floorPlanSrc}
-                  alt={floorPlanAlt}
-                  className="h-auto w-full max-w-none select-none rounded-xl"
-                  draggable={false}
-                />
+                <div className="map-embed-shell overflow-hidden rounded-xl">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={floorPlanSrc}
+                    alt={floorPlanAlt}
+                    className="map-embed-frame h-auto w-full max-w-none select-none rounded-xl"
+                    draggable={false}
+                  />
+                  <div className="map-embed-overlay" aria-hidden="true" />
+                </div>
               </div>
             </div>
 
@@ -535,7 +580,7 @@ export default function Gallery({ studio }: GalleryProps) {
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 px-4 py-4 backdrop-blur-[2px]">
           <button
             type="button"
-            aria-label="Cerrar ubicacion"
+            aria-label="Cerrar ubicación"
             onClick={closeLocationModal}
             className="absolute inset-0 h-full w-full cursor-default"
           />
@@ -544,7 +589,7 @@ export default function Gallery({ studio }: GalleryProps) {
               type="button"
               onClick={closeLocationModal}
               className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full border border-accent/20 text-accent/70 transition hover:border-accent/40 hover:text-accent"
-              aria-label="Cerrar modal de ubicacion"
+              aria-label="Cerrar modal de ubicación"
             >
               <svg
                 aria-hidden="true"
@@ -563,7 +608,7 @@ export default function Gallery({ studio }: GalleryProps) {
 
             <div className="flex items-center justify-between gap-3 pr-8">
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted">
-                Ubicacion
+                Ubicación
               </p>
             </div>
 

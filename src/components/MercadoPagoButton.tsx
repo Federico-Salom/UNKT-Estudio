@@ -40,7 +40,7 @@ export default function MercadoPagoButton({
         setLoading(false);
         return;
       }
-      const target = data.initPoint || data.sandboxInitPoint;
+      const target = data.checkoutUrl || data.initPoint || data.sandboxInitPoint;
       if (target) {
         window.location.href = target;
         return;

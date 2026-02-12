@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionFromCookies } from "@/lib/auth";
+import { normalizeExtraBackgrounds } from "@/lib/booking";
 import { prisma } from "@/lib/prisma";
 import { getStudioContent, updateStudioContent } from "@/lib/studio-content";
 import type { StudioContent } from "@/content/studio";
@@ -12,7 +13,7 @@ const errorResponse = (message: string, status = 400) =>
 const ensureAdmin = async () => {
   const session = await getSessionFromCookies();
   if (!session) {
-    return { ok: false, response: errorResponse("Sesion expirada.", 401) };
+    return { ok: false, response: errorResponse("Sesión expirada.", 401) };
   }
 
   const user = await prisma.user.findUnique({
@@ -26,32 +27,15 @@ const ensureAdmin = async () => {
   return { ok: true };
 };
 
-const formatPriceLabel = (value: number) => `$${Math.round(value).toLocaleString("es-AR")}`;
-
-const updatePriceInLabel = (label: string, price: number) => {
-  const formattedPrice = formatPriceLabel(price);
-  const trimmed = label.trim();
-  const moneyPattern = /\$\s*[\d.,]+/;
-  const thousandPattern = /\d+(?:[.,]\d+)?\s*mil\b/i;
-
-  if (moneyPattern.test(trimmed)) {
-    return trimmed.replace(moneyPattern, formattedPrice);
-  }
-
-  if (thousandPattern.test(trimmed)) {
-    return trimmed.replace(thousandPattern, formattedPrice);
-  }
-
-  if (!trimmed) {
-    return formattedPrice;
-  }
-
-  return `${trimmed} - ${formattedPrice}`;
-};
-
 const normalizePrice = (value: unknown) => {
   const parsed = Math.round(Number(value));
   return Number.isFinite(parsed) ? parsed : Number.NaN;
+};
+
+type ExtraPricingInput = {
+  id?: unknown;
+  priceSinPisar?: unknown;
+  pricePisando?: unknown;
 };
 
 type PricingPayload = {
@@ -77,41 +61,63 @@ export async function POST(request: NextRequest) {
     return errorResponse("Faltan los precios de extras.");
   }
 
-  const extraPrices = extraPricesRaw.map(normalizePrice);
-  if (
-    extraPrices.some((price) => !Number.isFinite(price) || price < 0)
-  ) {
-    return errorResponse("Revisa los precios de extras.");
-  }
-
   const current = await getStudioContent();
-  if (extraPrices.length !== current.extras.items.length) {
+  const currentBackgrounds = normalizeExtraBackgrounds(current.extras.backgrounds);
+
+  if (extraPricesRaw.length !== currentBackgrounds.length) {
     return errorResponse("La cantidad de extras no coincide.");
   }
+
+  const incomingById = new Map(
+    extraPricesRaw.flatMap((item) => {
+      if (!item || typeof item !== "object") {
+        return [];
+      }
+      const payload = item as ExtraPricingInput;
+      const id = String(payload.id ?? "").trim();
+      if (!id) {
+        return [];
+      }
+      return [[id, payload] as const];
+    })
+  );
 
   const nextContent: StudioContent = JSON.parse(
     JSON.stringify(current)
   ) as StudioContent;
 
   nextContent.pricing.basePrice = basePrice;
-  nextContent.extras.items = current.extras.items.map((item, index) =>
-    updatePriceInLabel(item, extraPrices[index] ?? 0)
-  );
+  let invalidPrice = false;
+  const nextBackgrounds = currentBackgrounds.map((background) => {
+    const payload = incomingById.get(background.id);
+    const priceSinPisar = normalizePrice(payload?.priceSinPisar);
+    const pricePisando = normalizePrice(payload?.pricePisando);
 
-  nextContent.extras.images = nextContent.extras.images.map((image, index) => {
-    const previousLabel = current.extras.items[index];
-    const nextLabel = nextContent.extras.items[index] || previousLabel;
-    const previousAutoAlt = `Imagen de ${previousLabel}`;
-
-    if (image.alt === previousAutoAlt) {
-      return {
-        ...image,
-        alt: `Imagen de ${nextLabel}`,
-      };
+    if (
+      !Number.isFinite(priceSinPisar) ||
+      priceSinPisar < 0 ||
+      !Number.isFinite(pricePisando) ||
+      pricePisando < 0
+    ) {
+      invalidPrice = true;
+      return background;
     }
 
-    return image;
+    return {
+      ...background,
+      priceSinPisar,
+      pricePisando,
+    };
   });
+
+  if (invalidPrice) {
+    return errorResponse("Revisa los precios de extras.");
+  }
+
+  nextContent.extras.backgrounds = normalizeExtraBackgrounds(nextBackgrounds);
+  nextContent.extras.items = nextContent.extras.backgrounds.map(
+    (background) => background.color
+  );
 
   await updateStudioContent(nextContent);
 
@@ -119,7 +125,7 @@ export async function POST(request: NextRequest) {
     ok: true,
     pricing: {
       basePrice: nextContent.pricing.basePrice,
-      extras: nextContent.extras.items,
+      extras: nextContent.extras.backgrounds,
     },
   });
 }

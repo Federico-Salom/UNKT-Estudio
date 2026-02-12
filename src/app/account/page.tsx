@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
+import AccountProfileForm from "@/components/AccountProfileForm";
 import BrandMark from "@/components/BrandMark";
 import Container from "@/components/Container";
-import UserMenu from "@/components/UserMenu";
 import ThemeToggle from "@/components/ThemeToggle";
+import UserMenu from "@/components/UserMenu";
 import { getSessionFromCookies } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getStudioContent } from "@/lib/studio-content";
@@ -31,7 +32,7 @@ export default async function AccountPage() {
   const createdAtLabel = user.createdAt.toLocaleString("es-AR");
 
   return (
-    <div className="min-h-screen bg-bg text-fg">
+    <div className="account-page min-h-screen bg-bg text-fg">
       <header className="border-b border-accent/20 bg-bg/95">
         <Container className="flex items-center justify-between py-4">
           <BrandMark studio={studio} />
@@ -43,34 +44,35 @@ export default async function AccountPage() {
                 roleLabel: "Usuario",
                 id: user.id,
                 createdAtLabel,
+                name: user.name ?? undefined,
               }}
             />
           </div>
         </Container>
       </header>
 
-      <main className="px-6 py-16">
-        <Container>
-          <div className="rounded-3xl border border-accent/20 bg-white/70 p-8 shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)] backdrop-blur">
-            <h1 className="font-display text-3xl uppercase tracking-[0.2em]">
-              Cuenta
-            </h1>
-            <p className="mt-2 text-sm text-muted">
-              Sesión activa para {user.email}
-            </p>
+      <main className="px-4 py-16">
+        <Container className="max-w-5xl">
+          <div className="mx-auto w-full max-w-3xl">
+            <section className="rounded-[2.5rem] border border-accent/20 bg-bg/90 p-10 shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)] backdrop-blur-xl">
+              <header className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-[0.5em] text-muted">
+                  Cuenta
+                </p>
+                <h1 className="font-display text-3xl uppercase tracking-[0.2em] text-fg">
+                  Perfil
+                </h1>
+                <p className="text-sm text-muted">
+                  Edita mail, nombre, teléfono y contraseña.
+                </p>
+              </header>
 
-            <div className="mt-6 grid gap-3 text-sm">
-              <div>
-                <span className="font-semibold">Rol:</span> Usuario
-              </div>
-              <div>
-                <span className="font-semibold">ID:</span> {user.id}
-              </div>
-              <div>
-                <span className="font-semibold">Creado:</span>{" "}
-                {user.createdAt.toLocaleString("es-AR")}
-              </div>
-            </div>
+              <AccountProfileForm
+                initialEmail={user.email}
+                initialName={user.name ?? ""}
+                initialPhone={user.phone ?? ""}
+              />
+            </section>
           </div>
         </Container>
       </main>

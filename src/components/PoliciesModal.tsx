@@ -18,7 +18,7 @@ export default function PoliciesModal({
   const policySections = [
     {
       id: "cancellation",
-      title: "Politica de cancelacion",
+      title: "Política de cancelación",
       items: policies.cancellation,
     },
     {
@@ -57,7 +57,7 @@ export default function PoliciesModal({
     <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/65 px-3 py-4 backdrop-blur-[2px] sm:px-4 sm:py-6">
       <button
         type="button"
-        aria-label="Cerrar politicas"
+        aria-label="Cerrar políticas"
         onClick={onClose}
         className="absolute inset-0 h-full w-full cursor-default"
       />
@@ -72,7 +72,7 @@ export default function PoliciesModal({
           type="button"
           onClick={onClose}
           className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full border border-accent/20 text-accent/70 transition hover:border-accent/40 hover:text-accent"
-          aria-label="Cerrar modal de politicas"
+          aria-label="Cerrar modal de políticas"
         >
           <svg
             aria-hidden="true"
@@ -94,10 +94,10 @@ export default function PoliciesModal({
             id="policies-modal-title"
             className="text-xs font-semibold uppercase tracking-[0.22em] text-muted"
           >
-            Politicas y condiciones
+            Políticas y condiciones
           </p>
           <p className="mt-2 text-sm text-muted">
-            Lee toda la informacion antes de reservar.
+            Lee toda la información antes de reservar.
           </p>
         </div>
 
@@ -125,7 +125,7 @@ export default function PoliciesModal({
             </section>
           ))}
           <p className="text-center text-[11px] uppercase tracking-[0.12em] text-muted">
-            Al reservar, aceptas los terminos y condiciones.
+            Al reservar, aceptas los términos y condiciones.
           </p>
         </div>
       </div>

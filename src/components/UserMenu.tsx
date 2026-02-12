@@ -13,9 +13,14 @@ type UserMenuProps = {
     name?: string;
   };
   triggerClassName?: string;
+  authenticated?: boolean;
 };
 
-export default function UserMenu({ user, triggerClassName = "" }: UserMenuProps) {
+export default function UserMenu({
+  user,
+  triggerClassName = "",
+  authenticated = true,
+}: UserMenuProps) {
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const desktopMenuRef = useRef<HTMLDivElement | null>(null);
@@ -50,53 +55,59 @@ export default function UserMenu({ user, triggerClassName = "" }: UserMenuProps)
     };
   }, []);
 
-  const displayName = user.name || user.email;
-  const showSecondaryEmail = user.name && user.name !== user.email;
   const isAdmin =
-    user.roleLabel && user.roleLabel.toLowerCase().includes("admin");
-  const actionLabel = isAdmin ? "Gestion" : "Reservas";
-  const actionHref = isAdmin ? "/admin" : "/account";
+    authenticated &&
+    user.roleLabel &&
+    user.roleLabel.toLowerCase().includes("admin");
+  const actionLabel = authenticated
+    ? isAdmin
+      ? "Gestión"
+      : "Cuenta"
+    : "Ingresar";
+  const actionHref = authenticated ? (isAdmin ? "/admin" : "/account") : "/login";
+  const showBookingsButton = authenticated && !isAdmin;
   const isInAdminArea = pathname.startsWith("/admin");
-  const showActionButton = !isAdmin || !isInAdminArea;
+  const showActionButton = !authenticated || !isAdmin || !isInAdminArea;
+  const showLogoutButton = authenticated;
   const canUsePortal = typeof document !== "undefined";
   const panelToneClassName = isAdmin
-    ? "border-accent/55 bg-[#150910] shadow-[0_28px_64px_-36px_rgba(0,0,0,0.9),0_0_0_1px_rgba(207,63,105,0.18)]"
-    : "border-white/20 bg-[#130a0f] shadow-[0_22px_50px_-34px_rgba(0,0,0,0.85)]";
-  const profileToneClassName = isAdmin
-    ? "border-accent/35 bg-[#24121d]"
-    : "border-white/15 bg-[#1b1118]";
-  const dividerToneClassName = isAdmin ? "bg-accent/20" : "bg-fg/12";
+    ? "border-accent/55 bg-bg/80 shadow-[0_28px_64px_-36px_rgba(0,0,0,0.95),0_0_0_1px_rgba(207,63,105,0.18)]"
+    : "border-accent/30 bg-bg/95 shadow-[0_22px_50px_-34px_rgba(0,0,0,0.85)]";
   const secondaryButtonToneClassName = isAdmin
-    ? "border-accent/45 bg-accent/[0.08] text-accent hover:border-accent hover:bg-accent/16"
-    : "border-white/20 bg-white/[0.03] text-fg hover:border-white/30 hover:bg-white/[0.08]";
+    ? "border-accent/60 bg-accent/[0.08] text-accent hover:border-accent hover:bg-accent/20"
+    : "border-accent/45 bg-accent/[0.08] text-accent hover:border-accent/60 hover:bg-accent/20";
+  const bookingsButtonToneClassName = isAdmin
+    ? "border-accent/55 bg-accent/[0.06] text-accent hover:border-accent hover:bg-accent/20"
+    : "border-accent/40 bg-accent/[0.06] text-accent hover:border-accent/60 hover:bg-accent/20";
   const logoutButtonToneClassName = isAdmin
-    ? "border-accent text-accent hover:border-accent2 hover:text-accent2 hover:bg-accent/12"
-    : "border-white/20 bg-white/[0.03] text-fg/90 hover:border-white/30 hover:bg-white/[0.08]";
+    ? "border-fg/30 bg-bg/70 text-fg hover:border-fg/50 hover:bg-bg/80"
+    : "border-fg/30 bg-bg/70 text-fg hover:border-fg/60 hover:bg-bg/85";
   const menuContent = (
     <Fragment>
-      <div className={`rounded-2xl border p-3.5 ${profileToneClassName}`}>
-        <div className="break-all text-base font-semibold leading-snug text-fg">
-          {displayName}
-        </div>
-        {showSecondaryEmail ? (
-          <div className="mt-1 break-all text-xs text-muted">{user.email}</div>
-        ) : null}
-      </div>
-      <div className={`mt-4 h-px ${dividerToneClassName}`} />
+      {showBookingsButton ? (
+        <a
+          href="/mis-reservas"
+          className={`inline-flex w-full items-center justify-center rounded-full border px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] transition ${bookingsButtonToneClassName}`}
+        >
+          Mis reservas
+        </a>
+      ) : null}
       {showActionButton ? (
         <a
           href={actionHref}
-          className={`mt-4 inline-flex w-full items-center justify-center rounded-full border px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] transition ${secondaryButtonToneClassName}`}
+          className={`${showBookingsButton ? "mt-3" : "mt-4"} inline-flex w-full items-center justify-center rounded-full border px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] transition ${secondaryButtonToneClassName}`}
         >
           {actionLabel}
         </a>
       ) : null}
-      <a
-        href="/api/auth/logout"
-        className={`${showActionButton ? "mt-3" : "mt-4"} inline-flex w-full items-center justify-center rounded-full border px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] transition ${logoutButtonToneClassName}`}
-      >
-        Cerrar sesion
-      </a>
+      {showLogoutButton ? (
+        <a
+          href="/auth/logout"
+          className={`${showActionButton || showBookingsButton ? "mt-3" : "mt-4"} inline-flex w-full items-center justify-center rounded-full border px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] transition ${logoutButtonToneClassName}`}
+        >
+          Cerrar sesión
+        </a>
+      ) : null}
     </Fragment>
   );
 
@@ -137,7 +148,7 @@ export default function UserMenu({ user, triggerClassName = "" }: UserMenuProps)
                 <div className="md:hidden">
                   <button
                     type="button"
-                    aria-label="Cerrar menu de cuenta"
+                    aria-label="Cerrar menú de cuenta"
                     onClick={() => setOpen(false)}
                     className="fixed inset-0 z-[85] bg-black/60"
                   />
