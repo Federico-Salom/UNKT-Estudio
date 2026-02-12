@@ -17,6 +17,8 @@ type PreferenceApiResponse = {
   error?: string;
 };
 
+const BRICK_CONTAINER_ID = "checkout-payment-brick";
+
 const publicKey =
   process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY?.trim() || "";
 
@@ -129,13 +131,27 @@ export default function PaymentBrick({
       paymentMethods: {
         mercadoPago: "all" as const,
       },
+      visual: {
+        style: {
+          theme: "flat" as const,
+          customVariables: {
+            formPadding: "16px",
+            borderRadiusMedium: "16px",
+            borderRadiusLarge: "20px",
+            fontSizeExtraSmall: "0.58rem",
+            fontSizeSmall: "0.74rem",
+            fontSizeMedium: "0.82rem",
+            fontSizeLarge: "0.9rem",
+          },
+        },
+      },
     }),
     []
   );
 
   if (loadingPreference) {
     return (
-      <div className="mt-6 rounded-2xl border border-accent/20 bg-bg px-4 py-4 text-sm text-muted">
+      <div className="checkout-summary-item mt-5 rounded-2xl px-4 py-4 text-sm text-muted">
         Preparando checkout seguro...
       </div>
     );
@@ -144,7 +160,7 @@ export default function PaymentBrick({
   if (error) {
     return (
       <div
-        className="mt-6 rounded-2xl border border-accent/35 bg-accent/10 px-4 py-4 text-sm text-accent"
+        className="mt-5 rounded-2xl border border-accent/35 bg-accent/10 px-4 py-4 text-sm text-accent"
         role="alert"
       >
         {error}
@@ -155,7 +171,7 @@ export default function PaymentBrick({
   if (!preferenceId) {
     return (
       <div
-        className="mt-6 rounded-2xl border border-accent/35 bg-accent/10 px-4 py-4 text-sm text-accent"
+        className="mt-5 rounded-2xl border border-accent/35 bg-accent/10 px-4 py-4 text-sm text-accent"
         role="alert"
       >
         No se pudo iniciar el checkout.
@@ -164,15 +180,16 @@ export default function PaymentBrick({
   }
 
   return (
-    <div className="mt-6 space-y-3">
+    <div className="mt-5 space-y-3 checkout-payment-shell">
       {!brickReady && (
-        <div className="rounded-2xl border border-accent/20 bg-bg px-4 py-3 text-sm text-muted">
+        <div className="checkout-summary-item rounded-2xl px-4 py-3 text-sm text-muted">
           Cargando medios de pago...
         </div>
       )}
 
-      <div className="rounded-3xl border border-accent/20 bg-white/80 p-3 sm:p-4">
+      <div className="checkout-payment-host rounded-[1.7rem] p-2.5 sm:p-3.5">
         <Payment
+          id={BRICK_CONTAINER_ID}
           initialization={initialization}
           customization={customization}
           locale="es-AR"
@@ -188,9 +205,6 @@ export default function PaymentBrick({
         />
       </div>
 
-      <p className="text-xs text-muted">
-        En algunos pagos, tu banco puede pedir una verificacion adicional (3DS).
-      </p>
     </div>
   );
 }

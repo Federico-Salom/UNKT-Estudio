@@ -655,6 +655,236 @@ html[data-theme="dark"] .auth-page textarea::placeholder {
   color: color-mix(in srgb, var(--fg) 46%, #c3a2ad 54%);
 }
 
+.checkout-page .checkout-layout,
+.checkout-page .checkout-layout * {
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.checkout-page .checkout-frame {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 2.2rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  background:
+    radial-gradient(
+      circle at 18% -8%,
+      color-mix(in srgb, var(--accent2) 26%, transparent),
+      transparent 54%
+    ),
+    linear-gradient(
+      152deg,
+      color-mix(in srgb, var(--bg) 88%, #3a1924 12%),
+      color-mix(in srgb, var(--bg) 82%, #1e0d15 18%)
+    );
+  box-shadow:
+    0 34px 72px -52px rgba(18, 8, 13, 0.86),
+    inset 0 1px 0 color-mix(in srgb, #ffffff 24%, transparent);
+}
+
+.checkout-page .checkout-frame::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, #ffffff 8%, transparent),
+    transparent 44%
+  );
+}
+
+.checkout-page .checkout-frame > * {
+  position: relative;
+  z-index: 1;
+}
+
+.checkout-page .checkout-hero {
+  border: 1px solid color-mix(in srgb, var(--accent2) 36%, transparent);
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, #2b111b 92%, transparent),
+      color-mix(in srgb, #0a0308 96%, transparent)
+    ),
+    radial-gradient(
+      circle at 22% 0%,
+      color-mix(in srgb, var(--accent) 34%, transparent),
+      transparent 60%
+    );
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #ffffff 12%, transparent),
+    0 22px 45px -34px rgba(8, 3, 7, 0.9);
+}
+
+.checkout-page .checkout-kicker {
+  color: color-mix(in srgb, #f2c9d7 62%, var(--fg) 38%) !important;
+}
+
+.checkout-page .checkout-status-pill {
+  display: inline-flex;
+  white-space: nowrap;
+  border-radius: 9999px;
+  border-width: 1px;
+  padding: 0.28rem 0.95rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.checkout-page .checkout-panel {
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, transparent);
+  background: color-mix(in srgb, var(--bg) 82%, #170b12 18%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #ffffff 10%, transparent),
+    0 24px 50px -42px rgba(10, 5, 8, 0.82);
+}
+
+.checkout-page .checkout-summary-item {
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, transparent);
+  background: color-mix(in srgb, var(--bg) 76%, #160a11 24%);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 6%, transparent);
+}
+
+.checkout-page .checkout-total-card {
+  border: 1px solid color-mix(in srgb, var(--accent) 36%, transparent);
+  background:
+    linear-gradient(
+      150deg,
+      color-mix(in srgb, var(--accent) 28%, transparent),
+      color-mix(in srgb, var(--accent2) 12%, transparent)
+    ),
+    color-mix(in srgb, var(--bg) 76%, #1a0c14 24%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #ffffff 16%, transparent),
+    0 14px 34px -28px rgba(10, 4, 8, 0.82);
+}
+
+.checkout-page .checkout-total-amount {
+  letter-spacing: 0.02em;
+  text-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.checkout-page .checkout-footnote {
+  color: color-mix(in srgb, var(--fg) 82%, #d7a9bb 18%);
+  line-height: 1.5;
+}
+
+.checkout-page .checkout-payment-host {
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, transparent);
+  background: color-mix(in srgb, #ffffff 94%, var(--bg) 6%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #ffffff 85%, transparent),
+    0 16px 30px -26px rgba(8, 4, 7, 0.68);
+}
+
+.checkout-page #checkout-payment-brick {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.checkout-page #checkout-payment-brick > div,
+.checkout-page #checkout-payment-brick iframe {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+html[data-theme="dark"] .checkout-page .checkout-frame {
+  border-color: color-mix(in srgb, #d98ea8 34%, transparent);
+  background:
+    radial-gradient(
+      circle at 22% -8%,
+      color-mix(in srgb, var(--accent2) 36%, transparent),
+      transparent 54%
+    ),
+    linear-gradient(
+      155deg,
+      color-mix(in srgb, #12070d 94%, transparent),
+      color-mix(in srgb, #070308 96%, transparent)
+    );
+  box-shadow:
+    0 40px 78px -52px rgba(0, 0, 0, 0.94),
+    inset 0 1px 0 color-mix(in srgb, #ffffff 10%, transparent);
+}
+
+html[data-theme="dark"] .checkout-page .checkout-panel {
+  border-color: color-mix(in srgb, #d68ca6 30%, transparent);
+  background: color-mix(in srgb, var(--bg) 84%, #170b12 16%);
+}
+
+html[data-theme="dark"] .checkout-page .checkout-summary-item {
+  border-color: color-mix(in srgb, #d68ca6 28%, transparent);
+  background: color-mix(in srgb, var(--bg) 79%, #150a10 21%);
+}
+
+html[data-theme="dark"] .checkout-page .checkout-total-card {
+  border-color: color-mix(in srgb, #dc94af 40%, transparent);
+  background:
+    linear-gradient(
+      150deg,
+      color-mix(in srgb, var(--accent2) 28%, transparent),
+      color-mix(in srgb, var(--accent) 14%, transparent)
+    ),
+    color-mix(in srgb, var(--bg) 74%, #180b13 26%);
+}
+
+html[data-theme="dark"] .checkout-page .checkout-footnote {
+  color: color-mix(in srgb, var(--fg) 86%, #f0c7d6 14%);
+}
+
+html[data-theme="dark"] .checkout-page .checkout-payment-host {
+  border-color: color-mix(in srgb, #da90ab 32%, transparent);
+  background: color-mix(in srgb, #fff 93%, #f0e8ec 7%);
+}
+
+@media (max-width: 480px) {
+  .checkout-page main {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+  }
+
+  .checkout-page .checkout-frame {
+    border-radius: 1.8rem;
+    padding: 0.65rem !important;
+  }
+
+  .checkout-page .checkout-hero {
+    border-radius: 1.45rem !important;
+    padding: 1rem 1rem 1.1rem !important;
+  }
+
+  .checkout-page .checkout-panel {
+    padding: 0.75rem !important;
+  }
+
+  .checkout-page .checkout-payment-host {
+    overflow: hidden;
+    padding: 0.35rem !important;
+  }
+
+  .checkout-page #checkout-payment-brick,
+  .checkout-page #checkout-payment-brick > div,
+  .checkout-page #checkout-payment-brick > div > div,
+  .checkout-page #checkout-payment-brick iframe {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .checkout-page .checkout-payment-host form[class*="mp-checkout-bricks__payment-form"] {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+}
+
 html[data-theme="dark"] .booking-page .booking-card {
   background: color-mix(in srgb, var(--bg) 84%, #2e141d 16%) !important;
   border-color: color-mix(in srgb, #d98ea8 34%, transparent) !important;

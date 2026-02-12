@@ -52,7 +52,7 @@ export default function StatusScreenBrick({ paymentId }: StatusScreenBrickProps)
         </div>
       )}
 
-      <div className="rounded-3xl border border-accent/20 bg-white/80 p-3 sm:p-4">
+      <div className="checkout-payment-host rounded-[1.7rem] p-3 sm:p-4">
         <StatusScreen
           initialization={{ paymentId }}
           customization={customization}

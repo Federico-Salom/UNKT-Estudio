@@ -33,11 +33,11 @@ export default async function AccountPage() {
 
   return (
     <div className="account-page min-h-screen bg-bg text-fg">
-      <header className="border-b border-accent/20 bg-bg/95">
-        <Container className="flex items-center justify-between py-4">
-          <BrandMark studio={studio} />
-          <div className="flex items-center gap-4">
-            <ThemeToggle />
+      <header className="relative z-50 border-b border-accent/20 bg-bg/95 backdrop-blur">
+        <Container className="flex items-center justify-between gap-2.5 px-3 py-2.5 sm:px-6 md:py-4">
+          <BrandMark studio={studio} showText={false} />
+          <div className="flex items-center gap-2 md:gap-4">
+            <ThemeToggle className="h-9 w-9 md:h-10 md:w-10" />
             <UserMenu
               user={{
                 email: user.email,

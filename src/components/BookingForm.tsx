@@ -788,7 +788,7 @@ export default function BookingForm({
         )}
         {selectedSlotCount > 1 && (
           <div className="mt-1 text-xs text-muted">
-            Se reserva 1 hora posterior para mantenimiento (no se cobra).
+            Se reserva 1 hora posterior para mantenimiento, no se cobra y es para uso exclusivo de UNKT para asegurar el funcionamiento correcto del taller.
           </div>
         )}
       </div>
