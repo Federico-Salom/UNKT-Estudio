@@ -57,7 +57,7 @@ export default function LoginForm({ initialError, registered }: LoginFormProps) 
   };
 
   return (
-    <form className="mt-6 grid gap-4" onSubmit={handleSubmit} noValidate>
+    <form className="mt-6 grid min-w-0 gap-4" onSubmit={handleSubmit} noValidate>
       {registered && (
         <div className="rounded-2xl border border-accent/20 bg-bg px-4 py-3 text-sm">
           Cuenta creada. Inicia sesión.
@@ -73,10 +73,10 @@ export default function LoginForm({ initialError, registered }: LoginFormProps) 
         </div>
       )}
 
-      <label className="grid gap-2 text-sm font-semibold">
+      <label className="grid min-w-0 gap-2 text-sm font-semibold">
         Correo
         <input
-          className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm text-fg outline-none transition placeholder:text-muted focus:border-accent"
+          className="w-full min-w-0 rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm text-fg outline-none transition placeholder:text-muted focus:border-accent"
           type="email"
           name="email"
           value={email}
@@ -84,10 +84,10 @@ export default function LoginForm({ initialError, registered }: LoginFormProps) 
           required
         />
       </label>
-      <label className="grid gap-2 text-sm font-semibold">
+      <label className="grid min-w-0 gap-2 text-sm font-semibold">
         Contraseña
         <input
-          className="rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm text-fg outline-none transition placeholder:text-muted focus:border-accent"
+          className="w-full min-w-0 rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm text-fg outline-none transition placeholder:text-muted focus:border-accent"
           type="password"
           name="password"
           minLength={8}

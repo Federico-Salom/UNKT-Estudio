@@ -34,7 +34,6 @@ type AdminContentFormProps = {
 };
 
 type Status = "idle" | "saving" | "saved" | "error";
-const AGENDA_HELP_GUIDE_PREF_KEY = "unkt_admin_agenda_hide_help_guides";
 
 const errorMessages: Record<string, string> = {
   unauthorized: "Tu sesión expiró. Inicia sesión nuevamente.",
@@ -66,7 +65,7 @@ export default function AdminContentForm({
 }: AdminContentFormProps) {
   const router = useRouter();
   const [status, setStatus] = useState<Status>("idle");
-  const [agendaHelpHidden, setAgendaHelpHidden] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [logoFileName, setLogoFileName] = useState("Ningun archivo seleccionado");
@@ -111,41 +110,12 @@ export default function AdminContentForm({
   const hideTimer = useRef<number | null>(null);
 
   useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    const syncAgendaHelpPreference = () => {
-      try {
-        setAgendaHelpHidden(
-          window.localStorage.getItem(AGENDA_HELP_GUIDE_PREF_KEY) === "1"
-        );
-      } catch {
-        setAgendaHelpHidden(false);
-      }
-    };
-
-    syncAgendaHelpPreference();
-    window.addEventListener("storage", syncAgendaHelpPreference);
-    return () => window.removeEventListener("storage", syncAgendaHelpPreference);
-  }, []);
-
-  useEffect(() => {
     return () => {
       if (hideTimer.current) {
         window.clearTimeout(hideTimer.current);
       }
     };
   }, []);
-
-  const reactivateAgendaHelpGuides = () => {
-    try {
-      window.localStorage.setItem(AGENDA_HELP_GUIDE_PREF_KEY, "0");
-    } catch {
-      // Ignore storage failures.
-    }
-    setAgendaHelpHidden(false);
-  };
 
   useEffect(() => {
     galleryItemsRef.current = galleryItems;
@@ -179,8 +149,15 @@ export default function AdminContentForm({
     };
   }, []);
 
+  const markAsDirty = () => {
+    setHasUnsavedChanges(true);
+  };
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!hasUnsavedChanges) {
+      return;
+    }
     if (hideTimer.current) {
       window.clearTimeout(hideTimer.current);
     }
@@ -255,6 +232,7 @@ export default function AdminContentForm({
         await new Promise((resolve) => setTimeout(resolve, 1000 - elapsed));
       }
       setStatus("saved");
+      setHasUnsavedChanges(false);
       router.refresh();
     } catch {
       const elapsed = Date.now() - startedAt;
@@ -298,6 +276,7 @@ export default function AdminContentForm({
   const handleGalleryUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files ?? []);
     if (!files.length) return;
+    markAsDirty();
     setGalleryItems((prev) => {
       const remaining = Math.max(0, 10 - prev.length);
       const nextFiles = files.slice(0, remaining);
@@ -313,12 +292,14 @@ export default function AdminContentForm({
   };
 
   const handleGalleryAltChange = (id: string, value: string) => {
+    markAsDirty();
     setGalleryItems((prev) =>
       prev.map((item) => (item.id === id ? { ...item, alt: value } : item))
     );
   };
 
   const handleRemoveGalleryItem = (id: string) => {
+    markAsDirty();
     setGalleryItems((prev) => {
       const target = prev.find((item) => item.id === id);
       if (target?.previewUrl) {
@@ -344,6 +325,7 @@ export default function AdminContentForm({
     id: string,
     value: string
   ) => {
+    markAsDirty();
     updateCatalogImages(type, (prev) =>
       prev.map((item) => (item.id === id ? { ...item, alt: value } : item))
     );
@@ -356,6 +338,7 @@ export default function AdminContentForm({
   ) => {
     const file = event.target.files?.[0];
     if (!file) return;
+    markAsDirty();
 
     const previewUrl = URL.createObjectURL(file);
     updateCatalogImages(type, (prev) =>
@@ -375,6 +358,7 @@ export default function AdminContentForm({
   };
 
   const handleRemoveCatalogImage = (type: CatalogType, id: string) => {
+    markAsDirty();
     updateCatalogImages(type, (prev) =>
       prev.map((item) => {
         if (item.id !== id) return item;
@@ -393,6 +377,7 @@ export default function AdminContentForm({
 
   const handleReorder = (from: number, to: number) => {
     if (from === to) return;
+    markAsDirty();
     setGalleryItems((prev) => {
       const next = [...prev];
       const [moved] = next.splice(from, 1);
@@ -416,150 +401,23 @@ export default function AdminContentForm({
     <form
       className="grid w-full max-w-full min-w-0 gap-3 overflow-x-clip sm:gap-8 md:gap-10"
       onSubmit={handleSubmit}
+      onChange={markAsDirty}
       encType="multipart/form-data"
     >
-      <div className="overflow-x-hidden rounded-3xl border border-accent/20 bg-white/70 p-5 shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)] backdrop-blur sm:p-7 md:p-8">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h1 className="font-display text-xl uppercase tracking-[0.08em] sm:text-3xl sm:tracking-[0.2em]">
-              Contenido
-            </h1>
-            <p className="mt-2 break-words text-sm leading-relaxed text-muted">
-              Edita textos y contenidos visuales de la landing.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={reactivateAgendaHelpGuides}
-            disabled={!agendaHelpHidden}
-            className="inline-flex h-9 items-center justify-center rounded-full border border-accent/32 bg-accent/10 px-4 text-[10px] font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/20 disabled:cursor-not-allowed disabled:opacity-55"
+      <details className="group overflow-x-hidden rounded-3xl border border-accent/20 bg-white/70 p-5 shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)] backdrop-blur sm:p-7 md:p-8">
+        <summary className="flex list-none items-center justify-between gap-3 cursor-pointer [&::-webkit-details-marker]:hidden">
+          <h1 className="font-display text-xl uppercase tracking-[0.08em] sm:text-3xl sm:tracking-[0.2em]">
+            Texto
+          </h1>
+          <span
+            aria-hidden
+            className="text-sm text-accent transition-transform duration-200 group-open:rotate-180 sm:text-base"
           >
-            {agendaHelpHidden ? "Reactivar ayudas" : "Ayudas activas"}
-          </button>
-        </div>
+            ▾
+          </span>
+        </summary>
 
         <div className="mt-5 grid gap-4 sm:mt-8 sm:gap-6">
-          <details
-            className="rounded-2xl border border-accent/15 bg-white/80 p-4 sm:p-6"
-          >
-            <summary className="cursor-pointer break-words pr-4 text-[11px] font-semibold uppercase tracking-[0.06em] text-fg/80 sm:text-sm sm:tracking-wide">
-              Logo y wordmark
-            </summary>
-            <div className="mt-4 grid gap-4">
-              <div className="grid gap-5 md:grid-cols-2">
-                <div className="grid gap-3">
-                  <div className="overflow-hidden rounded-2xl border border-accent/20 bg-bg p-3">
-                    <img
-                      className="h-14 w-14 rounded-full object-cover sm:h-20 sm:w-20"
-                      src={studio.logo.src}
-                      alt={studio.logo.alt}
-                    />
-                  </div>
-                  <span className="text-xs font-semibold uppercase tracking-wide text-muted">
-                    Logo actual
-                  </span>
-                </div>
-                <div className="grid gap-3">
-                  <div className="overflow-hidden rounded-2xl border border-accent/20 bg-bg p-3">
-                    {hasCustomWordmark ? (
-                      <img
-                        className="h-14 w-full object-contain sm:h-20"
-                        src={studio.logo.wordmarkSrc}
-                        alt={studio.logo.alt}
-                      />
-                    ) : (
-                      <div className="flex h-14 min-w-0 items-center gap-1.5 overflow-hidden text-accent sm:h-20 sm:gap-2">
-                        <span className="truncate text-lg font-semibold uppercase tracking-[0.08em] sm:text-xl">
-                          {wordmarkCore}
-                        </span>
-                        <span
-                          aria-hidden
-                          className="h-1 w-1 shrink-0 rounded-full bg-accent/45"
-                        />
-                        <span className="truncate text-xs font-semibold uppercase tracking-[0.16em] text-accent/82 sm:text-sm">
-                          {wordmarkTail}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  <span className="text-xs font-semibold uppercase tracking-wide text-muted">
-                    Wordmark actual
-                  </span>
-                </div>
-              </div>
-              <label className="grid gap-2 text-sm font-semibold">
-                Wordmark (texto)
-                <input
-                  className="rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
-                  type="text"
-                  name="name"
-                  defaultValue={studio.name}
-                  required
-                />
-                <span className="text-xs font-medium text-muted">
-                  Si no subes imagen para el wordmark, se muestra este texto en
-                  el header.
-                </span>
-              </label>
-              <label className="grid gap-2 text-sm font-semibold">
-                Alt del logo
-                <input
-                  className="rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
-                  type="text"
-                  name="logoAlt"
-                  defaultValue={studio.logo.alt}
-                  required
-                />
-              </label>
-              <div className="grid gap-4 md:grid-cols-2">
-                <label className="grid gap-2 text-sm font-semibold">
-                  Reemplazar logo (avatar)
-                  <div className="flex flex-wrap items-center gap-3">
-                    <label
-                      htmlFor="logoImageSeo"
-                      className="inline-flex items-center justify-center rounded-full border border-accent/30 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10 sm:px-4 sm:py-2 sm:text-xs"
-                    >
-                      Seleccionar imagen
-                    </label>
-                    <span className="max-w-full break-all text-xs text-muted">
-                      {logoFileName}
-                    </span>
-                  </div>
-                  <input
-                    id="logoImageSeo"
-                    type="file"
-                    name="logoImage"
-                    accept="image/*"
-                    className="sr-only"
-                    onChange={handleLogoFileChange}
-                  />
-                </label>
-                <label className="grid gap-2 text-sm font-semibold">
-                  Reemplazar wordmark (texto)
-                  <div className="flex flex-wrap items-center gap-3">
-                    <label
-                      htmlFor="wordmarkImageSeo"
-                      className="inline-flex items-center justify-center rounded-full border border-accent/30 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10 sm:px-4 sm:py-2 sm:text-xs"
-                    >
-                      Seleccionar imagen
-                    </label>
-                    <span className="max-w-full break-all text-xs text-muted">
-                      {wordmarkFileName}
-                    </span>
-                  </div>
-                  <input
-                    id="wordmarkImageSeo"
-                    type="file"
-                    name="wordmarkImage"
-                    accept="image/*"
-                    className="sr-only"
-                    onChange={handleWordmarkFileChange}
-                  />
-                </label>
-              </div>
-            </div>
-          </details>
-
           <details
             className="rounded-2xl border border-accent/15 bg-white/80 p-4 sm:p-6"
           >
@@ -594,75 +452,27 @@ export default function AdminContentForm({
 
           <details className="rounded-2xl border border-accent/15 bg-white/80 p-4 sm:p-6">
             <summary className="cursor-pointer break-words pr-4 text-[11px] font-semibold uppercase tracking-[0.06em] text-fg/80 sm:text-sm sm:tracking-wide">
-              Plano y ubicacion
+              Ubicacion
             </summary>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <div className="grid gap-3">
-                <div className="overflow-hidden rounded-2xl border border-accent/20 bg-bg p-3">
-                  <img
-                    className="h-36 w-full rounded-xl object-contain sm:h-48"
-                    src={studio.floorPlan.src}
-                    alt={studio.floorPlan.alt}
-                  />
-                </div>
-                <span className="text-xs font-semibold uppercase tracking-wide text-muted">
-                  Plano actual en el home
-                </span>
-              </div>
-
-              <div className="grid gap-4">
-                <label className="grid gap-2 text-sm font-semibold">
-                  Alt del plano
-                  <input
-                    className="rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
-                    type="text"
-                    name="floorPlanAlt"
-                    defaultValue={studio.floorPlan.alt}
-                    required
-                  />
-                </label>
-
-                <label className="grid gap-2 text-sm font-semibold">
-                  Reemplazar plano
-                  <div className="flex flex-wrap items-center gap-3">
-                    <label
-                      htmlFor="floorPlanImage"
-                      className="inline-flex items-center justify-center rounded-full border border-accent/30 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10 sm:px-4 sm:py-2 sm:text-xs"
-                    >
-                      Seleccionar imagen
-                    </label>
-                    <span className="max-w-full break-all text-xs text-muted">
-                      {floorPlanFileName}
-                    </span>
-                  </div>
-                  <input
-                    id="floorPlanImage"
-                    type="file"
-                    name="floorPlanImage"
-                    accept="image/*"
-                    className="sr-only"
-                    onChange={handleFloorPlanFileChange}
-                  />
-                </label>
-                <label className="grid gap-2 text-sm font-semibold">
-                  Texto direccion
-                  <input
-                    className="rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
-                    type="text"
-                    name="locationText"
-                    defaultValue={studio.contact.locationText}
-                  />
-                </label>
-                <label className="grid gap-2 text-sm font-semibold">
-                  Link Google Maps
-                  <input
-                    className="rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
-                    type="url"
-                    name="locationUrl"
-                    defaultValue={studio.contact.locationUrl}
-                  />
-                </label>
-              </div>
+              <label className="grid gap-2 text-sm font-semibold">
+                Texto direccion
+                <input
+                  className="rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
+                  type="text"
+                  name="locationText"
+                  defaultValue={studio.contact.locationText}
+                />
+              </label>
+              <label className="grid gap-2 text-sm font-semibold">
+                Link Google Maps
+                <input
+                  className="rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
+                  type="url"
+                  name="locationUrl"
+                  defaultValue={studio.contact.locationUrl}
+                />
+              </label>
             </div>
           </details>
 
@@ -881,17 +691,142 @@ export default function AdminContentForm({
             </div>
           </details>
         </div>
-      </div>
+      </details>
 
-      <div className="overflow-x-hidden rounded-3xl border border-accent/20 bg-white/70 p-5 shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)] backdrop-blur sm:p-7 md:p-8">
-        <h2 className="font-display text-lg uppercase tracking-[0.08em] sm:text-2xl sm:tracking-[0.2em]">
-          Carrusel
-        </h2>
-        <p className="mt-2 text-sm text-muted">
-          Gestiona las imagenes del carrusel del home.
-        </p>
+          <details className="group overflow-x-hidden rounded-3xl border border-accent/20 bg-white/70 p-5 shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)] backdrop-blur sm:p-7 md:p-8">
+            <summary className="flex list-none items-center justify-between gap-3 cursor-pointer [&::-webkit-details-marker]:hidden">
+              <h2 className="font-display text-lg uppercase tracking-[0.08em] sm:text-2xl sm:tracking-[0.2em]">
+                Imagenes
+              </h2>
+          <span
+            aria-hidden
+            className="text-sm text-accent transition-transform duration-200 group-open:rotate-180 sm:text-base"
+          >
+            ▾
+          </span>
+        </summary>
 
         <div className="mt-5 grid gap-4 sm:mt-8 sm:gap-6">
+          <details
+            className="rounded-2xl border border-accent/15 bg-white/80 p-4 sm:p-6"
+          >
+            <summary className="cursor-pointer break-words pr-4 text-[11px] font-semibold uppercase tracking-[0.06em] text-fg/80 sm:text-sm sm:tracking-wide">
+              Logos
+            </summary>
+            <div className="mt-4 grid gap-4">
+              <div className="grid gap-5 md:grid-cols-2">
+                <div className="grid gap-3">
+                  <div className="overflow-hidden rounded-2xl border border-accent/20 bg-bg p-3">
+                    <img
+                      className="h-14 w-14 rounded-full object-cover sm:h-20 sm:w-20"
+                      src={studio.logo.src}
+                      alt={studio.logo.alt}
+                    />
+                  </div>
+                  <span className="text-xs font-semibold uppercase tracking-wide text-muted">
+                    Logo actual
+                  </span>
+                </div>
+                <div className="grid gap-3">
+                  <div className="overflow-hidden rounded-2xl border border-accent/20 bg-bg p-3">
+                    {hasCustomWordmark ? (
+                      <img
+                        className="h-14 w-full object-contain sm:h-20"
+                        src={studio.logo.wordmarkSrc}
+                        alt={studio.logo.alt}
+                      />
+                    ) : (
+                      <div className="flex h-14 min-w-0 items-center gap-1.5 overflow-hidden text-accent sm:h-20 sm:gap-2">
+                        <span className="truncate text-lg font-semibold uppercase tracking-[0.08em] sm:text-xl">
+                          {wordmarkCore}
+                        </span>
+                        <span
+                          aria-hidden
+                          className="h-1 w-1 shrink-0 rounded-full bg-accent/45"
+                        />
+                        <span className="truncate text-xs font-semibold uppercase tracking-[0.16em] text-accent/82 sm:text-sm">
+                          {wordmarkTail}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <span className="text-xs font-semibold uppercase tracking-wide text-muted">
+                    Wordmark actual
+                  </span>
+                </div>
+              </div>
+              <label className="grid gap-2 text-sm font-semibold">
+                Wordmark (texto)
+                <input
+                  className="rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
+                  type="text"
+                  name="name"
+                  defaultValue={studio.name}
+                  required
+                />
+                <span className="text-xs font-medium text-muted">
+                  Si no subes imagen para el wordmark, se muestra este texto en
+                  el header.
+                </span>
+              </label>
+              <label className="grid gap-2 text-sm font-semibold">
+                Alt del logo
+                <input
+                  className="rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
+                  type="text"
+                  name="logoAlt"
+                  defaultValue={studio.logo.alt}
+                  required
+                />
+              </label>
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="grid gap-2 text-sm font-semibold">
+                  Reemplazar logo (avatar)
+                  <div className="flex flex-wrap items-center gap-3">
+                    <label
+                      htmlFor="logoImageSeo"
+                      className="inline-flex items-center justify-center rounded-full border border-accent/30 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10 sm:px-4 sm:py-2 sm:text-xs"
+                    >
+                      Seleccionar imagen
+                    </label>
+                    <span className="max-w-full break-all text-xs text-muted">
+                      {logoFileName}
+                    </span>
+                  </div>
+                  <input
+                    id="logoImageSeo"
+                    type="file"
+                    name="logoImage"
+                    accept="image/*"
+                    className="sr-only"
+                    onChange={handleLogoFileChange}
+                  />
+                </label>
+                <label className="grid gap-2 text-sm font-semibold">
+                  Reemplazar wordmark (texto)
+                  <div className="flex flex-wrap items-center gap-3">
+                    <label
+                      htmlFor="wordmarkImageSeo"
+                      className="inline-flex items-center justify-center rounded-full border border-accent/30 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10 sm:px-4 sm:py-2 sm:text-xs"
+                    >
+                      Seleccionar imagen
+                    </label>
+                    <span className="max-w-full break-all text-xs text-muted">
+                      {wordmarkFileName}
+                    </span>
+                  </div>
+                  <input
+                    id="wordmarkImageSeo"
+                    type="file"
+                    name="wordmarkImage"
+                    accept="image/*"
+                    className="sr-only"
+                    onChange={handleWordmarkFileChange}
+                  />
+                </label>
+              </div>
+            </div>
+          </details>
 
           <details className="rounded-2xl border border-accent/15 bg-white/80 p-4 sm:p-6">
             <summary className="cursor-pointer break-words pr-4 text-[11px] font-semibold uppercase tracking-[0.06em] text-fg/80 sm:text-sm sm:tracking-wide">
@@ -991,6 +926,62 @@ export default function AdminContentForm({
                   ))}
                 </div>
               )}
+            </div>
+          </details>
+
+          <details className="rounded-2xl border border-accent/15 bg-white/80 p-4 sm:p-6">
+            <summary className="cursor-pointer break-words pr-4 text-[11px] font-semibold uppercase tracking-[0.06em] text-fg/80 sm:text-sm sm:tracking-wide">
+              Plano
+            </summary>
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <div className="grid gap-3">
+                <div className="overflow-hidden rounded-2xl border border-accent/20 bg-bg p-3">
+                  <img
+                    className="h-36 w-full rounded-xl object-contain sm:h-48"
+                    src={studio.floorPlan.src}
+                    alt={studio.floorPlan.alt}
+                  />
+                </div>
+                <span className="text-xs font-semibold uppercase tracking-wide text-muted">
+                  Plano actual en el home
+                </span>
+              </div>
+
+              <div className="grid gap-4">
+                <label className="grid gap-2 text-sm font-semibold">
+                  Alt del plano
+                  <input
+                    className="rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
+                    type="text"
+                    name="floorPlanAlt"
+                    defaultValue={studio.floorPlan.alt}
+                    required
+                  />
+                </label>
+
+                <label className="grid gap-2 text-sm font-semibold">
+                  Reemplazar plano
+                  <div className="flex flex-wrap items-center gap-3">
+                    <label
+                      htmlFor="floorPlanImage"
+                      className="inline-flex items-center justify-center rounded-full border border-accent/30 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/10 sm:px-4 sm:py-2 sm:text-xs"
+                    >
+                      Seleccionar imagen
+                    </label>
+                    <span className="max-w-full break-all text-xs text-muted">
+                      {floorPlanFileName}
+                    </span>
+                  </div>
+                  <input
+                    id="floorPlanImage"
+                    type="file"
+                    name="floorPlanImage"
+                    accept="image/*"
+                    className="sr-only"
+                    onChange={handleFloorPlanFileChange}
+                  />
+                </label>
+              </div>
             </div>
           </details>
 
@@ -1164,13 +1155,13 @@ export default function AdminContentForm({
           </details>
         </div>
 
-      </div>
+      </details>
 
       <div className="relative">
         <button
           className="inline-flex w-full items-center justify-center rounded-full bg-accent px-6 py-4 text-sm font-semibold uppercase tracking-wide text-bg transition hover:bg-accent2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2 disabled:cursor-not-allowed disabled:opacity-70"
           type="submit"
-          disabled={status === "saving"}
+          disabled={status === "saving" || !hasUnsavedChanges}
         >
           {status === "saving" ? "Guardando..." : "Guardar cambios"}
         </button>

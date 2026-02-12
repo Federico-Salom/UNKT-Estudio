@@ -789,6 +789,22 @@ html[data-theme="dark"] .map-embed-overlay {
   gap: 0.42rem;
 }
 
+.agenda-calendar .fc .fc-helpGuide-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.1rem;
+  min-width: 2.1rem;
+  height: 2.1rem;
+  padding: 0 !important;
+  border-radius: 9999px !important;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1;
+  text-transform: none;
+}
+
 .agenda-calendar .fc .fc-header-toolbar .fc-toolbar-chunk:empty {
   display: none;
 }
@@ -1403,6 +1419,13 @@ html[data-theme="dark"] .agenda-panel--day::after {
 
   .agenda-calendar .fc .fc-header-toolbar .fc-toolbar-chunk {
     gap: 0.28rem;
+  }
+
+  .agenda-calendar .fc .fc-helpGuide-button {
+    width: 1.95rem;
+    min-width: 1.95rem;
+    height: 1.95rem;
+    font-size: 0.92rem;
   }
 
   .agenda-calendar .fc .fc-daygrid-day-frame {

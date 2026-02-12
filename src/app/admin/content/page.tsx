@@ -37,21 +37,22 @@ export default async function AdminContentPage() {
               <BrandMark
                 studio={studio}
                 size={36}
+                showText={false}
                 wordmarkScale={0.9}
                 gapClassName="gap-2 sm:gap-2.5"
                 className="max-w-[58vw] sm:max-w-full"
               />
             </div>
             <div className="hidden md:block">
-              <BrandMark studio={studio} />
+              <BrandMark studio={studio} showText={false} />
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-2 md:gap-4">
             <Link
-              className="hidden md:inline-flex h-10 items-center justify-center rounded-full border border-accent/35 bg-accent/10 px-6 text-center text-base font-semibold leading-none tracking-wide text-accent transition hover:border-accent hover:bg-accent/20"
+              className="inline-flex h-9 items-center justify-center rounded-full border border-accent/35 bg-accent/10 px-4 text-center text-[10px] font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/20 md:h-10 md:px-5"
               href="/admin"
             >
-              Panel
+              Volver
             </Link>
             <ThemeToggle className="h-9 w-9 md:h-10 md:w-10" />
             <UserMenu
@@ -66,7 +67,7 @@ export default async function AdminContentPage() {
         </Container>
       </header>
 
-      <main className="py-8 sm:py-12 md:py-16">
+      <main className="py-4 sm:py-6 md:py-8">
         <div className="mx-auto w-full max-w-6xl px-8 sm:px-8 md:px-8">
           <AdminContentForm studio={studio} gallery={studio.gallery} />
         </div>

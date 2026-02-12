@@ -226,8 +226,6 @@ export default function AdminAgendaPanel({
   const [message, setMessage] = useState("");
   const [calendarDateRowLabel, setCalendarDateRowLabel] = useState("");
   const hideTimer = useRef<number | null>(null);
-  const helpButtonRef = useRef<HTMLButtonElement | null>(null);
-  const helpPopoverRef = useRef<HTMLDivElement | null>(null);
   const isMonthView = availabilityView === "dayGridMonth";
   const effectiveTimeWindowMode: TimeWindowMode = timeWindowMode;
   const isPmWindow = effectiveTimeWindowMode === "pm";
@@ -340,14 +338,8 @@ export default function AdminAgendaPanel({
       return;
     }
 
-    const handleMouseDown = (event: MouseEvent) => {
-      const target = event.target as Node;
-      const isOnButton = helpButtonRef.current?.contains(target);
-      const isOnPopover = helpPopoverRef.current?.contains(target);
-      if (!isOnButton && !isOnPopover) {
-        setShowHelpGuide(false);
-      }
-    };
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -355,11 +347,10 @@ export default function AdminAgendaPanel({
       }
     };
 
-    document.addEventListener("mousedown", handleMouseDown);
     document.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.removeEventListener("mousedown", handleMouseDown);
+      document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [showHelpGuide]);
@@ -552,12 +543,6 @@ export default function AdminAgendaPanel({
     }, 1600);
   };
 
-  const getClearButtonLabel = () => {
-    if (availabilityView.includes("Week")) return "Limpiar semana";
-    if (availabilityView.includes("Day")) return "Limpiar dia";
-    return "Limpiar mes";
-  };
-
   const getClearScopeDescription = () => {
     if (availabilityView.includes("Week")) {
       return effectiveTimeWindowMode === "pm"
@@ -578,6 +563,14 @@ export default function AdminAgendaPanel({
     setShowHelpGuide(false);
     setShowClearConfirm(true);
   };
+
+  const rightToolbarButtons = hideHelpGuides
+    ? isMobile
+      ? "dayGridMonth,timeGridDay"
+      : "dayGridMonth,timeGridWeek,timeGridDay"
+    : isMobile
+      ? "dayGridMonth,timeGridDay,helpGuide"
+      : "dayGridMonth,timeGridWeek,timeGridDay,helpGuide";
 
   const handleClearVisibleRange = async () => {
     if (!visibleRange || status === "saving") return;
@@ -1074,6 +1067,102 @@ export default function AdminAgendaPanel({
         </div>
       )}
 
+      {showHelpGuide && (
+        <div className="fixed inset-0 z-[82] flex items-center justify-center p-4">
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-black/45 backdrop-blur-[3px]"
+          />
+          <div
+            id="agenda-help-popover"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="agenda-help-title"
+            className={`relative w-full max-w-lg max-h-[85dvh] overflow-y-auto rounded-3xl border px-5 py-4 text-left shadow-[0_28px_60px_-32px_rgba(0,0,0,0.75)] sm:px-6 sm:py-5 ${
+              useDarkMonthDetailPalette
+                ? "border-accent2/42 bg-bg/96 text-fg"
+                : "border-accent/24 bg-white text-fg"
+            }`}
+          >
+            <div className="flex items-center justify-between gap-3">
+              <strong
+                id="agenda-help-title"
+                className="text-xs font-semibold uppercase tracking-wide text-fg"
+              >
+                Guia rapida
+              </strong>
+              <button
+                type="button"
+                onClick={() => setShowHelpGuide(false)}
+                className={`inline-flex h-8 w-8 items-center justify-center rounded-full border text-xs transition ${
+                  useDarkMonthDetailPalette
+                    ? "border-accent2/40 bg-bg/82 text-fg hover:border-accent2"
+                    : "border-accent/25 bg-bg text-muted hover:border-accent/55"
+                }`}
+                aria-label="Cerrar ayuda"
+              >
+                x
+              </button>
+            </div>
+
+            <p className="mt-2 text-sm leading-relaxed text-muted">
+              Referencia de colores y uso rapido de la agenda.
+            </p>
+
+            <div className="mt-4 grid gap-2 text-[11px] font-semibold uppercase tracking-wide">
+              <span
+                className={`inline-flex h-8 items-center gap-2 rounded-full px-3 ${
+                  useDarkMonthDetailPalette
+                    ? "border border-accent2/28 bg-bg/82 text-fg"
+                    : "border border-accent/20 bg-bg/60 text-fg"
+                }`}
+              >
+                <span
+                  className="h-3 w-3 rounded-full"
+                  style={{ background: activeSlotColors.available.bg }}
+                />
+                Disponible
+              </span>
+              <span
+                className={`inline-flex h-8 items-center gap-2 rounded-full px-3 ${
+                  useDarkMonthDetailPalette
+                    ? "border border-accent2/28 bg-bg/82 text-fg"
+                    : "border border-accent/20 bg-bg/60 text-fg"
+                }`}
+              >
+                <span
+                  className="h-3 w-3 rounded-full"
+                  style={{ background: activeSlotColors.booked.bg }}
+                />
+                Reservado
+              </span>
+            </div>
+
+            <ul className="mt-4 space-y-2 text-sm leading-relaxed text-muted">
+              <li>Toque o arrastre para crear horarios disponibles.</li>
+              <li>Toque una reserva para ver datos y limpiar solapes.</li>
+              <li>Use el boton limpiar para borrar la vista actual.</li>
+            </ul>
+
+            <label
+              className={`mt-4 flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold tracking-wide ${
+                useDarkMonthDetailPalette
+                  ? "border-accent2/28 bg-bg/82 text-fg"
+                  : "border-accent/20 bg-bg/60 text-fg"
+              }`}
+            >
+              <input
+                type="checkbox"
+                className="h-3.5 w-3.5 accent-accent2"
+                checked={hideHelpGuides}
+                onChange={(event) => setHelpGuidesHidden(event.target.checked)}
+              />
+              No mostrar ayudas otra vez
+            </label>
+          </div>
+        </div>
+      )}
+
       {monthDetailData && (
         <div className="fixed inset-0 z-[78] flex items-center justify-center p-4">
           <button
@@ -1288,135 +1377,11 @@ export default function AdminAgendaPanel({
             : "agenda-panel--day agenda-calendar--day bg-white text-fg shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)]"
         }`}
       >
-        <div className="agenda-header-layer flex flex-wrap items-center justify-between gap-4">
+        <div className="agenda-header-layer flex items-center justify-between gap-4">
           <div>
             <h1 className="font-display text-3xl tracking-[0.08em] text-fg transition-colors duration-500">
               Disponibilidad
             </h1>
-          </div>
-          <div className="flex flex-col items-end gap-2">
-            <div className="flex flex-wrap items-center justify-end gap-2">
-              {!hideHelpGuides && (
-                <div className="relative">
-                  <button
-                    ref={helpButtonRef}
-                    type="button"
-                    onClick={() => setShowHelpGuide((prev) => !prev)}
-                    className={`inline-flex h-9 w-9 items-center justify-center rounded-full border text-base font-bold leading-none transition ${
-                      useDarkMonthDetailPalette
-                        ? "border-accent2/45 bg-bg/88 text-fg hover:border-accent2 hover:bg-accent2/16"
-                        : "border-accent/30 bg-white/90 text-accent hover:border-accent/55 hover:bg-accent/10"
-                    }`}
-                    aria-label="Abrir ayuda de agenda"
-                    aria-expanded={showHelpGuide}
-                    aria-haspopup="dialog"
-                    aria-controls="agenda-help-popover"
-                  >
-                    ?
-                  </button>
-                  {showHelpGuide && (
-                    <div
-                      ref={helpPopoverRef}
-                      id="agenda-help-popover"
-                      role="dialog"
-                      aria-label="Guia de agenda"
-                      className={`absolute right-0 top-11 z-[40] w-[min(18rem,85vw)] rounded-2xl border p-4 text-left shadow-[0_24px_52px_-30px_rgba(0,0,0,0.75)] ${
-                        useDarkMonthDetailPalette
-                          ? "border-accent2/42 bg-bg/96 text-fg"
-                          : "border-accent/24 bg-white text-fg"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <strong className="text-xs uppercase tracking-wide text-fg">
-                          Guia rapida
-                        </strong>
-                        <button
-                          type="button"
-                          onClick={() => setShowHelpGuide(false)}
-                          className={`inline-flex h-7 w-7 items-center justify-center rounded-full border text-xs transition ${
-                            useDarkMonthDetailPalette
-                              ? "border-accent2/40 bg-bg/82 text-fg hover:border-accent2"
-                              : "border-accent/25 bg-bg text-muted hover:border-accent/55"
-                          }`}
-                          aria-label="Cerrar ayuda"
-                        >
-                          x
-                        </button>
-                      </div>
-
-                      <p className="mt-2 text-xs leading-relaxed text-muted">
-                        Referencia de colores y uso rapido de la agenda.
-                      </p>
-
-                      <div className="mt-3 grid gap-2 text-[11px] font-semibold uppercase tracking-wide">
-                        <span
-                          className={`inline-flex h-8 items-center gap-2 rounded-full px-3 ${
-                            useDarkMonthDetailPalette
-                              ? "border border-accent2/28 bg-bg/82 text-fg"
-                              : "border border-accent/20 bg-bg/60 text-fg"
-                          }`}
-                        >
-                          <span
-                            className="h-3 w-3 rounded-full"
-                            style={{ background: activeSlotColors.available.bg }}
-                          />
-                          Disponible
-                        </span>
-                        <span
-                          className={`inline-flex h-8 items-center gap-2 rounded-full px-3 ${
-                            useDarkMonthDetailPalette
-                              ? "border border-accent2/28 bg-bg/82 text-fg"
-                              : "border border-accent/20 bg-bg/60 text-fg"
-                          }`}
-                        >
-                          <span
-                            className="h-3 w-3 rounded-full"
-                            style={{ background: activeSlotColors.booked.bg }}
-                          />
-                          Reservado
-                        </span>
-                      </div>
-
-                      <ul className="mt-3 space-y-1.5 text-xs leading-relaxed text-muted">
-                        <li>Toque o arrastre para crear horarios disponibles.</li>
-                        <li>Toque una reserva para ver datos y limpiar solapes.</li>
-                        <li>Use el boton limpiar para borrar la vista actual.</li>
-                      </ul>
-
-                      <label
-                        className={`mt-4 flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-[11px] font-semibold tracking-wide ${
-                          useDarkMonthDetailPalette
-                            ? "border-accent2/28 bg-bg/82 text-fg"
-                            : "border-accent/20 bg-bg/60 text-fg"
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          className="h-3.5 w-3.5 accent-accent2"
-                          checked={hideHelpGuides}
-                          onChange={(event) =>
-                            setHelpGuidesHidden(event.target.checked)
-                          }
-                        />
-                        No mostrar ayudas otra vez
-                      </label>
-                    </div>
-                  )}
-                </div>
-              )}
-              <button
-                type="button"
-                onClick={requestClearVisibleRange}
-                disabled={!visibleRange || status === "saving"}
-                className={`inline-flex h-9 items-center justify-center rounded-full border px-4 text-[10px] font-semibold uppercase tracking-wide transition disabled:cursor-not-allowed disabled:opacity-60 ${
-                  useDarkMonthDetailPalette
-                    ? monthDetailSecondaryButtonClass
-                    : "border-accent/35 bg-accent/10 text-accent hover:border-accent hover:bg-accent/20"
-                }`}
-              >
-                {getClearButtonLabel()}
-              </button>
-            </div>
           </div>
         </div>
 
@@ -1585,12 +1550,21 @@ export default function AdminAgendaPanel({
 
               void handleDeleteSlot(info.event.id);
             }}
+            customButtons={{
+              clearVisible: {
+                text: "Borrar",
+                click: requestClearVisibleRange,
+              },
+              helpGuide: {
+                text: "?",
+                hint: "Abrir ayuda de agenda",
+                click: () => setShowHelpGuide(true),
+              },
+            }}
             headerToolbar={{
               left: "prev,today,next",
-              center: "",
-              right: isMobile
-                ? "dayGridMonth,timeGridDay"
-                : "dayGridMonth,timeGridWeek,timeGridDay",
+              center: "clearVisible",
+              right: rightToolbarButtons,
             }}
             slotMinTime={activeWindow.slotMin}
             slotMaxTime={activeWindow.slotMax}

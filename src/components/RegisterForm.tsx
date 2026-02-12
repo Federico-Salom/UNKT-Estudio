@@ -94,12 +94,12 @@ export default function RegisterForm({ serverError }: RegisterFormProps) {
 
   const inputClass = (invalid: boolean) =>
     [
-      "rounded-2xl border px-4 py-3 text-sm text-fg outline-none transition placeholder:text-muted focus:border-accent",
+      "w-full min-w-0 rounded-2xl border px-4 py-3 text-sm text-fg outline-none transition placeholder:text-muted focus:border-accent",
       invalid ? "border-accent bg-accent/10" : "border-accent/20 bg-white",
     ].join(" ");
 
   return (
-    <form className="mt-6 grid gap-4" onSubmit={handleSubmit} noValidate>
+    <form className="mt-6 grid min-w-0 gap-4" onSubmit={handleSubmit} noValidate>
       {(serverError || apiError) && (
         <div
           className="rounded-2xl border border-accent/40 bg-accent/10 px-4 py-3 text-sm text-accent"
@@ -109,7 +109,7 @@ export default function RegisterForm({ serverError }: RegisterFormProps) {
         </div>
       )}
 
-      <label className="grid gap-2 text-sm font-semibold">
+      <label className="grid min-w-0 gap-2 text-sm font-semibold">
         Correo
         <input
           className={inputClass(showEmailError)}
@@ -127,7 +127,7 @@ export default function RegisterForm({ serverError }: RegisterFormProps) {
           </span>
         )}
       </label>
-      <label className="grid gap-2 text-sm font-semibold">
+      <label className="grid min-w-0 gap-2 text-sm font-semibold">
         Contraseña
         <input
           className={inputClass(showPasswordError)}
@@ -148,7 +148,7 @@ export default function RegisterForm({ serverError }: RegisterFormProps) {
           </span>
         )}
       </label>
-      <label className="grid gap-2 text-sm font-semibold">
+      <label className="grid min-w-0 gap-2 text-sm font-semibold">
         Repetir contraseña
         <input
           className={inputClass(showConfirmError)}

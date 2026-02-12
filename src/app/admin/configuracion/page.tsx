@@ -1,17 +1,19 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import AdminAgendaPanel from "@/components/AdminAgendaPanel";
+import AdminPricingModal from "@/components/AdminPricingModal";
+import AdminAgendaHelpButton from "@/components/AdminAgendaHelpButton";
 import BrandMark from "@/components/BrandMark";
 import Container from "@/components/Container";
-import UserMenu from "@/components/UserMenu";
 import ThemeToggle from "@/components/ThemeToggle";
+import UserMenu from "@/components/UserMenu";
 import { getSessionFromCookies } from "@/lib/auth";
+import { getExtraPrice, resolveBasePrice } from "@/lib/booking";
 import { prisma } from "@/lib/prisma";
 import { getStudioContent } from "@/lib/studio-content";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminAgendaPage() {
+export default async function AdminConfiguracionPage() {
   const session = await getSessionFromCookies();
   if (!session) {
     redirect("/login");
@@ -27,69 +29,11 @@ export default async function AdminAgendaPage() {
 
   const studio = await getStudioContent();
   const createdAtLabel = user.createdAt.toLocaleString("es-AR");
-
-  const slots = await prisma.availabilitySlot.findMany({
-    orderBy: { start: "asc" },
-  });
-
-  const bookings = await prisma.booking.findMany({
-    orderBy: { createdAt: "desc" },
-  });
-
-  const slotsForPanel: {
-    id: string;
-    start: string;
-    end: string;
-    status: "available" | "booked";
-  }[] = slots.map((slot) => ({
-    id: slot.id,
-    start: slot.start.toISOString(),
-    end: slot.end.toISOString(),
-    status: slot.status === "booked" ? "booked" : "available",
+  const pricingBasePrice = resolveBasePrice(studio.pricing.basePrice);
+  const pricingExtras = studio.extras.items.map((label) => ({
+    label,
+    price: getExtraPrice(label),
   }));
-
-  const slotById = new Map(slots.map((slot) => [slot.id, slot]));
-
-  const bookingsForPanel = bookings.flatMap((booking) => {
-    const slotIds = (() => {
-      try {
-        return JSON.parse(booking.slotIds || "[]") as string[];
-      } catch {
-        return [];
-      }
-    })();
-
-    const extrasLabel = (() => {
-      try {
-        const extras = JSON.parse(booking.extras || "[]") as string[];
-        return extras.length ? `Extras: ${extras.join(", ")}` : "Sin extras";
-      } catch {
-        return "Sin extras";
-      }
-    })();
-
-    if (!slotIds.length && booking.slotId) {
-      slotIds.push(booking.slotId);
-    }
-
-    return slotIds
-      .map((slotId, index) => {
-        const slot = slotById.get(slotId);
-        if (!slot) return undefined;
-        return {
-          id: `${booking.id}-${index}`,
-          title: booking.name,
-          start: slot.start.toISOString(),
-          end: slot.end.toISOString(),
-          status: booking.status,
-          email: booking.email,
-          phone: booking.phone,
-          extrasLabel,
-          totalLabel: `$${booking.total.toLocaleString("es-AR")}`,
-        };
-      })
-      .filter((item): item is NonNullable<typeof item> => Boolean(item));
-  });
 
   return (
     <div className="admin-dashboard min-h-screen bg-bg text-fg">
@@ -130,9 +74,35 @@ export default async function AdminAgendaPage() {
         </Container>
       </header>
 
-      <main className="px-2 py-8 sm:px-6">
-        <Container className="!px-2 sm:!px-6">
-          <AdminAgendaPanel slots={slotsForPanel} bookings={bookingsForPanel} />
+      <main className="px-6 py-8">
+        <Container>
+          <div className="rounded-3xl border border-accent/20 bg-white/70 p-5 shadow-[0_30px_60px_-45px_rgba(30,15,20,0.6)] backdrop-blur">
+            <section
+              aria-label="Opciones de configuración"
+              className="mx-auto max-w-[21rem] md:max-w-none"
+            >
+              <div className="grid grid-cols-1 gap-3 md:flex md:flex-wrap md:items-center md:justify-center">
+                <Link
+                  className="inline-flex w-full items-center justify-center rounded-full border border-accent px-5 py-2 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent2 hover:text-accent2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2 md:w-auto"
+                  href="/admin/users"
+                >
+                  Ver usuarios
+                </Link>
+                <Link
+                  className="inline-flex w-full items-center justify-center rounded-full border border-accent px-5 py-2 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent2 hover:text-accent2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2 md:w-auto"
+                  href="/admin/content"
+                >
+                  Editar contenido
+                </Link>
+                <AdminAgendaHelpButton />
+                <AdminPricingModal
+                  basePrice={pricingBasePrice}
+                  extras={pricingExtras}
+                  triggerClassName="w-full md:w-auto"
+                />
+              </div>
+            </section>
+          </div>
         </Container>
       </main>
     </div>
