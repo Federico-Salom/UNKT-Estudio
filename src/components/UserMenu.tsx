@@ -99,7 +99,7 @@ export default function UserMenu({
       {showActionButton ? (
         <a
           href={actionHref}
-          className={`${showBookingsButton ? "mt-3" : "mt-4"} inline-flex w-full items-center justify-center rounded-full border px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] transition ${secondaryButtonToneClassName}`}
+          className={`${showBookingsButton ? "mt-3" : ""} inline-flex w-full items-center justify-center rounded-full border px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] transition ${secondaryButtonToneClassName}`}
         >
           {actionLabel}
         </a>
@@ -107,7 +107,7 @@ export default function UserMenu({
       {showAdminHomeButton ? (
         <Link
           href="/"
-          className={`${showActionButton || showBookingsButton ? "mt-3" : "mt-4"} inline-flex w-full items-center justify-center rounded-full border px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] transition ${secondaryButtonToneClassName}`}
+          className={`${showActionButton || showBookingsButton ? "mt-3" : ""} inline-flex w-full items-center justify-center rounded-full border px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] transition ${secondaryButtonToneClassName}`}
         >
           Ir al home
         </Link>
@@ -115,7 +115,7 @@ export default function UserMenu({
       {showLogoutButton ? (
         <a
           href="/auth/logout"
-          className={`${showAdminHomeButton || showActionButton || showBookingsButton ? "mt-3" : "mt-4"} inline-flex w-full items-center justify-center rounded-full border px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] transition ${logoutButtonToneClassName}`}
+          className={`${showAdminHomeButton || showActionButton || showBookingsButton ? "mt-3" : ""} inline-flex w-full items-center justify-center rounded-full border px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] transition ${logoutButtonToneClassName}`}
         >
           Cerrar sesión
         </a>

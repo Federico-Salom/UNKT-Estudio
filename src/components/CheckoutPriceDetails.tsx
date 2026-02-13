@@ -43,6 +43,18 @@ export default function CheckoutPriceDetails({
   const [isOpen, setIsOpen] = useState(false);
 
   const baseSubtotal = useMemo(() => basePrice * hours, [basePrice, hours]);
+  const surchargesSubtotal = useMemo(
+    () => weekendOrHolidaySurcharge + nightSurcharge,
+    [nightSurcharge, weekendOrHolidaySurcharge]
+  );
+  const totalBaseWithSurcharges = useMemo(
+    () => baseSubtotal + surchargesSubtotal,
+    [baseSubtotal, surchargesSubtotal]
+  );
+  const totalHourlyRateWithSurcharges = useMemo(() => {
+    if (hours <= 0) return 0;
+    return Math.round(totalBaseWithSurcharges / hours);
+  }, [hours, totalBaseWithSurcharges]);
   const extrasSubtotal = useMemo(
     () => extras.reduce((acc, item) => acc + item.amount, 0),
     [extras]
@@ -80,7 +92,7 @@ export default function CheckoutPriceDetails({
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className={`inline-flex items-center justify-center whitespace-nowrap rounded-full border border-accent/35 bg-bg/70 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-fg [overflow-wrap:normal] [word-break:normal] transition hover:border-accent hover:bg-accent/10 ${buttonClassName ?? ""}`.trim()}
+        className={`inline-flex items-center justify-center whitespace-nowrap rounded-full border border-accent/35 bg-bg/70 px-4 py-2 text-[11px] font-semibold tracking-[0.08em] text-fg [overflow-wrap:normal] [word-break:normal] transition hover:border-accent hover:bg-accent/10 ${buttonClassName ?? ""}`.trim()}
       >
         Detalles
       </button>
@@ -122,12 +134,12 @@ export default function CheckoutPriceDetails({
             </button>
 
             <div className="pr-8">
-              <p
-                id="checkout-price-details-title"
-                className="text-xs font-semibold uppercase tracking-[0.2em] text-muted"
-              >
-                Desglose del total
-              </p>
+                <p
+                  id="checkout-price-details-title"
+                  className="text-xs font-semibold tracking-[0.08em] text-muted"
+                >
+                  Desglose del total
+                </p>
               <p className="mt-2 text-sm text-muted">
                 Este es el detalle completo de tu reserva.
               </p>
@@ -174,12 +186,27 @@ export default function CheckoutPriceDetails({
                 </div>
               ) : null}
 
+              {surchargesSubtotal > 0 && totalHourlyRateWithSurcharges > 0 ? (
+                <div className="flex items-start justify-between gap-3 text-sm text-fg">
+                  <div>
+                    <p className="font-semibold">Costo total por hora (con recargos)</p>
+                    <p className="text-xs text-muted">
+                      Base + recargos dividido por {formatHours(hours)}{" "}
+                      {hours === 1 ? "hora" : "horas"}.
+                    </p>
+                  </div>
+                  <p className="font-semibold">
+                    {formatMoney(totalHourlyRateWithSurcharges)}
+                  </p>
+                </div>
+              ) : null}
+
               {weekendOrHolidaySurcharge > 0 || nightSurcharge > 0 ? (
                 <div className="h-px bg-accent/15" />
               ) : null}
 
               <div className="space-y-1">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                <p className="text-xs font-semibold tracking-[0.08em] text-muted">
                   Fondos
                 </p>
                 {extras.length ? (
@@ -208,7 +235,7 @@ export default function CheckoutPriceDetails({
               <div className="h-px bg-accent/15" />
 
               <div className="space-y-1">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                <p className="text-xs font-semibold tracking-[0.08em] text-muted">
                   Servicios
                 </p>
                 {services.length ? (
@@ -243,7 +270,7 @@ export default function CheckoutPriceDetails({
             </div>
 
             <div className="mt-4 flex items-center justify-between rounded-2xl border border-accent/25 bg-accent/10 px-4 py-3">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-accent/80">
+              <p className="text-[11px] font-semibold tracking-[0.08em] text-accent/80">
                 Total
               </p>
               <p className="font-display text-3xl leading-none text-accent">

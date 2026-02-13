@@ -312,7 +312,7 @@ export default function Gallery({ studio }: GalleryProps) {
             type="button"
             aria-label="Imagen anterior"
             onClick={handlePrev}
-            className="gallery-nav-btn absolute left-2 top-1/2 z-10 inline-flex -translate-y-1/2 items-center justify-center rounded-full border border-accent/30 bg-bg/90 p-3 text-accent shadow-[0_10px_30px_-20px_rgba(0,0,0,0.4)] transition hover:border-accent hover:bg-bg md:left-3"
+            className="gallery-nav-btn absolute -left-3 top-1/2 z-10 inline-flex -translate-y-1/2 items-center justify-center rounded-full border border-accent/30 bg-bg/90 p-3 text-accent shadow-[0_10px_30px_-20px_rgba(0,0,0,0.4)] transition hover:border-accent hover:bg-bg md:-left-4"
           >
             <svg
               aria-hidden="true"
@@ -360,7 +360,7 @@ export default function Gallery({ studio }: GalleryProps) {
             type="button"
             aria-label="Imagen siguiente"
             onClick={handleNext}
-            className="gallery-nav-btn absolute right-2 top-1/2 z-10 inline-flex -translate-y-1/2 items-center justify-center rounded-full border border-accent/30 bg-bg/90 p-3 text-accent shadow-[0_10px_30px_-20px_rgba(0,0,0,0.4)] transition hover:border-accent hover:bg-bg md:right-3"
+            className="gallery-nav-btn absolute -right-3 top-1/2 z-10 inline-flex -translate-y-1/2 items-center justify-center rounded-full border border-accent/30 bg-bg/90 p-3 text-accent shadow-[0_10px_30px_-20px_rgba(0,0,0,0.4)] transition hover:border-accent hover:bg-bg md:-right-4"
           >
             <svg
               aria-hidden="true"
@@ -377,7 +377,7 @@ export default function Gallery({ studio }: GalleryProps) {
           </button>
         </div>
 
-        <div className="gallery-dots mt-0.5 flex h-4 items-center justify-center gap-1.5">
+        <div className="gallery-dots mt-2 flex h-4 items-center justify-center gap-1.5">
           {gallery.map((_, index) => (
             <button
               key={`dot-${index}`}
@@ -450,12 +450,12 @@ export default function Gallery({ studio }: GalleryProps) {
             {activeCatalogModal === "services" ? (
               <div className="mt-4 rounded-2xl border border-accent/20 bg-bg/80 p-4">
                 <div className="max-h-[58dvh] space-y-3 overflow-y-auto pr-1 sm:max-h-[62dvh]">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">
+                  <p className="text-xs font-semibold tracking-[0.08em] text-accent">
                     {studio.services.bookingNotice}
                   </p>
 
                   <section className="rounded-2xl border border-accent/15 bg-white/70 p-3">
-                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                    <p className="text-xs font-semibold tracking-[0.08em] text-muted">
                       {studio.services.photographyTitle}
                     </p>
                     <p className="mt-1 text-sm text-muted">{studio.services.description}</p>
@@ -469,7 +469,7 @@ export default function Gallery({ studio }: GalleryProps) {
                   </section>
 
                   <section className="rounded-2xl border border-accent/15 bg-white/70 p-3 text-sm text-fg">
-                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                    <p className="text-xs font-semibold tracking-[0.08em] text-muted">
                       {studio.services.modelsTitle}
                     </p>
                     <p className="mt-1">
@@ -478,7 +478,7 @@ export default function Gallery({ studio }: GalleryProps) {
                   </section>
 
                   <section className="rounded-2xl border border-accent/15 bg-white/70 p-3 text-sm text-fg">
-                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                    <p className="text-xs font-semibold tracking-[0.08em] text-muted">
                       {studio.services.makeupTitle}
                     </p>
                     <ul className="mt-2 space-y-1">
@@ -491,7 +491,7 @@ export default function Gallery({ studio }: GalleryProps) {
                   </section>
 
                   <section className="rounded-2xl border border-accent/15 bg-white/70 p-3 text-sm text-fg">
-                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                    <p className="text-xs font-semibold tracking-[0.08em] text-muted">
                       {studio.services.hairstyleTitle}
                     </p>
                     <p className="mt-1">
@@ -500,7 +500,7 @@ export default function Gallery({ studio }: GalleryProps) {
                   </section>
 
                   <section className="rounded-2xl border border-accent/15 bg-white/70 p-3 text-sm text-fg">
-                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                    <p className="text-xs font-semibold tracking-[0.08em] text-muted">
                       {studio.services.stylingTitle}
                     </p>
                     <ul className="mt-2 space-y-1">
@@ -513,7 +513,7 @@ export default function Gallery({ studio }: GalleryProps) {
                   </section>
 
                   <section className="rounded-2xl border border-accent/15 bg-white/70 p-3 text-sm text-fg">
-                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                    <p className="text-xs font-semibold tracking-[0.08em] text-muted">
                       {studio.services.artDirectionTitle}
                     </p>
                     <ul className="mt-2 space-y-1">
@@ -526,7 +526,7 @@ export default function Gallery({ studio }: GalleryProps) {
                   </section>
 
                   <section className="rounded-2xl border border-accent/15 bg-white/70 p-3 text-sm text-fg">
-                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                    <p className="text-xs font-semibold tracking-[0.08em] text-muted">
                       {studio.services.lightOperatorTitle}
                     </p>
                     <p className="mt-1">
@@ -535,7 +535,7 @@ export default function Gallery({ studio }: GalleryProps) {
                   </section>
 
                   <section className="rounded-2xl border border-accent/15 bg-white/70 p-3 text-sm text-fg">
-                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                    <p className="text-xs font-semibold tracking-[0.08em] text-muted">
                       {studio.services.assistantsTitle}
                     </p>
                     <p className="mt-1">

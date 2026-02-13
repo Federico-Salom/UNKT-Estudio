@@ -334,7 +334,7 @@ export default function AdminPricingModal({
 
     return (
       <div className="grid gap-3">
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+        <p className="text-xs font-semibold tracking-[0.08em] text-muted">
           {title}
         </p>
         {options.map((item, index) => {
@@ -514,7 +514,7 @@ export default function AdminPricingModal({
                   </div>
 
                   <div className="grid gap-3">
-                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                    <p className="text-xs font-semibold tracking-[0.08em] text-muted">
                       Servicios - opciones
                     </p>
                     <div className="grid gap-4 md:grid-cols-2">
@@ -542,7 +542,7 @@ export default function AdminPricingModal({
                   </div>
 
                   <div className="grid gap-3">
-                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                    <p className="text-xs font-semibold tracking-[0.08em] text-muted">
                       Servicios - tarifas automaticas
                     </p>
 

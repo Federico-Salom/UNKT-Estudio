@@ -40,6 +40,41 @@ const DEFAULT_PHOTOGRAPHY_HINT =
 const LEGACY_PHOTOGRAPHY_HINT_PATTERNS = [
   "obligatorio seleccionar una opcion",
 ];
+const DEFAULT_PHOTOGRAPHY_OPTIONS: ServiceOption[] = [
+  {
+    id: "foto-15",
+    label: "15 fotos finales editadas",
+    price: 180000,
+    minHours: 3,
+  },
+  {
+    id: "foto-25",
+    label: "25 fotos finales editadas",
+    price: 280000,
+    minHours: 4,
+  },
+  {
+    id: "foto-35",
+    label: "35 fotos finales editadas",
+    price: 380000,
+    minHours: 5,
+  },
+];
+const SERVICE_COPY_BY_KEY = new Map<string, string>([
+  ["servicios", "Servicios"],
+  ["servicios unkt estudio", "Servicios UNKT Estudio"],
+  ["elegi tu produccion fotografica", "Elegi tu produccion fotografica"],
+  ["fotografia", "Fotografia"],
+  ["modelos", "Modelos"],
+  ["maquillaje", "Maquillaje"],
+  ["peinado", "Peinado"],
+  ["estilismo", "Estilismo"],
+  ["direccion de arte", "Direccion de arte"],
+  ["operador de luces", "Operador de luces"],
+  ["asistentes de produccion", "Asistentes de produccion"],
+  ["total", "Total"],
+  ["total servicios", "Total servicios"],
+]);
 
 const normalizeToken = (value: string) =>
   value
@@ -53,6 +88,46 @@ const normalizeToken = (value: string) =>
 const normalizeText = (value: unknown, fallback = "") => {
   const text = String(value ?? "").trim();
   return text || fallback;
+};
+
+const stripServicePrefixes = (value: string) =>
+  value
+    .replace(/^\s*paso\s*\d+\s*[-:.)]\s*/i, "")
+    .replace(/^\s*\d+\s*[-:.)]\s*/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const normalizeServicePhraseKey = (value: string) =>
+  stripServicePrefixes(value)
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+
+const isAllUppercaseText = (value: string) => {
+  const lettersOnly = value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z]/gi, "");
+  if (!lettersOnly) {
+    return false;
+  }
+  return lettersOnly === lettersOnly.toUpperCase();
+};
+
+const toSentenceCase = (value: string) =>
+  value.toLowerCase().replace(/[a-z]/, (letter) => letter.toUpperCase());
+
+const normalizeServiceCopy = (value: unknown, fallback = "") => {
+  const raw = normalizeText(value, fallback);
+  const stripped = stripServicePrefixes(raw);
+  const safeText = stripped || fallback;
+
+  const canonical = SERVICE_COPY_BY_KEY.get(normalizeServicePhraseKey(safeText));
+  const cased = canonical || (isAllUppercaseText(safeText) ? toSentenceCase(safeText) : safeText);
+
+  return cased.replace(/\bunkt\b/gi, "UNKT").trim();
 };
 
 const normalizePrice = (value: unknown, fallback: number) => {
@@ -100,7 +175,7 @@ export const normalizeServiceOptions = (
   const seenLabels = new Set<string>();
 
   const normalized = options.flatMap((option) => {
-    const label = normalizeText(option?.label);
+    const label = normalizeServiceCopy(option?.label);
     if (!label) {
       return [];
     }
@@ -134,7 +209,7 @@ export const normalizeServiceOptions = (
           typeof option?.minHours === "number" || typeof option?.minHours === "string"
             ? normalizeMinHours(option.minHours)
             : undefined,
-        description: normalizeText(option?.description),
+        description: normalizeServiceCopy(option?.description),
       },
     ];
   });
@@ -153,6 +228,25 @@ export const normalizeServiceOptions = (
   ];
 };
 
+const ensurePhotographyDefaults = (options: ServiceOption[]) => {
+  const byLabel = new Set(
+    options.map((option) => normalizeServicePhraseKey(option.label))
+  );
+  const next = [...options];
+
+  for (const fallbackOption of DEFAULT_PHOTOGRAPHY_OPTIONS) {
+    const fallbackKey = normalizeServicePhraseKey(fallbackOption.label);
+    if (!fallbackKey || byLabel.has(fallbackKey)) {
+      continue;
+    }
+
+    next.push({ ...fallbackOption });
+    byLabel.add(fallbackKey);
+  }
+
+  return next;
+};
+
 export const normalizeServiceCatalog = (catalog: ServiceCatalog): ServiceCatalog => {
   const safeMaxModels = Math.max(1, normalizeCount(catalog.maxModels, 50) || DEFAULT_MAX_MODELS);
   const safeMaxAssistants = Math.max(
@@ -166,12 +260,14 @@ export const normalizeServiceCatalog = (catalog: ServiceCatalog): ServiceCatalog
   const normalizedPhotographyHint =
     !rawPhotographyHint || isLegacyPhotographyHint
       ? DEFAULT_PHOTOGRAPHY_HINT
-      : rawPhotographyHint;
+      : normalizeServiceCopy(rawPhotographyHint);
 
-  const photographyOptions = normalizeServiceOptions(
-    catalog.photographyOptions,
-    "photo",
-    "Produccion fotografica"
+  const photographyOptions = ensurePhotographyDefaults(
+    normalizeServiceOptions(
+      catalog.photographyOptions,
+      "photo",
+      "Produccion fotografica"
+    )
   ).map((option, index) => ({
     ...option,
     minHours: normalizeMinHours(option.minHours, index === 0 ? 2 : 1),
@@ -179,58 +275,58 @@ export const normalizeServiceCatalog = (catalog: ServiceCatalog): ServiceCatalog
 
   return {
     ...catalog,
-    title: normalizeText(catalog.title, "SERVICIOS"),
-    subtitle: normalizeText(catalog.subtitle, "Paso 1"),
-    description: normalizeText(catalog.description),
-    bookingNotice: normalizeText(catalog.bookingNotice),
-    photographyTitle: normalizeText(catalog.photographyTitle, "Fotografia"),
+    title: normalizeServiceCopy(catalog.title, "Servicios"),
+    subtitle: normalizeServiceCopy(catalog.subtitle, "Elegi tu produccion fotografica"),
+    description: normalizeServiceCopy(catalog.description),
+    bookingNotice: normalizeServiceCopy(catalog.bookingNotice),
+    photographyTitle: normalizeServiceCopy(catalog.photographyTitle, "Fotografia"),
     photographyHint: normalizedPhotographyHint,
     photographyOptions,
-    modelsTitle: normalizeText(catalog.modelsTitle, "Modelos"),
-    modelsHint: normalizeText(catalog.modelsHint),
+    modelsTitle: normalizeServiceCopy(catalog.modelsTitle, "Modelos"),
+    modelsHint: normalizeServiceCopy(catalog.modelsHint),
     maxModels: safeMaxModels,
     modelRatePerHour: normalizePrice(catalog.modelRatePerHour, 0),
-    makeupTitle: normalizeText(catalog.makeupTitle, "Maquillaje"),
-    makeupHint: normalizeText(catalog.makeupHint),
+    makeupTitle: normalizeServiceCopy(catalog.makeupTitle, "Maquillaje"),
+    makeupHint: normalizeServiceCopy(catalog.makeupHint),
     makeupOptions: normalizeServiceOptions(
       catalog.makeupOptions,
       "makeup",
       "Maquillaje"
     ),
-    hairstyleTitle: normalizeText(catalog.hairstyleTitle, "Peinado"),
-    hairstyleHint: normalizeText(catalog.hairstyleHint),
-    hairstyleLabel: normalizeText(catalog.hairstyleLabel, "Peinado"),
+    hairstyleTitle: normalizeServiceCopy(catalog.hairstyleTitle, "Peinado"),
+    hairstyleHint: normalizeServiceCopy(catalog.hairstyleHint),
+    hairstyleLabel: normalizeServiceCopy(catalog.hairstyleLabel, "Peinado"),
     hairstyleRatePerModel: normalizePrice(catalog.hairstyleRatePerModel, 0),
-    stylingTitle: normalizeText(catalog.stylingTitle, "Estilismo"),
-    stylingHint: normalizeText(catalog.stylingHint),
+    stylingTitle: normalizeServiceCopy(catalog.stylingTitle, "Estilismo"),
+    stylingHint: normalizeServiceCopy(catalog.stylingHint),
     stylingOptions: normalizeServiceOptions(
       catalog.stylingOptions,
       "styling",
       "Servicio de estilismo"
     ),
-    artDirectionTitle: normalizeText(catalog.artDirectionTitle, "Direccion de arte"),
-    artDirectionHint: normalizeText(catalog.artDirectionHint),
+    artDirectionTitle: normalizeServiceCopy(catalog.artDirectionTitle, "Direccion de arte"),
+    artDirectionHint: normalizeServiceCopy(catalog.artDirectionHint),
     artDirectionOptions: normalizeServiceOptions(
       catalog.artDirectionOptions,
       "art",
       "Direccion de arte"
     ),
-    lightOperatorTitle: normalizeText(catalog.lightOperatorTitle, "Operador de luces"),
-    lightOperatorHint: normalizeText(catalog.lightOperatorHint),
-    lightOperatorLabel: normalizeText(
+    lightOperatorTitle: normalizeServiceCopy(catalog.lightOperatorTitle, "Operador de luces"),
+    lightOperatorHint: normalizeServiceCopy(catalog.lightOperatorHint),
+    lightOperatorLabel: normalizeServiceCopy(
       catalog.lightOperatorLabel,
       "Disposicion durante la jornada"
     ),
     lightOperatorRatePerHour: normalizePrice(catalog.lightOperatorRatePerHour, 0),
-    assistantsTitle: normalizeText(catalog.assistantsTitle, "Asistentes"),
-    assistantsHint: normalizeText(catalog.assistantsHint),
-    assistantsLabel: normalizeText(
+    assistantsTitle: normalizeServiceCopy(catalog.assistantsTitle, "Asistentes de produccion"),
+    assistantsHint: normalizeServiceCopy(catalog.assistantsHint),
+    assistantsLabel: normalizeServiceCopy(
       catalog.assistantsLabel,
       "Disposicion durante la jornada"
     ),
     maxAssistants: safeMaxAssistants,
     assistantsRatePerHour: normalizePrice(catalog.assistantsRatePerHour, 0),
-    totalsTitle: normalizeText(catalog.totalsTitle, "Total"),
+    totalsTitle: normalizeServiceCopy(catalog.totalsTitle, "Total servicios"),
   };
 };
 

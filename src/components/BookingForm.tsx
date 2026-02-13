@@ -139,6 +139,10 @@ const getDateKeyFromDate = (value: Date) => dateKeyFormatter.format(value);
 const formatTime = (value: string) => timeFormatter.format(toDate(value));
 const formatRangeLabel = (start: string, end: string) =>
   `${formatTime(start)} - ${formatTime(end)}`;
+const formatHoursLabel = (value: number) =>
+  Number.isInteger(value)
+    ? String(value)
+    : value.toLocaleString("es-AR", { maximumFractionDigits: 2 });
 const getSlotStartTime = (slot: SlotOption) => toDate(slot.start).getTime();
 const getSlotEndTime = (slot: SlotOption) => toDate(slot.end).getTime();
 const sortSlotsByStart = (slotA: SlotOption, slotB: SlotOption) =>
@@ -255,6 +259,7 @@ export default function BookingForm({
   const [selectedServices, setSelectedServices] =
     useState<BookingServicesSelection>(initialServicesSelection);
   const [extrasError, setExtrasError] = useState("");
+  const [photographySelectionError, setPhotographySelectionError] = useState("");
   const [attempted, setAttempted] = useState(false);
   const [status, setStatus] = useState<"idle" | "loading">("idle");
   const [apiError, setApiError] = useState("");
@@ -368,6 +373,10 @@ export default function BookingForm({
     [normalizedServicesCatalog, selectedServices, selectedSlotIds.length]
   );
   const servicesTotal = servicesBreakdown.total;
+  const selectedServiceSubtotals = useMemo(
+    () => servicesBreakdown.subtotals.filter((item) => item.amount > 0),
+    [servicesBreakdown.subtotals]
+  );
   const servicesSubtotalsByKey = useMemo(
     () =>
       new Map<ServiceSubtotal["key"], ServiceSubtotal>(
@@ -435,19 +444,38 @@ export default function BookingForm({
   const hoursBreakdownLabel =
     selectedSlotCount > 0
       ? `${selectedSlotCount} ${selectedSlotCount === 1 ? "hora" : "horas"} x $${basePrice.toLocaleString("es-AR")}`
-      : "Selecciona minimo 2 horas consecutivas.";
-  const surchargesBreakdownLabel = useMemo(() => {
-    const parts: string[] = [];
+      : "";
+  const surchargesBreakdown = useMemo(() => {
+    const lines: Array<{ key: string; label: string; amount: number }> = [];
     if (pricingSummary.weekendOrHolidaySurcharge > 0) {
-      parts.push(
-        `finde/feriado $${pricingSummary.weekendOrHolidaySurcharge.toLocaleString("es-AR")}`
-      );
+      lines.push({
+        key: "weekendOrHoliday",
+        label: `Finde/feriado (+30%) sobre ${formatHoursLabel(
+          pricingSummary.weekendOrHolidayHours
+        )} ${pricingSummary.weekendOrHolidayHours === 1 ? "hora" : "horas"}`,
+        amount: pricingSummary.weekendOrHolidaySurcharge,
+      });
     }
     if (pricingSummary.nightSurcharge > 0) {
-      parts.push(`nocturno $${pricingSummary.nightSurcharge.toLocaleString("es-AR")}`);
+      lines.push({
+        key: "night",
+        label: `Nocturno (+40%) sobre ${formatHoursLabel(
+          pricingSummary.nightHours
+        )} ${pricingSummary.nightHours === 1 ? "hora" : "horas"}`,
+        amount: pricingSummary.nightSurcharge,
+      });
     }
-    return parts.join(" + ");
-  }, [pricingSummary.nightSurcharge, pricingSummary.weekendOrHolidaySurcharge]);
+    return lines;
+  }, [
+    pricingSummary.nightHours,
+    pricingSummary.nightSurcharge,
+    pricingSummary.weekendOrHolidayHours,
+    pricingSummary.weekendOrHolidaySurcharge,
+  ]);
+  const totalHourlyRateWithSurcharges = useMemo(() => {
+    if (pricingSummary.hours <= 0) return 0;
+    return Math.round(pricingSummary.totalBaseWithSurcharges / pricingSummary.hours);
+  }, [pricingSummary.hours, pricingSummary.totalBaseWithSurcharges]);
 
   const groupedSlots = useMemo(() => {
     const map = new Map<string, SlotOption[]>();
@@ -661,6 +689,34 @@ export default function BookingForm({
   };
 
   const setPhotographyOption = (optionId: string | null) => {
+    if (!optionId) {
+      setPhotographySelectionError("");
+      setSelectedServices((prev) => ({
+        ...prev,
+        photographyOptionId: null,
+      }));
+      return;
+    }
+
+    const option = normalizedServicesCatalog.photographyOptions.find(
+      (item) => item.id === optionId
+    );
+    if (!option) {
+      return;
+    }
+
+    const minHours = option.minHours || 1;
+    if (selectedSlotIds.length < minHours) {
+      const selectedHoursLabel =
+        selectedSlotIds.length === 1 ? "1 hora" : `${selectedSlotIds.length} horas`;
+      const requiredHoursLabel = minHours === 1 ? "1 hora" : `${minHours} horas`;
+      setPhotographySelectionError(
+        `No podes seleccionar "${option.label}" porque requiere un minimo de ${requiredHoursLabel}. Horas seleccionadas: ${selectedHoursLabel}.`
+      );
+      return;
+    }
+
+    setPhotographySelectionError("");
     setSelectedServices((prev) => ({
       ...prev,
       photographyOptionId: optionId,
@@ -704,6 +760,7 @@ export default function BookingForm({
 
   const toggleSlotSelection = (slotId: string) => {
     let nextError = "";
+    setPhotographySelectionError("");
 
     setSelectedSlotIds((prevSelectedSlotIds) => {
       const clickedIndex = selectedDateSlotIndexById.get(slotId);
@@ -1068,6 +1125,7 @@ export default function BookingForm({
   const handleDateSelection = (dateKey: string) => {
     setSelectedDate(dateKey);
     setSelectedSlotIds([]);
+    setPhotographySelectionError("");
     setApiError("");
     closeCalendar();
     openSlotsPanel();
@@ -1083,6 +1141,9 @@ export default function BookingForm({
   const handleConfirmServices = () => {
     closeServicesPanel();
     openExtrasPanel();
+  };
+  const handleConfirmExtras = () => {
+    closeExtrasPanel();
   };
   const openGuideModal = () => setIsGuideModalOpen(true);
   const closeGuideModal = () => setIsGuideModalOpen(false);
@@ -1330,7 +1391,7 @@ export default function BookingForm({
           aria-expanded={isServicesExpanded}
           aria-controls="booking-services-panel"
         >
-          <span className="text-sm font-semibold uppercase tracking-wide text-fg">
+          <span className="text-sm font-semibold tracking-wide text-fg">
             Servicios
           </span>
           {renderSectionEditIcon()}
@@ -1346,10 +1407,10 @@ export default function BookingForm({
           >
             <div className="booking-services-panel grid gap-3 rounded-2xl border border-accent/15 bg-white/80 px-4 py-4">
               <div className="booking-services-section rounded-2xl border border-accent/15 bg-bg/70 p-3 text-sm text-fg">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                <p className="text-xs font-semibold tracking-[0.08em] text-muted">
                   {normalizedServicesCatalog.title}
                 </p>
-                <p className="mt-1 text-xs font-semibold uppercase tracking-[0.12em] text-accent">
+                <p className="mt-1 text-xs font-semibold tracking-[0.08em] text-accent">
                   {normalizedServicesCatalog.bookingNotice}
                 </p>
               </div>
@@ -1357,7 +1418,7 @@ export default function BookingForm({
               <details className="booking-services-section group rounded-2xl border border-accent/20 bg-bg/65 p-3">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                    <p className="text-xs font-semibold tracking-[0.08em] text-muted">
                       {normalizedServicesCatalog.photographyTitle}
                     </p>
                     <p className="mt-1 text-xs text-muted">
@@ -1368,7 +1429,7 @@ export default function BookingForm({
                     <span className="text-xs font-semibold text-fg/85">
                       {selectedPhotographyOption
                         ? formatExtraPriceLabel(selectedPhotographyOption.price)
-                        : "Opcional"}
+                        : formatExtraPriceLabel(0)}
                     </span>
                     <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-accent/25 text-accent transition-transform group-open:rotate-180">
                       <svg
@@ -1447,6 +1508,15 @@ export default function BookingForm({
                       );
                     })}
                   </div>
+                  {photographySelectionError ? (
+                    <p
+                      role="alert"
+                      aria-live="polite"
+                      className="mt-2 rounded-xl border border-accent/30 bg-accent/10 px-3 py-2 text-xs font-medium text-accent"
+                    >
+                      {photographySelectionError}
+                    </p>
+                  ) : null}
                 </div>
               </details>
 
@@ -1454,7 +1524,7 @@ export default function BookingForm({
                 <details className="booking-services-section group rounded-2xl border border-accent/20 bg-bg/65 p-3">
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
                     <div className="min-w-0">
-                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                      <p className="text-xs font-semibold tracking-[0.08em] text-muted">
                         {normalizedServicesCatalog.modelsTitle}
                       </p>
                       <p className="mt-1 text-xs text-muted">
@@ -1515,7 +1585,7 @@ export default function BookingForm({
                 <details className="booking-services-section group rounded-2xl border border-accent/20 bg-bg/65 p-3">
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
                     <div className="min-w-0">
-                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                      <p className="text-xs font-semibold tracking-[0.08em] text-muted">
                         {normalizedServicesCatalog.makeupTitle}
                       </p>
                       <p className="mt-1 text-xs text-muted">
@@ -1585,7 +1655,7 @@ export default function BookingForm({
                 <details className="booking-services-section group rounded-2xl border border-accent/20 bg-bg/65 p-3">
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
                     <div className="min-w-0">
-                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                      <p className="text-xs font-semibold tracking-[0.08em] text-muted">
                         {normalizedServicesCatalog.hairstyleTitle}
                       </p>
                       <p className="mt-1 text-xs text-muted">
@@ -1639,7 +1709,7 @@ export default function BookingForm({
                 <details className="booking-services-section group rounded-2xl border border-accent/20 bg-bg/65 p-3">
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
                     <div className="min-w-0">
-                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                      <p className="text-xs font-semibold tracking-[0.08em] text-muted">
                         {normalizedServicesCatalog.lightOperatorTitle}
                       </p>
                       <p className="mt-1 text-xs text-muted">
@@ -1696,7 +1766,7 @@ export default function BookingForm({
                 <details className="booking-services-section group rounded-2xl border border-accent/20 bg-bg/65 p-3">
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
                     <div className="min-w-0">
-                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                      <p className="text-xs font-semibold tracking-[0.08em] text-muted">
                         {normalizedServicesCatalog.stylingTitle}
                       </p>
                       <p className="mt-1 text-xs text-muted">
@@ -1765,7 +1835,7 @@ export default function BookingForm({
                 <details className="booking-services-section group rounded-2xl border border-accent/20 bg-bg/65 p-3">
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
                     <div className="min-w-0">
-                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                      <p className="text-xs font-semibold tracking-[0.08em] text-muted">
                         {normalizedServicesCatalog.artDirectionTitle}
                       </p>
                       <p className="mt-1 text-xs text-muted">
@@ -1837,7 +1907,7 @@ export default function BookingForm({
               <details className="booking-services-section group rounded-2xl border border-accent/20 bg-bg/65 p-3">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                    <p className="text-xs font-semibold tracking-[0.08em] text-muted">
                       {normalizedServicesCatalog.assistantsTitle}
                     </p>
                     <p className="mt-1 text-xs text-muted">
@@ -1900,11 +1970,11 @@ export default function BookingForm({
               </details>
 
               <div className="booking-services-section rounded-2xl border border-accent/20 bg-bg/75 p-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                <p className="text-xs font-semibold tracking-[0.08em] text-muted">
                   {normalizedServicesCatalog.totalsTitle}
                 </p>
                 <div className="mt-2 space-y-1 text-xs text-fg/90">
-                  {servicesBreakdown.subtotals.map((item) => (
+                  {selectedServiceSubtotals.map((item) => (
                     <div key={item.key} className="flex items-center justify-between gap-3">
                       <span>{item.label}</span>
                       <span className="font-semibold">
@@ -1913,14 +1983,14 @@ export default function BookingForm({
                     </div>
                   ))}
                 </div>
-                <div className="mt-3 flex items-center justify-between text-sm font-semibold uppercase tracking-wide text-fg">
+                <div className="mt-3 flex items-center justify-between text-sm font-semibold tracking-wide text-fg">
                   <span>Total servicios</span>
                   <span>{formatExtraPriceLabel(servicesTotal)}</span>
                 </div>
                 <button
                   type="button"
                   onClick={handleConfirmServices}
-                  className="mt-3 inline-flex w-full items-center justify-center rounded-full border border-accent/55 bg-accent/20 px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-accent transition-all duration-200 hover:-translate-y-0.5 hover:border-accent2 hover:bg-accent2 hover:text-bg hover:shadow-[0_14px_28px_-18px_rgba(0,0,0,0.75)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2 active:translate-y-0"
+                  className="mt-3 inline-flex w-full items-center justify-center rounded-full border border-accent/55 bg-accent/20 px-4 py-2.5 text-xs font-semibold tracking-wide text-accent transition-all duration-200 hover:-translate-y-0.5 hover:border-accent2 hover:bg-accent2 hover:text-bg hover:shadow-[0_14px_28px_-18px_rgba(0,0,0,0.75)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2 active:translate-y-0"
                 >
                   Confirmar
                 </button>
@@ -2029,6 +2099,13 @@ export default function BookingForm({
                 </div>
               );
             })}
+            <button
+              type="button"
+              onClick={handleConfirmExtras}
+              className="inline-flex w-full items-center justify-center rounded-full border border-accent/55 bg-accent/20 px-4 py-2.5 text-xs font-semibold tracking-wide text-accent transition-all duration-200 hover:-translate-y-0.5 hover:border-accent2 hover:bg-accent2 hover:text-bg hover:shadow-[0_14px_28px_-18px_rgba(0,0,0,0.75)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2 active:translate-y-0"
+            >
+              Confirmar
+            </button>
           </div>
         )}
         {extrasError ? (
@@ -2049,10 +2126,31 @@ export default function BookingForm({
             ${pricingSummary.totalBaseWithSurcharges.toLocaleString("es-AR")}
           </span>
         </div>
-        <div className="mt-1 text-xs text-muted">{hoursBreakdownLabel}</div>
-        {surchargesBreakdownLabel ? (
+        {hoursBreakdownLabel ? (
+          <div className="mt-1 text-xs text-muted">{hoursBreakdownLabel}</div>
+        ) : null}
+        {surchargesBreakdown.length > 0 ? (
+          <div className="mt-1 space-y-1 text-xs text-muted">
+            <p>Recargos por motivo:</p>
+            {surchargesBreakdown.map((surcharge) => (
+              <div
+                key={surcharge.key}
+                className="flex items-center justify-between gap-3"
+              >
+                <span>{surcharge.label}</span>
+                <span className="font-semibold text-fg">
+                  ${surcharge.amount.toLocaleString("es-AR")}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : null}
+        {pricingSummary.surchargeSubtotal > 0 && totalHourlyRateWithSurcharges > 0 ? (
           <div className="mt-1 text-xs text-muted">
-            Recargos incluidos: {surchargesBreakdownLabel}
+            Costo total por hora (con recargos):{" "}
+            <span className="font-semibold text-fg">
+              ${totalHourlyRateWithSurcharges.toLocaleString("es-AR")}
+            </span>
           </div>
         ) : null}
         <div className="mt-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-muted">
