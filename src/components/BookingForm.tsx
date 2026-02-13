@@ -7,6 +7,7 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import esLocale from "@fullcalendar/core/locales/es";
+import CheckoutPriceDetails from "@/components/CheckoutPriceDetails";
 import PoliciesModal from "@/components/PoliciesModal";
 import type { ExtraBackground, StudioContent } from "@/content/studio";
 import {
@@ -139,10 +140,6 @@ const getDateKeyFromDate = (value: Date) => dateKeyFormatter.format(value);
 const formatTime = (value: string) => timeFormatter.format(toDate(value));
 const formatRangeLabel = (start: string, end: string) =>
   `${formatTime(start)} - ${formatTime(end)}`;
-const formatHoursLabel = (value: number) =>
-  Number.isInteger(value)
-    ? String(value)
-    : value.toLocaleString("es-AR", { maximumFractionDigits: 2 });
 const getSlotStartTime = (slot: SlotOption) => toDate(slot.start).getTime();
 const getSlotEndTime = (slot: SlotOption) => toDate(slot.end).getTime();
 const sortSlotsByStart = (slotA: SlotOption, slotB: SlotOption) =>
@@ -377,6 +374,22 @@ export default function BookingForm({
     () => servicesBreakdown.subtotals.filter((item) => item.amount > 0),
     [servicesBreakdown.subtotals]
   );
+  const selectedExtrasDetailLines = useMemo(
+    () =>
+      selectedExtras.map((extra) => ({
+        label: extra.label,
+        amount: extra.price,
+      })),
+    [selectedExtras]
+  );
+  const selectedServicesDetailLines = useMemo(
+    () =>
+      selectedServiceSubtotals.map((item) => ({
+        label: `${item.label}: ${item.description}`,
+        amount: item.amount,
+      })),
+    [selectedServiceSubtotals]
+  );
   const servicesSubtotalsByKey = useMemo(
     () =>
       new Map<ServiceSubtotal["key"], ServiceSubtotal>(
@@ -392,20 +405,6 @@ export default function BookingForm({
   const artDirectionSubtotal = servicesSubtotalsByKey.get("art_direction");
   const lightOperatorSubtotal = servicesSubtotalsByKey.get("light_operator");
   const assistantsSubtotal = servicesSubtotalsByKey.get("assistants");
-  const selectedPhotographyOption = useMemo(
-    () =>
-      normalizedServicesCatalog.photographyOptions.find(
-        (option) => option.id === selectedServices.photographyOptionId
-      ) || null,
-    [normalizedServicesCatalog.photographyOptions, selectedServices.photographyOptionId]
-  );
-  const selectedMakeupOption = useMemo(
-    () =>
-      normalizedServicesCatalog.makeupOptions.find(
-        (option) => option.id === selectedServices.makeupOptionId
-      ) || null,
-    [normalizedServicesCatalog.makeupOptions, selectedServices.makeupOptionId]
-  );
 
   const selectedSlotRanges = useMemo(
     () =>
@@ -441,41 +440,6 @@ export default function BookingForm({
     ]
   );
   const total = pricingSummary.grandTotal;
-  const hoursBreakdownLabel =
-    selectedSlotCount > 0
-      ? `${selectedSlotCount} ${selectedSlotCount === 1 ? "hora" : "horas"} x $${basePrice.toLocaleString("es-AR")}`
-      : "";
-  const surchargesBreakdown = useMemo(() => {
-    const lines: Array<{ key: string; label: string; amount: number }> = [];
-    if (pricingSummary.weekendOrHolidaySurcharge > 0) {
-      lines.push({
-        key: "weekendOrHoliday",
-        label: `Finde/feriado (+30%) sobre ${formatHoursLabel(
-          pricingSummary.weekendOrHolidayHours
-        )} ${pricingSummary.weekendOrHolidayHours === 1 ? "hora" : "horas"}`,
-        amount: pricingSummary.weekendOrHolidaySurcharge,
-      });
-    }
-    if (pricingSummary.nightSurcharge > 0) {
-      lines.push({
-        key: "night",
-        label: `Nocturno (+40%) sobre ${formatHoursLabel(
-          pricingSummary.nightHours
-        )} ${pricingSummary.nightHours === 1 ? "hora" : "horas"}`,
-        amount: pricingSummary.nightSurcharge,
-      });
-    }
-    return lines;
-  }, [
-    pricingSummary.nightHours,
-    pricingSummary.nightSurcharge,
-    pricingSummary.weekendOrHolidayHours,
-    pricingSummary.weekendOrHolidaySurcharge,
-  ]);
-  const totalHourlyRateWithSurcharges = useMemo(() => {
-    if (pricingSummary.hours <= 0) return 0;
-    return Math.round(pricingSummary.totalBaseWithSurcharges / pricingSummary.hours);
-  }, [pricingSummary.hours, pricingSummary.totalBaseWithSurcharges]);
 
   const groupedSlots = useMemo(() => {
     const map = new Map<string, SlotOption[]>();
@@ -2119,68 +2083,53 @@ export default function BookingForm({
         ) : null}
       </div>
 
-      <div className="booking-summary rounded-2xl border border-accent/15 bg-bg px-4 py-3 text-sm">
-        <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-muted">
-          <span>Horas</span>
-          <span>
-            ${pricingSummary.totalBaseWithSurcharges.toLocaleString("es-AR")}
-          </span>
+      <div className="booking-summary rounded-2xl border border-accent/20 bg-accent/10 px-4 py-4 text-sm">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent/80">
+            Total estimado
+          </p>
+          <CheckoutPriceDetails
+            total={total}
+            basePrice={basePrice}
+            hours={pricingSummary.hours}
+            extras={selectedExtrasDetailLines}
+            services={selectedServicesDetailLines}
+            weekendOrHolidaySurcharge={pricingSummary.weekendOrHolidaySurcharge}
+            weekendOrHolidayHours={pricingSummary.weekendOrHolidayHours}
+            nightSurcharge={pricingSummary.nightSurcharge}
+            nightHours={pricingSummary.nightHours}
+            adjustment={0}
+            buttonClassName="h-9"
+          />
         </div>
-        {hoursBreakdownLabel ? (
-          <div className="mt-1 text-xs text-muted">{hoursBreakdownLabel}</div>
-        ) : null}
-        {surchargesBreakdown.length > 0 ? (
-          <div className="mt-1 space-y-1 text-xs text-muted">
-            <p>Recargos por motivo:</p>
-            {surchargesBreakdown.map((surcharge) => (
-              <div
-                key={surcharge.key}
-                className="flex items-center justify-between gap-3"
-              >
-                <span>{surcharge.label}</span>
-                <span className="font-semibold text-fg">
-                  ${surcharge.amount.toLocaleString("es-AR")}
-                </span>
-              </div>
-            ))}
+
+        <p className="mt-4 text-center font-display text-3xl leading-none text-accent">
+          ${total.toLocaleString("es-AR")}
+        </p>
+
+        <div className="mt-4 grid grid-cols-3 gap-2 text-xs text-muted">
+          <div className="rounded-xl border border-accent/20 bg-bg/50 px-3 py-2">
+            <p className="font-semibold uppercase tracking-[0.08em]">Horas</p>
+            <p className="mt-1 text-sm font-semibold text-fg">
+              ${pricingSummary.totalBaseWithSurcharges.toLocaleString("es-AR")}
+            </p>
           </div>
-        ) : null}
-        {pricingSummary.surchargeSubtotal > 0 && totalHourlyRateWithSurcharges > 0 ? (
-          <div className="mt-1 text-xs text-muted">
-            Costo total por hora (con recargos):{" "}
-            <span className="font-semibold text-fg">
-              ${totalHourlyRateWithSurcharges.toLocaleString("es-AR")}
-            </span>
+          <div className="rounded-xl border border-accent/20 bg-bg/50 px-3 py-2">
+            <p className="font-semibold uppercase tracking-[0.08em]">Fondos</p>
+            <p className="mt-1 text-sm font-semibold text-fg">
+              ${extrasTotal.toLocaleString("es-AR")}
+            </p>
           </div>
-        ) : null}
-        <div className="mt-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-muted">
-          <span>Fondos</span>
-          <span>${extrasTotal.toLocaleString("es-AR")}</span>
+          <div className="rounded-xl border border-accent/20 bg-bg/50 px-3 py-2">
+            <p className="font-semibold uppercase tracking-[0.08em]">Servicios</p>
+            <p className="mt-1 text-sm font-semibold text-fg">
+              ${servicesTotal.toLocaleString("es-AR")}
+            </p>
+          </div>
         </div>
-        {selectedExtras.length > 0 && (
-          <div className="mt-1 text-xs text-muted">
-            {selectedExtras.map((extra) => extra.label).join(", ")}
-          </div>
-        )}
-        <div className="mt-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-muted">
-          <span>Servicios</span>
-          <span>${servicesTotal.toLocaleString("es-AR")}</span>
-        </div>
-        {selectedPhotographyOption ? (
-          <div className="mt-1 text-xs text-muted">
-            Foto base: {selectedPhotographyOption.label}
-            {selectedPhotographyOption.minHours
-              ? ` (min ${selectedPhotographyOption.minHours}h)`
-              : ""}
-            {selectedMakeupOption ? ` | Makeup: ${selectedMakeupOption.label}` : ""}
-          </div>
-        ) : null}
-        <div className="mt-3 flex items-center justify-between text-sm font-semibold uppercase tracking-wide text-fg">
-          <span>Total</span>
-          <span>${total.toLocaleString("es-AR")}</span>
-        </div>
+
         {selectedRangeLabel && (
-          <div className="mt-2 text-xs text-muted">
+          <div className="mt-3 text-xs text-muted">
             Horario seleccionado:{" "}
             <span className="font-semibold text-fg">
               {selectedRangeLabel}

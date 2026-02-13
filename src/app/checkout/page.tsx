@@ -406,16 +406,16 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
                 {bookingSummaryItems.map((item) => (
                   <div
                     key={item.id}
-                    className={`checkout-summary-item relative rounded-2xl ${
+                    className={`checkout-summary-item rounded-2xl ${
                       item.spanFull ? "checkout-summary-item-wide sm:col-span-2" : ""
-                    } ${item.editHref ? "pb-12" : ""}`}
+                    } ${item.editHref ? "checkout-summary-item-with-action" : ""}`}
                   >
-                    <dd className="checkout-summary-value">{item.value}</dd>
+                    <dd className="checkout-summary-value min-w-0">{item.value}</dd>
                     {item.editHref ? (
                       <Link
                         href={item.editHref}
                         aria-label={item.editLabel || "Editar"}
-                        className="absolute bottom-3 right-3 inline-flex h-9 w-9 items-center justify-center rounded-full border border-accent/35 bg-accent/10 text-accent transition hover:border-accent hover:bg-accent/20"
+                        className="checkout-summary-edit-button inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-accent/35 bg-accent/10 text-accent transition hover:border-accent hover:bg-accent/20"
                       >
                         <PencilIcon />
                       </Link>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Payment, initMercadoPago } from "@mercadopago/sdk-react";
 
 type PaymentBrickProps = {
@@ -132,6 +132,28 @@ const alignSubmitButtonToRight = (container: HTMLElement | null) => {
   row.dataset.mpSubmitRowAligned = "true";
 };
 
+const hideDuplicatePaymentForms = (container: HTMLElement | null) => {
+  if (!container) return;
+
+  const forms = container.querySelectorAll<HTMLElement>(
+    "form[class*='mp-checkout-bricks__payment-form'], form[class*='payment-form']"
+  );
+
+  if (forms.length <= 1) return;
+
+  forms.forEach((form, index) => {
+    if (index === 0) return;
+    form.style.display = "none";
+    form.setAttribute("aria-hidden", "true");
+    form.dataset.mpDuplicateHidden = "true";
+  });
+};
+
+const getInitialCompactViewport = () => {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia("(max-width: 560px)").matches;
+};
+
 const publicKey =
   process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY?.trim() || "";
 
@@ -148,8 +170,7 @@ export default function PaymentBrick({
   const [loadingPreference, setLoadingPreference] = useState(true);
   const [preferenceId, setPreferenceId] = useState("");
   const [error, setError] = useState("");
-  const [brickReady, setBrickReady] = useState(false);
-  const [isCompactViewport, setIsCompactViewport] = useState(false);
+  const [isCompactViewport] = useState(getInitialCompactViewport);
 
   const normalizedPayload = useMemo(
     () => ({
@@ -184,7 +205,6 @@ export default function PaymentBrick({
       try {
         setLoadingPreference(true);
         setError("");
-        setBrickReady(false);
         setPreferenceId("");
 
         const response = await fetch("/api/mp/preference", {
@@ -228,42 +248,17 @@ export default function PaymentBrick({
   }, [normalizedPayload]);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const mediaQuery = window.matchMedia("(max-width: 560px)");
-    const syncViewport = () => {
-      setIsCompactViewport(mediaQuery.matches);
-    };
-
-    syncViewport();
-
-    const handleViewportChange = (event: MediaQueryListEvent) => {
-      setIsCompactViewport(event.matches);
-    };
-
-    if (typeof mediaQuery.addEventListener === "function") {
-      mediaQuery.addEventListener("change", handleViewportChange);
-      return () => {
-        mediaQuery.removeEventListener("change", handleViewportChange);
-      };
-    }
-
-    mediaQuery.addListener(handleViewportChange);
-    return () => {
-      mediaQuery.removeListener(handleViewportChange);
-    };
-  }, []);
-
-  useEffect(() => {
     if (!preferenceId) return;
 
     const container = document.getElementById(BRICK_CONTAINER_ID);
     if (!container) return;
 
+    hideDuplicatePaymentForms(container);
     hidePaymentMethodsTitle(container);
     alignSubmitButtonToRight(container);
 
     const observer = new MutationObserver(() => {
+      hideDuplicatePaymentForms(container);
       hidePaymentMethodsTitle(container);
       alignSubmitButtonToRight(container);
     });
@@ -277,7 +272,15 @@ export default function PaymentBrick({
     return () => {
       observer.disconnect();
     };
-  }, [preferenceId, brickReady]);
+  }, [preferenceId]);
+
+  const handleBrickError = useCallback(() => {
+    setError("No se pudo cargar el checkout de Mercado Pago.");
+  }, []);
+
+  const handleSubmit = useCallback(async () => {
+    return {};
+  }, []);
 
   const initialization = useMemo(
     () => ({
@@ -360,27 +363,14 @@ export default function PaymentBrick({
 
   return (
     <div className="checkout-payment-shell w-full min-w-0 space-y-3">
-      {!brickReady && (
-        <div className="checkout-summary-item rounded-2xl px-4 py-3 text-sm text-muted">
-          Cargando medios de pago...
-        </div>
-      )}
-
       <div className="checkout-payment-host w-full min-w-0 rounded-[1.7rem] p-2.5 sm:p-3.5">
         <Payment
           id={BRICK_CONTAINER_ID}
           initialization={initialization}
           customization={customization}
           locale="es-AR"
-          onReady={() => {
-            setBrickReady(true);
-          }}
-          onError={() => {
-            setError("No se pudo cargar el checkout de Mercado Pago.");
-          }}
-          onSubmit={async () => {
-            return {};
-          }}
+          onError={handleBrickError}
+          onSubmit={handleSubmit}
         />
       </div>
     </div>

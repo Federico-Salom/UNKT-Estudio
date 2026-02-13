@@ -73,10 +73,6 @@ export default async function MisReservasPage() {
     redirect("/login");
   }
 
-  if (user.role === "admin") {
-    redirect("/admin");
-  }
-
   const [studio, bookings] = await Promise.all([
     getStudioContent(),
     prisma.booking.findMany({

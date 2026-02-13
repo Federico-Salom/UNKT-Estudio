@@ -267,7 +267,7 @@ export default async function ReservarPage({ searchParams }: ReservarPageProps) 
               editingBooking ? parseStringArray(editingBooking.extras) : []
             }
             initialSelectedServicesRaw={editingBooking?.services}
-            pageTitle={editingBooking ? "Editar reserva" : "Agendar sesion"}
+            pageTitle={editingBooking ? "Editar reserva" : "Agendar sesión"}
           />
         </div>
       </main>

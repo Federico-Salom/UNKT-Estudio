@@ -136,6 +136,12 @@ export default async function AdminPage() {
                 Métricas
               </Link>
               <Link
+                className="inline-flex w-full items-center justify-center rounded-full border border-accent px-5 py-2 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent2 hover:text-accent2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2 md:w-auto"
+                href="/mis-reservas"
+              >
+                Mis reservas
+              </Link>
+              <Link
                 className="inline-flex w-full items-center justify-center rounded-full bg-accent px-5 py-2 text-xs font-semibold uppercase tracking-wide text-bg transition hover:bg-accent2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2 md:w-auto"
                 href="/admin/agenda"
               >
