@@ -65,7 +65,7 @@ export default function UserMenu({
   const actionLabel = authenticated
     ? isAdmin
       ? "Gestión"
-      : "Cuenta"
+      : "Administrar informacion"
     : "Ingresar";
   const actionHref = authenticated ? (isAdmin ? "/admin" : "/account") : "/login";
   const showBookingsButton = authenticated && !isAdmin;

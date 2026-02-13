@@ -438,16 +438,45 @@ const normalizeAssetPaths = (content: StudioContent): StudioContent => {
 };
 
 export const getStudioContent = async (): Promise<StudioContent> => {
-  const record = await prisma.siteContent.upsert({
-    where: { id: DEFAULT_ID },
-    create: {
-      id: DEFAULT_ID,
-      data: serializeContent(studio),
-    },
-    update: {},
-  });
+  const fallbackContent = normalizeAssetPaths(studio);
 
-  return parseContent(record.data);
+  try {
+    const existing = await prisma.siteContent.findUnique({
+      where: { id: DEFAULT_ID },
+      select: { data: true },
+    });
+
+    if (existing?.data) {
+      return parseContent(existing.data);
+    }
+
+    try {
+      const created = await prisma.siteContent.create({
+        data: {
+          id: DEFAULT_ID,
+          data: serializeContent(studio),
+        },
+        select: { data: true },
+      });
+
+      return parseContent(created.data);
+    } catch {
+      const raceRecovered = await prisma.siteContent
+        .findUnique({
+          where: { id: DEFAULT_ID },
+          select: { data: true },
+        })
+        .catch(() => null);
+
+      if (raceRecovered?.data) {
+        return parseContent(raceRecovered.data);
+      }
+
+      return fallbackContent;
+    }
+  } catch {
+    return fallbackContent;
+  }
 };
 
 export const updateStudioContent = async (

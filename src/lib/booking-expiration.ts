@@ -158,69 +158,76 @@ export const pruneExpiredPendingBookings = async (
 ): Promise<PendingBookingCleanupResult> => {
   const cutoff = getPendingPaymentExpirationCutoff(now);
 
-  return prisma.$transaction(async (tx) => {
-    const expiredPendingBookings = await tx.booking.findMany({
-      where: {
-        status: "pending_payment",
-        createdAt: {
-          lte: cutoff,
+  try {
+    return await prisma.$transaction(async (tx) => {
+      const expiredPendingBookings = await tx.booking.findMany({
+        where: {
+          status: "pending_payment",
+          createdAt: {
+            lte: cutoff,
+          },
         },
-      },
-      select: {
-        id: true,
-        slotId: true,
-        slotIds: true,
-      },
-    });
+        select: {
+          id: true,
+          slotId: true,
+          slotIds: true,
+        },
+      });
 
-    if (!expiredPendingBookings.length) {
+      if (!expiredPendingBookings.length) {
+        return {
+          expiredBookings: 0,
+          releasedSlots: 0,
+        };
+      }
+
+      const pendingBookingIds = expiredPendingBookings.map((booking) => booking.id);
+      const expiredById = new Map(
+        expiredPendingBookings.map((booking) => [booking.id, booking])
+      );
+
+      await tx.booking.deleteMany({
+        where: {
+          id: { in: pendingBookingIds },
+          status: "pending_payment",
+        },
+      });
+
+      const stillExistingBookings = await tx.booking.findMany({
+        where: {
+          id: { in: pendingBookingIds },
+        },
+        select: { id: true },
+      });
+
+      const existingBookingIds = new Set(stillExistingBookings.map((booking) => booking.id));
+      const deletedBookings = pendingBookingIds
+        .filter((bookingId) => !existingBookingIds.has(bookingId))
+        .map((bookingId) => expiredById.get(bookingId))
+        .filter((booking): booking is BookingSlotSnapshot => Boolean(booking));
+
+      if (!deletedBookings.length) {
+        return {
+          expiredBookings: 0,
+          releasedSlots: 0,
+        };
+      }
+
+      const releasedSlots = await releaseSlotsLinkedToBookings(
+        tx,
+        deletedBookings,
+        deletedBookings.map((booking) => booking.id)
+      );
+
       return {
-        expiredBookings: 0,
-        releasedSlots: 0,
+        expiredBookings: deletedBookings.length,
+        releasedSlots,
       };
-    }
-
-    const pendingBookingIds = expiredPendingBookings.map((booking) => booking.id);
-    const expiredById = new Map(
-      expiredPendingBookings.map((booking) => [booking.id, booking])
-    );
-
-    await tx.booking.deleteMany({
-      where: {
-        id: { in: pendingBookingIds },
-        status: "pending_payment",
-      },
     });
-
-    const stillExistingBookings = await tx.booking.findMany({
-      where: {
-        id: { in: pendingBookingIds },
-      },
-      select: { id: true },
-    });
-
-    const existingBookingIds = new Set(stillExistingBookings.map((booking) => booking.id));
-    const deletedBookings = pendingBookingIds
-      .filter((bookingId) => !existingBookingIds.has(bookingId))
-      .map((bookingId) => expiredById.get(bookingId))
-      .filter((booking): booking is BookingSlotSnapshot => Boolean(booking));
-
-    if (!deletedBookings.length) {
-      return {
-        expiredBookings: 0,
-        releasedSlots: 0,
-      };
-    }
-
-    const releasedSlots = await releaseSlotsLinkedToBookings(
-      tx,
-      deletedBookings,
-      deletedBookings.map((booking) => booking.id)
-    );
-
+  } catch {
     return {
-      expiredBookings: deletedBookings.length,
-      releasedSlots,
+      expiredBookings: 0,
+      releasedSlots: 0,
     };
-  });
+  }
 };

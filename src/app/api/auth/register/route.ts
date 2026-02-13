@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
     role: user.role,
   });
 
-  const redirectPath = user.role === "admin" ? "/admin" : "/account";
+  const redirectPath = user.role === "admin" ? "/admin" : "/";
 
   if (isFormRequest(request)) {
     const url = new URL(redirectPath, getBaseUrl(request));

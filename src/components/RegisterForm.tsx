@@ -77,7 +77,7 @@ export default function RegisterForm({ serverError }: RegisterFormProps) {
       }
 
       const redirectTo =
-        typeof data.redirectTo === "string" ? data.redirectTo : "/admin";
+        typeof data.redirectTo === "string" ? data.redirectTo : "/";
       router.push(redirectTo);
     } catch {
       setApiError("No se pudo crear la cuenta. Intenta nuevamente.");

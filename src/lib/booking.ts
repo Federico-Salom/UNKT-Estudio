@@ -327,8 +327,25 @@ export const resolveBasePrice = (value: unknown) => {
   return Math.round(parsed);
 };
 
-export const BOOKING_TIMEZONE =
-  process.env.BOOKING_TIMEZONE || "America/Argentina/Buenos_Aires";
+const DEFAULT_BOOKING_TIMEZONE = "America/Argentina/Buenos_Aires";
+const isValidTimeZone = (value: string) => {
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: value });
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const resolveBookingTimezone = (value: string | undefined) => {
+  const candidate = value?.trim();
+  if (!candidate) return DEFAULT_BOOKING_TIMEZONE;
+  return isValidTimeZone(candidate) ? candidate : DEFAULT_BOOKING_TIMEZONE;
+};
+
+export const BOOKING_TIMEZONE = resolveBookingTimezone(
+  process.env.BOOKING_TIMEZONE
+);
 export const BOOKING_TZ_OFFSET = process.env.BOOKING_TZ_OFFSET || "-03:00";
 export const BOOKING_MIN_LEAD_HOURS = Math.max(
   0,
