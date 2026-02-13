@@ -3,11 +3,19 @@ import { Prisma } from "@prisma/client";
 import { getAvailabilityCutoffDate } from "@/lib/availability";
 import { AUTH_COOKIE, verifySession } from "@/lib/auth";
 import {
+  calculateBookingPricing,
   filterExtrasToAllowed,
+  getConfiguredBookingHolidayDates,
   getExtrasTotal,
   resolveBasePrice,
   resolveExtraMaxSelections,
 } from "@/lib/booking";
+import {
+  getServicesBreakdown,
+  normalizeBookingServicesSelection,
+  parseStoredServicesSelection,
+  stringifyServicesSelection,
+} from "@/lib/services";
 import { prisma } from "@/lib/prisma";
 import { getStudioContent } from "@/lib/studio-content";
 
@@ -22,6 +30,7 @@ type RouteContext = {
 type BookingUpdateInput = {
   slotIds?: string[];
   extras?: string[];
+  services?: unknown;
 };
 
 class BookingUpdateError extends Error {
@@ -137,8 +146,12 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   const body = (await request.json().catch(() => ({}))) as BookingUpdateInput;
   const hasSlotIds = Array.isArray(body.slotIds);
   const hasExtras = Array.isArray(body.extras);
+  const hasServices =
+    typeof body.services === "object" &&
+    body.services !== null &&
+    !Array.isArray(body.services);
 
-  if (!hasSlotIds && !hasExtras) {
+  if (!hasSlotIds && !hasExtras && !hasServices) {
     return errorResponse("No hay cambios para actualizar.");
   }
 
@@ -148,6 +161,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   const requestedExtras = hasExtras
     ? (body.extras || []).map((item) => String(item))
     : null;
+  const requestedServices = hasServices ? body.services : null;
 
   if (requestedSlotIds && requestedSlotIds.length < MIN_BOOKING_HOURS) {
     return errorResponse("La reserva minima es de 2 horas consecutivas.");
@@ -155,6 +169,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
   const studio = await getStudioContent();
   const basePrice = resolveBasePrice(studio.pricing.basePrice);
+  const bookingHolidayDates = getConfiguredBookingHolidayDates();
   const cutoff = getAvailabilityCutoffDate();
 
   try {
@@ -167,6 +182,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
           slotId: true,
           slotIds: true,
           extras: true,
+          services: true,
           status: true,
         },
       });
@@ -343,7 +359,29 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         resolveExtraMaxSelections(studio.extras.maxSelections)
       );
       const extrasTotal = getExtrasTotal(normalizedExtras, studio.extras.backgrounds);
-      const total = basePrice * orderedNextSlotIds.length + extrasTotal;
+      const currentServicesSelection = parseStoredServicesSelection(
+        booking.services || "[]",
+        studio.services
+      );
+      const nextServicesSelection = requestedServices
+        ? normalizeBookingServicesSelection(requestedServices, studio.services)
+        : currentServicesSelection;
+      const servicesBreakdown = getServicesBreakdown({
+        selection: nextServicesSelection,
+        catalog: studio.services,
+        hours: orderedNextSlotIds.length,
+      });
+      if (servicesBreakdown.errors.length) {
+        throw new BookingUpdateError(servicesBreakdown.errors[0]);
+      }
+      const pricing = calculateBookingPricing({
+        basePrice,
+        extrasTotal,
+        servicesTotal: servicesBreakdown.total,
+        slots: orderedNextSlots,
+        holidayDates: bookingHolidayDates,
+      });
+      const total = pricing.grandTotal;
 
       return tx.booking.update({
         where: { id: booking.id },
@@ -352,6 +390,10 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
           slotIds: JSON.stringify(orderedNextSlotIds),
           hours: orderedNextSlotIds.length,
           extras: JSON.stringify(normalizedExtras),
+          services: stringifyServicesSelection(
+            servicesBreakdown.selection,
+            studio.services
+          ),
           total,
         },
         select: { id: true },

@@ -3,6 +3,7 @@ import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 import { getSessionFromCookies } from "@/lib/auth";
 import { normalizeExtraBackgrounds, resolveExtraMaxSelections } from "@/lib/booking";
+import { normalizeServiceCatalog } from "@/lib/services";
 import { prisma } from "@/lib/prisma";
 import { getStudioContent, updateStudioContent } from "@/lib/studio-content";
 import { studio } from "@/content/studio";
@@ -54,6 +55,15 @@ const normalizeColorKey = (value: string) =>
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
+
+const normalizeServiceKey = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 
 const clampExtraColors = (items: string[], fallback: string[]) => {
   const source = items.length ? items : fallback;
@@ -108,6 +118,62 @@ const buildExtraBackgroundsFromColors = ({
       };
     })
   );
+};
+
+const buildServiceOptionsFromLines = ({
+  lines,
+  currentOptions,
+  fallbackOptions,
+  allowMinHours,
+}: {
+  lines: string[];
+  currentOptions: StudioContent["services"]["photographyOptions"];
+  fallbackOptions: StudioContent["services"]["photographyOptions"];
+  allowMinHours?: boolean;
+}) => {
+  const byCurrentLabel = new Map(
+    currentOptions.map((option) => [normalizeServiceKey(option.label), option])
+  );
+  const byFallbackLabel = new Map(
+    fallbackOptions.map((option) => [normalizeServiceKey(option.label), option])
+  );
+  const seen = new Set<string>();
+
+  return lines.flatMap((line, index) => {
+    const [labelRaw, minHoursRaw] = line.split("|");
+    const label = String(labelRaw ?? "").trim();
+    const key = normalizeServiceKey(label);
+    if (!key || seen.has(key)) {
+      return [];
+    }
+    seen.add(key);
+
+    const currentByIndex = currentOptions[index];
+    const fallbackByIndex = fallbackOptions[index];
+    const source =
+      byCurrentLabel.get(key) ||
+      byFallbackLabel.get(key) ||
+      currentByIndex ||
+      fallbackByIndex ||
+      fallbackOptions[0];
+
+    const parsedMinHours = Math.round(Number(minHoursRaw?.trim() ?? ""));
+    const minHours = allowMinHours
+      ? Number.isFinite(parsedMinHours) && parsedMinHours > 0
+        ? parsedMinHours
+        : source?.minHours || 1
+      : undefined;
+
+    return [
+      {
+        id: source?.id || `${key}-${index + 1}`,
+        label,
+        price: source?.price ?? 0,
+        minHours,
+        description: source?.description || "",
+      },
+    ];
+  });
 };
 
 const stripLegacyContentFields = (content: StudioContent) => {
@@ -325,6 +391,66 @@ export async function POST(request: NextRequest) {
     toText(formData.get("extrasTitle")) || current.extras.title;
   nextContent.extras.subtitle =
     toText(formData.get("extrasSubtitle")) || current.extras.subtitle;
+  const currentServices = normalizeServiceCatalog(current.services);
+
+  nextContent.services.title =
+    toText(formData.get("servicesTitle")) || currentServices.title;
+  nextContent.services.subtitle =
+    toText(formData.get("servicesSubtitle")) || currentServices.subtitle;
+  nextContent.services.description =
+    toText(formData.get("servicesDescription")) || currentServices.description;
+  nextContent.services.bookingNotice =
+    toText(formData.get("servicesBookingNotice")) || currentServices.bookingNotice;
+  nextContent.services.photographyTitle =
+    toText(formData.get("servicesPhotographyTitle")) ||
+    currentServices.photographyTitle;
+  nextContent.services.photographyHint =
+    toText(formData.get("servicesPhotographyHint")) || currentServices.photographyHint;
+  nextContent.services.modelsTitle =
+    toText(formData.get("servicesModelsTitle")) || currentServices.modelsTitle;
+  nextContent.services.modelsHint =
+    toText(formData.get("servicesModelsHint")) || currentServices.modelsHint;
+  nextContent.services.makeupTitle =
+    toText(formData.get("servicesMakeupTitle")) || currentServices.makeupTitle;
+  nextContent.services.makeupHint =
+    toText(formData.get("servicesMakeupHint")) || currentServices.makeupHint;
+  nextContent.services.hairstyleTitle =
+    toText(formData.get("servicesHairstyleTitle")) ||
+    currentServices.hairstyleTitle;
+  nextContent.services.hairstyleHint =
+    toText(formData.get("servicesHairstyleHint")) || currentServices.hairstyleHint;
+  nextContent.services.hairstyleLabel =
+    toText(formData.get("servicesHairstyleLabel")) || currentServices.hairstyleLabel;
+  nextContent.services.stylingTitle =
+    toText(formData.get("servicesStylingTitle")) || currentServices.stylingTitle;
+  nextContent.services.stylingHint =
+    toText(formData.get("servicesStylingHint")) || currentServices.stylingHint;
+  nextContent.services.artDirectionTitle =
+    toText(formData.get("servicesArtDirectionTitle")) ||
+    currentServices.artDirectionTitle;
+  nextContent.services.artDirectionHint =
+    toText(formData.get("servicesArtDirectionHint")) ||
+    currentServices.artDirectionHint;
+  nextContent.services.lightOperatorTitle =
+    toText(formData.get("servicesLightOperatorTitle")) ||
+    currentServices.lightOperatorTitle;
+  nextContent.services.lightOperatorHint =
+    toText(formData.get("servicesLightOperatorHint")) ||
+    currentServices.lightOperatorHint;
+  nextContent.services.lightOperatorLabel =
+    toText(formData.get("servicesLightOperatorLabel")) ||
+    currentServices.lightOperatorLabel;
+  nextContent.services.assistantsTitle =
+    toText(formData.get("servicesAssistantsTitle")) ||
+    currentServices.assistantsTitle;
+  nextContent.services.assistantsHint =
+    toText(formData.get("servicesAssistantsHint")) ||
+    currentServices.assistantsHint;
+  nextContent.services.assistantsLabel =
+    toText(formData.get("servicesAssistantsLabel")) ||
+    currentServices.assistantsLabel;
+  nextContent.services.totalsTitle =
+    toText(formData.get("servicesTotalsTitle")) || currentServices.totalsTitle;
 
   const nextIncludedItems = parseList(
     formData.get("includedItems"),
@@ -345,6 +471,49 @@ export async function POST(request: NextRequest) {
   nextContent.extras.maxSelections = resolveExtraMaxSelections(
     current.extras.maxSelections
   );
+
+  const photographyLines = parseList(
+    formData.get("servicesPhotographyItems"),
+    currentServices.photographyOptions.map(
+      (option) => `${option.label}|${option.minHours || 1}`
+    )
+  );
+  const makeupLines = parseList(
+    formData.get("servicesMakeupItems"),
+    currentServices.makeupOptions.map((option) => option.label)
+  );
+  const stylingLines = parseList(
+    formData.get("servicesStylingItems"),
+    currentServices.stylingOptions.map((option) => option.label)
+  );
+  const artDirectionLines = parseList(
+    formData.get("servicesArtDirectionItems"),
+    currentServices.artDirectionOptions.map((option) => option.label)
+  );
+
+  nextContent.services.photographyOptions = buildServiceOptionsFromLines({
+    lines: photographyLines,
+    currentOptions: currentServices.photographyOptions,
+    fallbackOptions: studio.services.photographyOptions,
+    allowMinHours: true,
+  });
+  nextContent.services.makeupOptions = buildServiceOptionsFromLines({
+    lines: makeupLines,
+    currentOptions: currentServices.makeupOptions,
+    fallbackOptions: studio.services.makeupOptions,
+  });
+  nextContent.services.stylingOptions = buildServiceOptionsFromLines({
+    lines: stylingLines,
+    currentOptions: currentServices.stylingOptions,
+    fallbackOptions: studio.services.stylingOptions,
+  });
+  nextContent.services.artDirectionOptions = buildServiceOptionsFromLines({
+    lines: artDirectionLines,
+    currentOptions: currentServices.artDirectionOptions,
+    fallbackOptions: studio.services.artDirectionOptions,
+  });
+  nextContent.services = normalizeServiceCatalog(nextContent.services);
+
   nextContent.included.images = await buildCatalogImages({
     orderRaw: formData.get("includedImagesOrder"),
     filePrefix: "includedImageFile_",

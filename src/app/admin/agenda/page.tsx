@@ -6,6 +6,10 @@ import Container from "@/components/Container";
 import UserMenu from "@/components/UserMenu";
 import ThemeToggle from "@/components/ThemeToggle";
 import { getSessionFromCookies } from "@/lib/auth";
+import {
+  getServicesSummaryLines,
+  parseStoredServicesSelection,
+} from "@/lib/services";
 import { prisma } from "@/lib/prisma";
 import { getStudioContent } from "@/lib/studio-content";
 
@@ -67,10 +71,22 @@ export default async function AdminAgendaPage() {
         return "Sin extras";
       }
     })();
-
     if (!slotIds.length && booking.slotId) {
       slotIds.push(booking.slotId);
     }
+    const hours = booking.hours || slotIds.length || 1;
+    const servicesSelection = parseStoredServicesSelection(
+      booking.services || "[]",
+      studio.services
+    );
+    const servicesLabel = (() => {
+      const lines = getServicesSummaryLines({
+        selection: servicesSelection,
+        catalog: studio.services,
+        hours,
+      }).map((item) => item.label);
+      return lines.length ? `Servicios: ${lines.join(", ")}` : "Sin servicios";
+    })();
 
     return slotIds
       .map((slotId, index) => {
@@ -84,7 +100,7 @@ export default async function AdminAgendaPage() {
           status: booking.status,
           email: booking.email,
           phone: booking.phone,
-          extrasLabel,
+          extrasLabel: `${extrasLabel} | ${servicesLabel}`,
           totalLabel: `$${booking.total.toLocaleString("es-AR")}`,
         };
       })

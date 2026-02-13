@@ -8,6 +8,10 @@ import {
   resolveExtraMaxSelections,
   resolveExtrasFromLabels,
 } from "@/lib/booking";
+import {
+  getServicesSummaryLines,
+  parseStoredServicesSelection,
+} from "@/lib/services";
 import { getStudioContent } from "@/lib/studio-content";
 
 export const runtime = "nodejs";
@@ -112,6 +116,20 @@ export async function POST(request: NextRequest) {
           currency_id: "ARS",
           unit_price: getExtraPrice(extra, studio.extras.backgrounds),
         }));
+  const servicesSelection = parseStoredServicesSelection(
+    booking.services || "[]",
+    studio.services
+  );
+  const breakdownServices = getServicesSummaryLines({
+    selection: servicesSelection,
+    catalog: studio.services,
+    hours,
+  }).map((service) => ({
+    title: `Servicio: ${service.label}`,
+    quantity: 1,
+    currency_id: "ARS",
+    unit_price: service.amount,
+  }));
 
   const baseUrl = process.env.APP_URL || getBaseUrl(request);
   const breakdownItems = [
@@ -122,6 +140,7 @@ export async function POST(request: NextRequest) {
       unit_price: basePrice,
     },
     ...breakdownExtras,
+    ...breakdownServices,
   ];
   const breakdownTotal = breakdownItems.reduce(
     (total, item) => total + item.quantity * item.unit_price,

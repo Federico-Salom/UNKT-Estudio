@@ -10,6 +10,51 @@ export type ExtraBackground = {
   pricePisando: number;
 };
 
+export type ServiceOption = {
+  id: string;
+  label: string;
+  price: number;
+  minHours?: number;
+  description?: string;
+};
+
+export type ServiceCatalog = {
+  title: string;
+  subtitle: string;
+  description: string;
+  bookingNotice: string;
+  photographyTitle: string;
+  photographyHint: string;
+  photographyOptions: ServiceOption[];
+  modelsTitle: string;
+  modelsHint: string;
+  maxModels: number;
+  modelRatePerHour: number;
+  makeupTitle: string;
+  makeupHint: string;
+  makeupOptions: ServiceOption[];
+  hairstyleTitle: string;
+  hairstyleHint: string;
+  hairstyleLabel: string;
+  hairstyleRatePerModel: number;
+  stylingTitle: string;
+  stylingHint: string;
+  stylingOptions: ServiceOption[];
+  artDirectionTitle: string;
+  artDirectionHint: string;
+  artDirectionOptions: ServiceOption[];
+  lightOperatorTitle: string;
+  lightOperatorHint: string;
+  lightOperatorLabel: string;
+  lightOperatorRatePerHour: number;
+  assistantsTitle: string;
+  assistantsHint: string;
+  assistantsLabel: string;
+  maxAssistants: number;
+  assistantsRatePerHour: number;
+  totalsTitle: string;
+};
+
 export type StudioContent = {
   name: string;
   siteUrl: string;
@@ -44,6 +89,7 @@ export type StudioContent = {
     backgrounds: ExtraBackground[];
     images: CatalogImage[];
   };
+  services: ServiceCatalog;
   pricing: {
     basePrice: number;
   };
@@ -104,6 +150,58 @@ const extraBackgrounds: ExtraBackground[] = [
   },
 ];
 
+const photographyOptions: ServiceOption[] = [
+  {
+    id: "foto-15",
+    label: "15 fotos finales editadas",
+    price: 180000,
+    minHours: 3,
+  },
+  {
+    id: "foto-25",
+    label: "25 fotos finales editadas",
+    price: 280000,
+    minHours: 4,
+  },
+  {
+    id: "foto-35",
+    label: "35 fotos finales editadas",
+    price: 380000,
+    minHours: 5,
+  },
+];
+
+const makeupOptions: ServiceOption[] = [
+  {
+    id: "makeup-artist",
+    label: "Makeup Artist (editorial / alta moda)",
+    price: 95000,
+  },
+  {
+    id: "makeup-natural",
+    label: "Makeup Natural",
+    price: 50000,
+  },
+];
+
+const stylingOptions: ServiceOption[] = [
+  {
+    id: "asesoria-personalizada",
+    label: "Asesoria personalizada",
+    price: 190000,
+    description: "Servicio creativo. Produccion adicional se presupuesta aparte.",
+  },
+];
+
+const artDirectionOptions: ServiceOption[] = [
+  {
+    id: "equipo-especializado",
+    label: "Equipo especializado",
+    price: 190000,
+    description: "Servicio creativo. Produccion adicional se presupuesta aparte.",
+  },
+];
+
 const extraItems = extraBackgrounds.map((item) => item.color);
 
 const buildCatalogImageDefaults = (items: string[]): CatalogImage[] =>
@@ -121,9 +219,9 @@ export const studio: StudioContent = {
     alt: "Logo UNKT Estudio",
   },
   seo: {
-    title: "UNKT Estudio | Alquiler de estudio fotográfico",
+    title: "UNKT Estudio | Alquiler de estudio fotografico",
     description:
-      "Alquiler de estudio fotográfico listo para producir. Luces, difusores y fondos incluidos. Reserva online.",
+      "Alquiler de estudio fotografico listo para producir. Luces, difusores y fondos incluidos. Reserva online.",
     ogImage: "/logo.jpg",
   },
   hero: {
@@ -131,7 +229,7 @@ export const studio: StudioContent = {
     subtitle: "Entras, prendes las luces y trabajas.",
     image: {
       src: "/hero-placeholder.svg",
-      alt: "Vista del estudio fotográfico con fondo y luces.",
+      alt: "Vista del estudio fotografico con fondo y luces.",
     },
   },
   floorPlan: {
@@ -141,7 +239,7 @@ export const studio: StudioContent = {
   gallery: [
     {
       src: "/gallery-1.svg",
-      alt: "Área principal del estudio.",
+      alt: "Area principal del estudio.",
     },
     {
       src: "/hero-placeholder.svg",
@@ -150,18 +248,58 @@ export const studio: StudioContent = {
   ],
   included: {
     title: "Incluido",
-    subtitle: "Llegas y ya está armado.",
+    subtitle: "Llegas y ya esta armado.",
     items: includedItems,
     images: buildCatalogImageDefaults(includedItems),
   },
   extras: {
     title: "Extras",
     subtitle:
-      "Elegí hasta 5 colores de fondo. Cada color se cobra por separado y podés indicar si es sin pisar o pisando.",
+      "Elegi hasta 5 colores de fondo. Cada color se cobra por separado y podes indicar si es sin pisar o pisando.",
     maxSelections: 5,
     items: extraItems,
     backgrounds: extraBackgrounds,
     images: buildCatalogImageDefaults(extraItems),
+  },
+  services: {
+    title: "SERVICIOS - UNKT ESTUDIO",
+    subtitle: "PASO 1 - Elegi tu Produccion Fotografica",
+    description:
+      "Incluye produccion en estudio + edicion profesional + entrega digital.",
+    bookingNotice: "Reservas con minimo 5 dias de anticipacion.",
+    photographyTitle: "1. FOTOGRAFIA",
+    photographyHint:
+      "Obligatorio seleccionar una opcion. Las horas seleccionadas se usan como base de calculo.",
+    photographyOptions,
+    modelsTitle: "2. MODELOS",
+    modelsHint:
+      "Opcional (hasta 10 modelos). Calculo automatico: cantidad de modelos x horas x tarifa.",
+    maxModels: 10,
+    modelRatePerHour: 60000,
+    makeupTitle: "3. MAQUILLAJE",
+    makeupHint: "Opcional por modelo. Calculo automatico segun cantidad de modelos.",
+    makeupOptions,
+    hairstyleTitle: "4. PEINADO",
+    hairstyleHint: "Opcional por modelo.",
+    hairstyleLabel: "Peinado",
+    hairstyleRatePerModel: 20000,
+    stylingTitle: "5. ESTILISMO",
+    stylingHint: "Opcional - solo una opcion.",
+    stylingOptions,
+    artDirectionTitle: "6. DIRECCION DE ARTE",
+    artDirectionHint: "Opcional - solo una opcion.",
+    artDirectionOptions,
+    lightOperatorTitle: "7. OPERADOR DE LUCES",
+    lightOperatorHint: "Opcional - solo una opcion.",
+    lightOperatorLabel: "Disposicion durante la jornada",
+    lightOperatorRatePerHour: 30000,
+    assistantsTitle: "8. ASISTENTES DE PRODUCCION",
+    assistantsHint:
+      "Opcional - cantidad seleccionable. Calculo automatico: cantidad x horas x tarifa.",
+    assistantsLabel: "Disposicion durante la jornada",
+    maxAssistants: 10,
+    assistantsRatePerHour: 30000,
+    totalsTitle: "9. TOTAL",
   },
   pricing: {
     basePrice: 40000,
@@ -170,7 +308,7 @@ export const studio: StudioContent = {
     whatsapp: {
       phone: "5491158524000",
       message:
-        "Hola, quiero reservar UNKT Estudio. Fecha: __ / Horario: __ / Extras: __",
+        "Hola, quiero reservar UNKT Estudio. Fecha: __ / Horario: __ / Extras: __ / Servicios: __",
     },
     instagram: "https://www.instagram.com/unkt.estudio/",
     email: "hola@unktestudio.com",
@@ -183,20 +321,21 @@ export const studio: StudioContent = {
   footer: {
     policies: {
       cancellation: [
-        "Las cancelaciones o reprogramaciones se gestionan por WhatsApp con al menos 24 horas de anticipación.",
-        "Con 24 horas o más, se permite una única reprogramación sin cargo, sujeta a disponibilidad.",
+        "Las cancelaciones o reprogramaciones se gestionan por WhatsApp con al menos 24 horas de anticipacion.",
+        "Con 24 horas o mas, se permite una unica reprogramacion sin cargo, sujeta a disponibilidad.",
         "Con menos de 24 horas, en caso de no presentarse o llegar con demoras que afecten el turno, no hay reintegro.",
-        "Si UNKT Estudio debe cancelar por fuerza mayor, se ofrece reprogramación prioritaria o reintegro total.",
+        "Si UNKT Estudio debe cancelar por fuerza mayor, se ofrece reprogramacion prioritaria o reintegro total.",
       ],
       booking: [
-        "La reserva mínima es de 2 horas consecutivas.",
-        "Solo se habilitan reservas con un mínimo de 2 horas de anticipación.",
+        "La reserva minima es de 2 horas consecutivas.",
+        "Solo se habilitan reservas con un minimo de 2 horas de anticipacion.",
         "La reserva queda confirmada cuando el pago figura acreditado por Mercado Pago.",
         "Los extras se cobran por cada color de fondo seleccionado (hasta 5).",
-        "Cada fondo extra puede configurarse como sin pisar o pisando según necesidad.",
-        "El uso del estudio debe respetar el horario contratado para no afectar los turnos siguientes.",
-        "Hora extra: $70.000 por hora (equipo base). Servicios adicionales se prorratean.",
-        "Entrega digital dentro de X días hábiles.",
+        "Cada fondo extra puede configurarse como sin pisar o pisando segun necesidad.",
+        "Sabados, domingos y feriados tienen un recargo del 30% sobre la tarifa por hora.",
+        "La franja nocturna (de 22:00 a 08:00) tiene un recargo del 40% sobre la tarifa por hora.",
+        "Los servicios se calculan automaticamente por categoria y se suman al total general.",
+        "Para producciones con servicios, la reserva debe hacerse con minimo 5 dias de anticipacion.",
       ],
     },
   },

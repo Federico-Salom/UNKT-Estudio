@@ -12,17 +12,31 @@ type CheckoutPriceDetailsProps = {
   basePrice: number;
   hours: number;
   extras: CheckoutExtraLine[];
+  services: CheckoutExtraLine[];
+  weekendOrHolidaySurcharge: number;
+  weekendOrHolidayHours: number;
+  nightSurcharge: number;
+  nightHours: number;
   adjustment: number;
   buttonClassName?: string;
 };
 
 const formatMoney = (value: number) => `$${value.toLocaleString("es-AR")}`;
+const formatHours = (value: number) =>
+  Number.isInteger(value)
+    ? String(value)
+    : value.toLocaleString("es-AR", { maximumFractionDigits: 2 });
 
 export default function CheckoutPriceDetails({
   total,
   basePrice,
   hours,
   extras,
+  services,
+  weekendOrHolidaySurcharge,
+  weekendOrHolidayHours,
+  nightSurcharge,
+  nightHours,
   adjustment,
   buttonClassName,
 }: CheckoutPriceDetailsProps) {
@@ -32,6 +46,10 @@ export default function CheckoutPriceDetails({
   const extrasSubtotal = useMemo(
     () => extras.reduce((acc, item) => acc + item.amount, 0),
     [extras]
+  );
+  const servicesSubtotal = useMemo(
+    () => services.reduce((acc, item) => acc + item.amount, 0),
+    [services]
   );
 
   useEffect(() => {
@@ -128,6 +146,38 @@ export default function CheckoutPriceDetails({
 
               <div className="h-px bg-accent/15" />
 
+              {weekendOrHolidaySurcharge > 0 ? (
+                <div className="flex items-start justify-between gap-3 text-sm text-fg">
+                  <div>
+                    <p className="font-semibold">Recargo finde/feriado (+30%)</p>
+                    <p className="text-xs text-muted">
+                      Aplica sobre {formatHours(weekendOrHolidayHours)}{" "}
+                      {weekendOrHolidayHours === 1 ? "hora" : "horas"}.
+                    </p>
+                  </div>
+                  <p className="font-semibold">
+                    {formatMoney(weekendOrHolidaySurcharge)}
+                  </p>
+                </div>
+              ) : null}
+
+              {nightSurcharge > 0 ? (
+                <div className="flex items-start justify-between gap-3 text-sm text-fg">
+                  <div>
+                    <p className="font-semibold">Recargo nocturno (+40%)</p>
+                    <p className="text-xs text-muted">
+                      Franja 22:00 a 08:00 sobre {formatHours(nightHours)}{" "}
+                      {nightHours === 1 ? "hora" : "horas"}.
+                    </p>
+                  </div>
+                  <p className="font-semibold">{formatMoney(nightSurcharge)}</p>
+                </div>
+              ) : null}
+
+              {weekendOrHolidaySurcharge > 0 || nightSurcharge > 0 ? (
+                <div className="h-px bg-accent/15" />
+              ) : null}
+
               <div className="space-y-1">
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
                   Extras
@@ -153,6 +203,35 @@ export default function CheckoutPriceDetails({
               <div className="flex items-center justify-between text-sm text-fg">
                 <p className="font-semibold">Subtotal extras</p>
                 <p className="font-semibold">{formatMoney(extrasSubtotal)}</p>
+              </div>
+
+              <div className="h-px bg-accent/15" />
+
+              <div className="space-y-1">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                  Servicios
+                </p>
+                {services.length ? (
+                  services.map((service) => (
+                    <div
+                      key={service.label}
+                      className="flex items-start justify-between gap-3 text-sm text-fg"
+                    >
+                      <p className="max-w-[72%]">{service.label}</p>
+                      <p className="font-semibold">{formatMoney(service.amount)}</p>
+                    </div>
+                  ))
+                ) : (
+                  <div className="flex items-center justify-between text-sm text-fg">
+                    <p>Sin servicios</p>
+                    <p className="font-semibold">{formatMoney(0)}</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between text-sm text-fg">
+                <p className="font-semibold">Subtotal servicios</p>
+                <p className="font-semibold">{formatMoney(servicesSubtotal)}</p>
               </div>
 
               {adjustment !== 0 ? (

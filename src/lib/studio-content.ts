@@ -5,6 +5,7 @@ import {
   normalizeExtraBackgrounds,
   resolveExtraMaxSelections,
 } from "@/lib/booking";
+import { normalizeServiceCatalog } from "@/lib/services";
 
 const DEFAULT_ID = "main";
 const LEGACY_LOGO_SRC = "/logo.svg";
@@ -52,7 +53,24 @@ const LEGACY_LOCATION_URLS = new Set([
   "https://maps.google.com/?q=unkt%2bestudio",
 ]);
 const LEGACY_EXTRA_ITEMS = ["Sillón", "Accesorios de acero"];
+const LEGACY_INCLUDED_DEFAULT_ITEMS = [
+  "Luces",
+  "Difusores",
+  "Fondos",
+  "Sillon",
+  "Accesorios de acero",
+];
+const MIGRATED_INCLUDED_ITEMS_FROM_LEGACY_EXTRAS = [
+  "Sillón Chesterfield",
+  "Espacio de acero",
+];
 const normalizeListValue = (value: string) => value.trim().toLowerCase();
+const normalizeLegacyListValue = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
 const dedupeList = (items: string[]) => {
   const seen = new Set<string>();
   return items.filter((item) => {
@@ -65,8 +83,10 @@ const dedupeList = (items: string[]) => {
   });
 };
 const REQUIRED_BOOKING_POLICIES = [
+  "Sabados, domingos y feriados tienen un recargo del 30% sobre la tarifa por hora.",
+  "La franja nocturna (de 22:00 a 08:00) tiene un recargo del 40% sobre la tarifa por hora.",
   "Hora extra: $70.000 por hora (equipo base). Servicios adicionales se prorratean.",
-  "Entrega digital dentro de X días hábiles.",
+  "Entrega digital dentro de X dias habiles.",
 ] as const;
 const ensureRequiredBookingPolicies = (items: string[]) => {
   const seen = new Set(items.map(normalizeListValue));
@@ -84,10 +104,27 @@ const ensureRequiredBookingPolicies = (items: string[]) => {
   return nextItems;
 };
 const hasAnyLegacyExtra = (items: string[]) => {
-  const normalizedItems = new Set(items.map(normalizeListValue));
+  const normalizedItems = new Set(items.map(normalizeLegacyListValue));
   return LEGACY_EXTRA_ITEMS.some((item) =>
-    normalizedItems.has(normalizeListValue(item))
+    normalizedItems.has(normalizeLegacyListValue(item))
   );
+};
+const hasLegacyIncludedDefaults = (items: string[]) => {
+  const normalizedItems = Array.from(
+    new Set(items.map(normalizeLegacyListValue).filter(Boolean))
+  );
+  const normalizedLegacyDefaults = Array.from(
+    new Set(
+      LEGACY_INCLUDED_DEFAULT_ITEMS.map(normalizeLegacyListValue).filter(Boolean)
+    )
+  );
+
+  if (normalizedItems.length !== normalizedLegacyDefaults.length) {
+    return false;
+  }
+
+  const normalizedLegacySet = new Set(normalizedLegacyDefaults);
+  return normalizedItems.every((item) => normalizedLegacySet.has(item));
 };
 const buildCatalogImageAlt = (label: string) => `Imagen de ${label}`;
 const normalizeCatalogImages = (
@@ -338,6 +375,7 @@ const normalizeAssetPaths = (content: StudioContent): StudioContent => {
       backgrounds: normalizedExtrasBackgrounds,
       images: normalizeCatalogImages(normalizedExtraItems, content.extras.images),
     },
+    services: normalizeServiceCatalog(content.services),
     footer: {
       ...content.footer,
       policies: {
@@ -351,16 +389,25 @@ const normalizeAssetPaths = (content: StudioContent): StudioContent => {
     gallery,
   };
 
-  if (!hasAnyLegacyExtra(normalizedContent.extras.items)) {
+  const shouldMigrateLegacyIncludedDefaults = hasLegacyIncludedDefaults(
+    normalizedContent.included.items
+  );
+  const shouldMigrateLegacyExtras = hasAnyLegacyExtra(normalizedContent.extras.items);
+
+  if (!shouldMigrateLegacyIncludedDefaults && !shouldMigrateLegacyExtras) {
     return normalizedContent;
   }
 
   const migratedIncludedItems = dedupeList([
-    ...normalizedContent.included.items,
-    ...LEGACY_EXTRA_ITEMS,
+    ...(shouldMigrateLegacyIncludedDefaults
+      ? studio.included.items
+      : normalizedContent.included.items),
+    ...(shouldMigrateLegacyExtras
+      ? MIGRATED_INCLUDED_ITEMS_FROM_LEGACY_EXTRAS
+      : []),
   ]);
 
-  return {
+  const migratedContent: StudioContent = {
     ...normalizedContent,
     included: {
       ...normalizedContent.included,
@@ -370,6 +417,14 @@ const normalizeAssetPaths = (content: StudioContent): StudioContent => {
         normalizedContent.included.images
       ),
     },
+  };
+
+  if (!shouldMigrateLegacyExtras) {
+    return migratedContent;
+  }
+
+  return {
+    ...migratedContent,
     extras: {
       ...normalizedContent.extras,
       title: studio.extras.title,
@@ -411,3 +466,4 @@ export const updateStudioContent = async (
 
   return parseContent(updated.data);
 };
+

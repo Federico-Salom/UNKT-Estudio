@@ -74,6 +74,7 @@ model Booking {
   email     String
   phone     String
   extras    String
+  services  String            @default("[]")
   total     Int
   status    String            @default("pending_payment")
   createdAt DateTime          @default(now())

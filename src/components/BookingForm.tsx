@@ -12,11 +12,20 @@ import type { ExtraBackground, StudioContent } from "@/content/studio";
 import {
   BOOKING_TIMEZONE,
   buildExtraSelectionLabel,
+  calculateBookingPricing,
   formatExtraPriceLabel,
   resolveExtraMaxSelections,
   resolveExtrasFromLabels,
   type ExtraMode,
 } from "@/lib/booking";
+import {
+  getDefaultServiceSelection,
+  getServicesBreakdown,
+  normalizeBookingServicesSelection,
+  normalizeServiceCatalog,
+  parseStoredServicesSelection,
+  type BookingServicesSelection,
+} from "@/lib/services";
 
 type SlotOption = {
   id: string;
@@ -29,14 +38,17 @@ type BookingFormProps = {
   extraBackgrounds: ExtraBackground[];
   maxExtraSelections: number;
   basePrice: number;
+  services: StudioContent["services"];
+  holidayDates?: string[];
   policies: StudioContent["footer"]["policies"];
   profileName: string;
   profilePhone: string;
   isContactVerified: boolean;
   editBookingId?: string;
-  editSection?: "horario" | "extras" | null;
+  editSection?: "horario" | "extras" | "servicios" | null;
   initialSelectedSlotIds?: string[];
   initialSelectedExtras?: string[];
+  initialSelectedServicesRaw?: string | null;
   pageTitle: string;
 };
 
@@ -201,6 +213,8 @@ export default function BookingForm({
   extraBackgrounds,
   maxExtraSelections,
   basePrice,
+  services,
+  holidayDates = [],
   policies,
   profileName,
   profilePhone,
@@ -209,6 +223,7 @@ export default function BookingForm({
   editSection,
   initialSelectedSlotIds = [],
   initialSelectedExtras = [],
+  initialSelectedServicesRaw,
   pageTitle,
 }: BookingFormProps) {
   const router = useRouter();
@@ -219,10 +234,16 @@ export default function BookingForm({
     extraBackgrounds,
     maxExtraSelections
   );
+  const normalizedServicesCatalog = normalizeServiceCatalog(services);
+  const initialServicesSelection = initialSelectedServicesRaw
+    ? parseStoredServicesSelection(initialSelectedServicesRaw, normalizedServicesCatalog)
+    : getDefaultServiceSelection(normalizedServicesCatalog);
   const shouldOpenScheduleByDefault =
     Boolean(editBookingId) && editSection === "horario";
   const shouldOpenExtrasByDefault =
     Boolean(editBookingId) && editSection === "extras";
+  const shouldOpenServicesByDefault =
+    Boolean(editBookingId) && editSection === "servicios";
   const [name, setName] = useState(sanitizeNameInput(profileName));
   const [phone, setPhone] = useState(sanitizePhoneInput(profilePhone));
   const [selectedSlotIds, setSelectedSlotIds] = useState<string[]>(
@@ -230,6 +251,8 @@ export default function BookingForm({
   );
   const [selectedExtraModes, setSelectedExtraModes] =
     useState<Record<string, ExtraMode>>(initialExtraModes);
+  const [selectedServices, setSelectedServices] =
+    useState<BookingServicesSelection>(initialServicesSelection);
   const [extrasError, setExtrasError] = useState("");
   const [attempted, setAttempted] = useState(false);
   const [status, setStatus] = useState<"idle" | "loading">("idle");
@@ -249,11 +272,18 @@ export default function BookingForm({
   const [isExtrasExpanded, setIsExtrasExpanded] = useState(
     shouldOpenExtrasByDefault
   );
+  const [showServicesPanel, setShowServicesPanel] = useState(
+    shouldOpenServicesByDefault
+  );
+  const [isServicesExpanded, setIsServicesExpanded] = useState(
+    shouldOpenServicesByDefault
+  );
   const [isGuideModalOpen, setIsGuideModalOpen] = useState(false);
   const [isPolicyModalOpen, setIsPolicyModalOpen] = useState(false);
   const calendarToggleTimerRef = useRef<number | null>(null);
   const slotsToggleTimerRef = useRef<number | null>(null);
   const extrasToggleTimerRef = useRef<number | null>(null);
+  const servicesToggleTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!isGuideModalOpen) return;
@@ -287,6 +317,9 @@ export default function BookingForm({
       }
       if (extrasToggleTimerRef.current !== null) {
         window.clearTimeout(extrasToggleTimerRef.current);
+      }
+      if (servicesToggleTimerRef.current !== null) {
+        window.clearTimeout(servicesToggleTimerRef.current);
       }
     };
   }, []);
@@ -324,10 +357,64 @@ export default function BookingForm({
     () => selectedExtras.reduce((total, extra) => total + extra.price, 0),
     [selectedExtras]
   );
-  const total = useMemo(
-    () => basePrice * Math.max(selectedSlotIds.length, 1) + extrasTotal,
-    [basePrice, extrasTotal, selectedSlotIds.length]
+  const servicesBreakdown = useMemo(
+    () =>
+      getServicesBreakdown({
+        selection: selectedServices,
+        catalog: normalizedServicesCatalog,
+        hours: selectedSlotIds.length,
+      }),
+    [normalizedServicesCatalog, selectedServices, selectedSlotIds.length]
   );
+  const servicesTotal = servicesBreakdown.total;
+  const selectedPhotographyOption = useMemo(
+    () =>
+      normalizedServicesCatalog.photographyOptions.find(
+        (option) => option.id === selectedServices.photographyOptionId
+      ) || null,
+    [normalizedServicesCatalog.photographyOptions, selectedServices.photographyOptionId]
+  );
+  const selectedMakeupOption = useMemo(
+    () =>
+      normalizedServicesCatalog.makeupOptions.find(
+        (option) => option.id === selectedServices.makeupOptionId
+      ) || null,
+    [normalizedServicesCatalog.makeupOptions, selectedServices.makeupOptionId]
+  );
+
+  const selectedSlotRanges = useMemo(
+    () =>
+      selectedSlotIds
+        .map((selectedSlotId) => slots.find((slot) => slot.id === selectedSlotId))
+        .filter((slot): slot is SlotOption => Boolean(slot))
+        .sort(sortSlotsByStart)
+        .map((slot) => ({
+          start: toDate(slot.start),
+          end: toDate(slot.end),
+        })),
+    [selectedSlotIds, slots]
+  );
+
+  const pricingSummary = useMemo(
+    () =>
+      calculateBookingPricing({
+        basePrice,
+        extrasTotal,
+        servicesTotal,
+        slots: selectedSlotRanges,
+        holidayDates,
+        fallbackHours: Math.max(selectedSlotIds.length, 1),
+      }),
+    [
+      basePrice,
+      extrasTotal,
+      servicesTotal,
+      holidayDates,
+      selectedSlotIds.length,
+      selectedSlotRanges,
+    ]
+  );
+  const total = pricingSummary.grandTotal;
 
   const groupedSlots = useMemo(() => {
     const map = new Map<string, SlotOption[]>();
@@ -466,6 +553,13 @@ export default function BookingForm({
     return null;
   };
 
+  const getServicesError = () => {
+    if (servicesBreakdown.errors.length) {
+      return servicesBreakdown.errors[0];
+    }
+    return null;
+  };
+
   const toggleBackgroundSelection = (backgroundId: string) => {
     setSelectedExtraModes((prev) => {
       if (prev[backgroundId]) {
@@ -505,6 +599,75 @@ export default function BookingForm({
         [backgroundId]: mode,
       };
     });
+  };
+
+  const setModelsCount = (value: number) => {
+    const maxModels = normalizedServicesCatalog.maxModels;
+    setSelectedServices((prev) => {
+      const nextModels = Math.max(0, Math.min(maxModels, value));
+      if (nextModels === 0) {
+        return {
+          ...prev,
+          modelsCount: 0,
+          makeupOptionId: null,
+          hairstyleEnabled: false,
+        };
+      }
+      return {
+        ...prev,
+        modelsCount: nextModels,
+      };
+    });
+  };
+
+  const setAssistantsCount = (value: number) => {
+    const maxAssistants = normalizedServicesCatalog.maxAssistants;
+    setSelectedServices((prev) => ({
+      ...prev,
+      assistantsCount: Math.max(0, Math.min(maxAssistants, value)),
+    }));
+  };
+
+  const setPhotographyOption = (optionId: string) => {
+    setSelectedServices((prev) => ({
+      ...prev,
+      photographyOptionId: optionId,
+    }));
+  };
+
+  const setMakeupOption = (optionId: string | null) => {
+    setSelectedServices((prev) => ({
+      ...prev,
+      makeupOptionId: optionId,
+    }));
+  };
+
+  const setStylingOption = (optionId: string | null) => {
+    setSelectedServices((prev) => ({
+      ...prev,
+      stylingOptionId: optionId,
+    }));
+  };
+
+  const setArtDirectionOption = (optionId: string | null) => {
+    setSelectedServices((prev) => ({
+      ...prev,
+      artDirectionOptionId: optionId,
+    }));
+  };
+
+  const setHairStyleEnabled = (enabled: boolean) => {
+    setSelectedServices((prev) => ({
+      ...prev,
+      hairstyleEnabled: enabled,
+    }));
+  };
+
+  const setLightOperatorEnabled = (enabled: boolean) => {
+    setSelectedServices((prev) => ({
+      ...prev,
+      lightOperatorEnabled: enabled,
+    }));
   };
 
   const toggleSlotSelection = (slotId: string) => {
@@ -623,6 +786,7 @@ export default function BookingForm({
       getNameError(),
       getPhoneError(),
       getSlotError(),
+      getServicesError(),
     ].filter(Boolean);
 
     if (errors.length) return;
@@ -649,6 +813,10 @@ export default function BookingForm({
           phone: bookingPhone,
           slotIds: selectedSlotIds,
           extras: selectedExtras.map((extra) => extra.label),
+          services: normalizeBookingServicesSelection(
+            selectedServices,
+            normalizedServicesCatalog
+          ),
         }),
       });
 
@@ -672,13 +840,17 @@ export default function BookingForm({
   const nameError = attempted ? getNameError() : null;
   const phoneError = attempted ? getPhoneError() : null;
   const slotError = attempted ? getSlotError() : null;
+  const servicesValidationError = getServicesError();
+  const servicesError = attempted ? servicesValidationError : null;
   const hasContactError = Boolean(getNameError() || getPhoneError());
+  const hasServicesValidationError = Boolean(getServicesError());
   const isSubmitDisabled =
     status === "loading" ||
     slots.length === 0 ||
     selectedSlotIds.length < 2 ||
     !isSelectionConsecutive ||
-    hasContactError;
+    hasContactError ||
+    hasServicesValidationError;
   const submitDisabledReason = (() => {
     if (status === "loading") return "Procesando tu reserva...";
     if (slots.length === 0) return "Todavía no hay horarios disponibles.";
@@ -687,6 +859,7 @@ export default function BookingForm({
     if (!isSelectionConsecutive)
       return "Las horas seleccionadas deben ser consecutivas.";
     if (hasContactError) return "Completá nombre y teléfono válidos.";
+    if (servicesValidationError) return servicesValidationError;
     return "";
   })();
   const canConfirmSchedule =
@@ -807,6 +980,44 @@ export default function BookingForm({
     }
     openExtrasPanel();
   };
+  const openServicesPanel = () => {
+    if (showServicesPanel && isServicesExpanded) {
+      return;
+    }
+
+    if (servicesToggleTimerRef.current !== null) {
+      window.clearTimeout(servicesToggleTimerRef.current);
+      servicesToggleTimerRef.current = null;
+    }
+
+    setShowServicesPanel(true);
+    window.requestAnimationFrame(() => {
+      setIsServicesExpanded(true);
+    });
+  };
+  const closeServicesPanel = () => {
+    if (!showServicesPanel) {
+      return;
+    }
+
+    if (servicesToggleTimerRef.current !== null) {
+      window.clearTimeout(servicesToggleTimerRef.current);
+      servicesToggleTimerRef.current = null;
+    }
+
+    setIsServicesExpanded(false);
+    servicesToggleTimerRef.current = window.setTimeout(() => {
+      setShowServicesPanel(false);
+      servicesToggleTimerRef.current = null;
+    }, CALENDAR_TOGGLE_DURATION_MS);
+  };
+  const toggleServicesPanel = () => {
+    if (showServicesPanel && isServicesExpanded) {
+      closeServicesPanel();
+      return;
+    }
+    openServicesPanel();
+  };
   const handleDateSelection = (dateKey: string) => {
     setSelectedDate(dateKey);
     setSelectedSlotIds([]);
@@ -820,7 +1031,7 @@ export default function BookingForm({
     }
 
     closeSlotsPanel();
-    openExtrasPanel();
+    openServicesPanel();
   };
   const openGuideModal = () => setIsGuideModalOpen(true);
   const closeGuideModal = () => setIsGuideModalOpen(false);
@@ -1059,6 +1270,332 @@ export default function BookingForm({
       <div className="grid gap-3">
         <button
           type="button"
+          onClick={toggleServicesPanel}
+          className={sectionToggleButtonClass}
+          aria-label="Editar servicios"
+          aria-expanded={isServicesExpanded}
+          aria-controls="booking-services-panel"
+        >
+          <span className="text-sm font-semibold uppercase tracking-wide text-fg">
+            Servicios
+          </span>
+          {renderSectionEditIcon()}
+        </button>
+
+        {showServicesPanel ? (
+          <div
+            id="booking-services-panel"
+            className={sectionContentTransitionClass(isServicesExpanded)}
+          >
+            <div className="grid gap-3 rounded-2xl border border-accent/15 bg-white/80 px-4 py-4">
+              <div className="rounded-2xl border border-accent/15 bg-bg/70 p-3 text-sm text-fg">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                  {normalizedServicesCatalog.title}
+                </p>
+                <h3 className="mt-1 font-display text-xl uppercase tracking-[0.08em] text-fg">
+                  {normalizedServicesCatalog.subtitle}
+                </h3>
+                <p className="mt-2 text-sm text-muted">
+                  {normalizedServicesCatalog.description}
+                </p>
+                <p className="mt-2 text-xs font-semibold uppercase tracking-[0.12em] text-accent">
+                  {normalizedServicesCatalog.bookingNotice}
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-accent/20 bg-bg/65 p-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                  {normalizedServicesCatalog.photographyTitle}
+                </p>
+                <p className="mt-1 text-xs text-muted">
+                  {normalizedServicesCatalog.photographyHint}
+                </p>
+                <div className="mt-2 grid gap-2">
+                  {normalizedServicesCatalog.photographyOptions.map((option) => {
+                    const isSelected = selectedServices.photographyOptionId === option.id;
+                    return (
+                      <label
+                        key={option.id}
+                        className={`flex items-start justify-between gap-3 rounded-xl border px-3 py-2 text-sm font-semibold ${
+                          isSelected
+                            ? "border-accent bg-accent/10 text-accent"
+                            : "border-accent/20 bg-white text-fg"
+                        }`}
+                      >
+                        <span className="flex items-start gap-2">
+                          <input
+                            type="radio"
+                            name="service-photography-option"
+                            checked={isSelected}
+                            onChange={() => setPhotographyOption(option.id)}
+                          />
+                          <span>{option.label}</span>
+                        </span>
+                        <span className="text-xs font-medium text-muted">
+                          {formatExtraPriceLabel(option.price)} / min {option.minHours || 1} h
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-2">
+                <div className="rounded-2xl border border-accent/20 bg-bg/65 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                    {normalizedServicesCatalog.modelsTitle}
+                  </p>
+                  <p className="mt-1 text-xs text-muted">
+                    {normalizedServicesCatalog.modelsHint}
+                  </p>
+                  <div className="mt-2 flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setModelsCount(selectedServices.modelsCount - 1)}
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-accent/30 text-sm font-semibold text-accent transition hover:border-accent hover:bg-accent/10"
+                    >
+                      -
+                    </button>
+                    <span className="min-w-10 text-center text-sm font-semibold text-fg">
+                      {selectedServices.modelsCount}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setModelsCount(selectedServices.modelsCount + 1)}
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-accent/30 text-sm font-semibold text-accent transition hover:border-accent hover:bg-accent/10"
+                    >
+                      +
+                    </button>
+                  </div>
+                  <p className="mt-2 text-xs text-muted">
+                    Tarifa: {formatExtraPriceLabel(normalizedServicesCatalog.modelRatePerHour)} x hora x modelo
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-accent/20 bg-bg/65 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                    {normalizedServicesCatalog.makeupTitle}
+                  </p>
+                  <p className="mt-1 text-xs text-muted">
+                    {normalizedServicesCatalog.makeupHint}
+                  </p>
+                  <div className="mt-2 grid gap-2">
+                    <label className="flex items-center gap-2 text-xs font-semibold text-fg">
+                      <input
+                        type="radio"
+                        name="service-makeup-option"
+                        checked={!selectedServices.makeupOptionId}
+                        onChange={() => setMakeupOption(null)}
+                      />
+                      Sin maquillaje
+                    </label>
+                    {normalizedServicesCatalog.makeupOptions.map((option) => (
+                      <label key={option.id} className="flex items-center justify-between gap-2 text-xs font-semibold text-fg">
+                        <span className="flex items-center gap-2">
+                          <input
+                            type="radio"
+                            name="service-makeup-option"
+                            checked={selectedServices.makeupOptionId === option.id}
+                            onChange={() => setMakeupOption(option.id)}
+                            disabled={selectedServices.modelsCount === 0}
+                          />
+                          {option.label}
+                        </span>
+                        <span className="text-muted">
+                          {formatExtraPriceLabel(option.price)} / modelo
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-2">
+                <div className="rounded-2xl border border-accent/20 bg-bg/65 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                    {normalizedServicesCatalog.hairstyleTitle}
+                  </p>
+                  <p className="mt-1 text-xs text-muted">
+                    {normalizedServicesCatalog.hairstyleHint}
+                  </p>
+                  <label className="mt-2 flex items-center justify-between gap-2 text-xs font-semibold text-fg">
+                    <span className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={selectedServices.hairstyleEnabled}
+                        onChange={(event) => setHairStyleEnabled(event.target.checked)}
+                        disabled={selectedServices.modelsCount === 0}
+                      />
+                      {normalizedServicesCatalog.hairstyleLabel}
+                    </span>
+                    <span className="text-muted">
+                      {formatExtraPriceLabel(normalizedServicesCatalog.hairstyleRatePerModel)} / modelo
+                    </span>
+                  </label>
+                </div>
+
+                <div className="rounded-2xl border border-accent/20 bg-bg/65 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                    {normalizedServicesCatalog.lightOperatorTitle}
+                  </p>
+                  <p className="mt-1 text-xs text-muted">
+                    {normalizedServicesCatalog.lightOperatorHint}
+                  </p>
+                  <label className="mt-2 flex items-center justify-between gap-2 text-xs font-semibold text-fg">
+                    <span className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={selectedServices.lightOperatorEnabled}
+                        onChange={(event) =>
+                          setLightOperatorEnabled(event.target.checked)
+                        }
+                      />
+                      {normalizedServicesCatalog.lightOperatorLabel}
+                    </span>
+                    <span className="text-muted">
+                      {formatExtraPriceLabel(normalizedServicesCatalog.lightOperatorRatePerHour)} / hora
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-2">
+                <div className="rounded-2xl border border-accent/20 bg-bg/65 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                    {normalizedServicesCatalog.stylingTitle}
+                  </p>
+                  <div className="mt-2 grid gap-2">
+                    <label className="flex items-center gap-2 text-xs font-semibold text-fg">
+                      <input
+                        type="radio"
+                        name="service-styling-option"
+                        checked={!selectedServices.stylingOptionId}
+                        onChange={() => setStylingOption(null)}
+                      />
+                      Sin estilismo
+                    </label>
+                    {normalizedServicesCatalog.stylingOptions.map((option) => (
+                      <label key={option.id} className="flex items-center justify-between gap-2 text-xs font-semibold text-fg">
+                        <span className="flex items-center gap-2">
+                          <input
+                            type="radio"
+                            name="service-styling-option"
+                            checked={selectedServices.stylingOptionId === option.id}
+                            onChange={() => setStylingOption(option.id)}
+                          />
+                          {option.label}
+                        </span>
+                        <span className="text-muted">
+                          {formatExtraPriceLabel(option.price)}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-accent/20 bg-bg/65 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                    {normalizedServicesCatalog.artDirectionTitle}
+                  </p>
+                  <div className="mt-2 grid gap-2">
+                    <label className="flex items-center gap-2 text-xs font-semibold text-fg">
+                      <input
+                        type="radio"
+                        name="service-art-direction-option"
+                        checked={!selectedServices.artDirectionOptionId}
+                        onChange={() => setArtDirectionOption(null)}
+                      />
+                      Sin direccion de arte
+                    </label>
+                    {normalizedServicesCatalog.artDirectionOptions.map((option) => (
+                      <label key={option.id} className="flex items-center justify-between gap-2 text-xs font-semibold text-fg">
+                        <span className="flex items-center gap-2">
+                          <input
+                            type="radio"
+                            name="service-art-direction-option"
+                            checked={selectedServices.artDirectionOptionId === option.id}
+                            onChange={() => setArtDirectionOption(option.id)}
+                          />
+                          {option.label}
+                        </span>
+                        <span className="text-muted">
+                          {formatExtraPriceLabel(option.price)}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-accent/20 bg-bg/65 p-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                  {normalizedServicesCatalog.assistantsTitle}
+                </p>
+                <p className="mt-1 text-xs text-muted">
+                  {normalizedServicesCatalog.assistantsHint}
+                </p>
+                <div className="mt-2 flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setAssistantsCount(selectedServices.assistantsCount - 1)
+                    }
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-accent/30 text-sm font-semibold text-accent transition hover:border-accent hover:bg-accent/10"
+                  >
+                    -
+                  </button>
+                  <span className="min-w-10 text-center text-sm font-semibold text-fg">
+                    {selectedServices.assistantsCount}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setAssistantsCount(selectedServices.assistantsCount + 1)
+                    }
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-accent/30 text-sm font-semibold text-accent transition hover:border-accent hover:bg-accent/10"
+                  >
+                    +
+                  </button>
+                </div>
+                <p className="mt-2 text-xs text-muted">
+                  Tarifa: {formatExtraPriceLabel(normalizedServicesCatalog.assistantsRatePerHour)} x hora por asistente
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-accent/20 bg-bg/75 p-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                  {normalizedServicesCatalog.totalsTitle}
+                </p>
+                <div className="mt-2 space-y-1 text-xs text-fg/90">
+                  {servicesBreakdown.subtotals.map((item) => (
+                    <div key={item.key} className="flex items-center justify-between gap-3">
+                      <span>{item.label}</span>
+                      <span className="font-semibold">
+                        {formatExtraPriceLabel(item.amount)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 flex items-center justify-between text-sm font-semibold uppercase tracking-wide text-fg">
+                  <span>Total servicios</span>
+                  <span>{formatExtraPriceLabel(servicesTotal)}</span>
+                </div>
+              </div>
+
+              {servicesError ? (
+                <span className="text-xs text-accent">{servicesError}</span>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+        {servicesError && !showServicesPanel ? (
+          <span className="text-xs text-accent">{servicesError}</span>
+        ) : null}
+      </div>
+
+      <div className="grid gap-3">
+        <button
+          type="button"
           onClick={toggleExtrasPanel}
           className={sectionToggleButtonClass}
           aria-label="Editar extras"
@@ -1169,6 +1706,24 @@ export default function BookingForm({
           </span>
         </div>
         <div className="mt-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-muted">
+          <span>Subtotal base</span>
+          <span>${pricingSummary.baseSubtotal.toLocaleString("es-AR")}</span>
+        </div>
+        {pricingSummary.weekendOrHolidaySurcharge > 0 ? (
+          <div className="mt-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-muted">
+            <span>Recargo finde/feriado (+30%)</span>
+            <span>
+              ${pricingSummary.weekendOrHolidaySurcharge.toLocaleString("es-AR")}
+            </span>
+          </div>
+        ) : null}
+        {pricingSummary.nightSurcharge > 0 ? (
+          <div className="mt-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-muted">
+            <span>Recargo nocturno (+40%)</span>
+            <span>${pricingSummary.nightSurcharge.toLocaleString("es-AR")}</span>
+          </div>
+        ) : null}
+        <div className="mt-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-muted">
           <span>Extras</span>
           <span>${extrasTotal.toLocaleString("es-AR")}</span>
         </div>
@@ -1177,6 +1732,19 @@ export default function BookingForm({
             {selectedExtras.map((extra) => extra.label).join(", ")}
           </div>
         )}
+        <div className="mt-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-muted">
+          <span>Servicios</span>
+          <span>${servicesTotal.toLocaleString("es-AR")}</span>
+        </div>
+        {selectedPhotographyOption ? (
+          <div className="mt-1 text-xs text-muted">
+            Foto base: {selectedPhotographyOption.label}
+            {selectedPhotographyOption.minHours
+              ? ` (min ${selectedPhotographyOption.minHours}h)`
+              : ""}
+            {selectedMakeupOption ? ` | Makeup: ${selectedMakeupOption.label}` : ""}
+          </div>
+        ) : null}
         <div className="mt-3 flex items-center justify-between text-sm font-semibold uppercase tracking-wide text-fg">
           <span>Total</span>
           <span>${total.toLocaleString("es-AR")}</span>
@@ -1283,8 +1851,8 @@ export default function BookingForm({
                     Instructivo de reserva
                   </p>
                   <p className="mt-2 text-sm text-muted">
-                    Para editar, elegi un nuevo bloque horario y ajusta extras
-                    antes de confirmar.
+                    Para editar, elegi un nuevo bloque horario y ajusta servicios
+                    y extras antes de confirmar.
                   </p>
                 </div>
 
@@ -1299,7 +1867,7 @@ export default function BookingForm({
                     3. Se reserva 1 hora posterior para mantenimiento, no se cobra y es para uso exclusivo de UNKT para asegurar el funcionamiento correcto del taller.
                   </li>
                   <li className="rounded-2xl border border-accent/20 bg-bg/90 px-4 py-3">
-                    4. Si queres, activa extras y elige el modo de cada fondo.
+                    4. Configura servicios, luego activa extras y elige el modo de cada fondo.
                   </li>
                   <li className="rounded-2xl border border-accent/20 bg-bg/90 px-4 py-3">
                     5. Revisa el total y confirma con &quot;Reservar y pagar&quot;.

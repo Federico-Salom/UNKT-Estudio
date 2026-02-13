@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
+import type { ServiceCatalog } from "@/content/studio";
 import { formatExtraPriceLabel } from "@/lib/booking";
 
 type ExtraPriceItem = {
@@ -12,9 +13,27 @@ type ExtraPriceItem = {
   pricePisando: number;
 };
 
+type ServiceOptionPriceInput = {
+  id: string;
+  label: string;
+  price: string;
+};
+
+type ServicePriceInputs = {
+  photographyOptions: ServiceOptionPriceInput[];
+  makeupOptions: ServiceOptionPriceInput[];
+  stylingOptions: ServiceOptionPriceInput[];
+  artDirectionOptions: ServiceOptionPriceInput[];
+  modelRatePerHour: string;
+  hairstyleRatePerModel: string;
+  lightOperatorRatePerHour: string;
+  assistantsRatePerHour: string;
+};
+
 type AdminPricingModalProps = {
   basePrice: number;
   extras: ExtraPriceItem[];
+  services: ServiceCatalog;
   triggerClassName?: string;
 };
 
@@ -30,9 +49,28 @@ const parsePriceInput = (value: string) => {
 
 const formatArs = (value: number) => formatExtraPriceLabel(value);
 
+const mapOptionInputs = (options: ServiceCatalog["photographyOptions"]) =>
+  options.map((item) => ({
+    id: item.id,
+    label: item.label,
+    price: String(item.price),
+  }));
+
+const buildServicePriceInputs = (services: ServiceCatalog): ServicePriceInputs => ({
+  photographyOptions: mapOptionInputs(services.photographyOptions),
+  makeupOptions: mapOptionInputs(services.makeupOptions),
+  stylingOptions: mapOptionInputs(services.stylingOptions),
+  artDirectionOptions: mapOptionInputs(services.artDirectionOptions),
+  modelRatePerHour: String(services.modelRatePerHour),
+  hairstyleRatePerModel: String(services.hairstyleRatePerModel),
+  lightOperatorRatePerHour: String(services.lightOperatorRatePerHour),
+  assistantsRatePerHour: String(services.assistantsRatePerHour),
+});
+
 export default function AdminPricingModal({
   basePrice,
   extras,
+  services,
   triggerClassName,
 }: AdminPricingModalProps) {
   const router = useRouter();
@@ -45,6 +83,9 @@ export default function AdminPricingModal({
       priceSinPisar: String(item.priceSinPisar),
       pricePisando: String(item.pricePisando),
     }))
+  );
+  const [servicePriceInputs, setServicePriceInputs] = useState<ServicePriceInputs>(
+    buildServicePriceInputs(services)
   );
   const [status, setStatus] = useState<SaveStatus>("idle");
   const [errorMessage, setErrorMessage] = useState("");
@@ -59,6 +100,7 @@ export default function AdminPricingModal({
         pricePisando: String(item.pricePisando),
       }))
     );
+    setServicePriceInputs(buildServicePriceInputs(services));
     setStatus("idle");
     setErrorMessage("");
   };
@@ -85,7 +127,8 @@ export default function AdminPricingModal({
         pricePisando: String(item.pricePisando),
       }))
     );
-  }, [basePrice, extras, isOpen]);
+    setServicePriceInputs(buildServicePriceInputs(services));
+  }, [basePrice, extras, services, isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -124,6 +167,44 @@ export default function AdminPricingModal({
     );
   };
 
+  const handleServiceOptionPriceChange = (
+    key: keyof Pick<
+      ServicePriceInputs,
+      "photographyOptions" | "makeupOptions" | "stylingOptions" | "artDirectionOptions"
+    >,
+    index: number,
+    value: string
+  ) => {
+    setServicePriceInputs((prev) => ({
+      ...prev,
+      [key]: prev[key].map((item, currentIndex) =>
+        currentIndex === index ? { ...item, price: value } : item
+      ),
+    }));
+  };
+
+  const handleRateChange = (
+    key: keyof Pick<
+      ServicePriceInputs,
+      | "modelRatePerHour"
+      | "hairstyleRatePerModel"
+      | "lightOperatorRatePerHour"
+      | "assistantsRatePerHour"
+    >,
+    value: string
+  ) => {
+    setServicePriceInputs((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+
+  const parseOptionGroup = (options: ServiceOptionPriceInput[]) =>
+    options.map((item) => ({
+      id: item.id,
+      price: parsePriceInput(item.price),
+    }));
+
   const handleSave = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setStatus("saving");
@@ -156,6 +237,46 @@ export default function AdminPricingModal({
       return;
     }
 
+    const parsedServices = {
+      photographyOptions: parseOptionGroup(servicePriceInputs.photographyOptions),
+      makeupOptions: parseOptionGroup(servicePriceInputs.makeupOptions),
+      stylingOptions: parseOptionGroup(servicePriceInputs.stylingOptions),
+      artDirectionOptions: parseOptionGroup(servicePriceInputs.artDirectionOptions),
+      rates: {
+        modelRatePerHour: parsePriceInput(servicePriceInputs.modelRatePerHour),
+        hairstyleRatePerModel: parsePriceInput(servicePriceInputs.hairstyleRatePerModel),
+        lightOperatorRatePerHour: parsePriceInput(
+          servicePriceInputs.lightOperatorRatePerHour
+        ),
+        assistantsRatePerHour: parsePriceInput(
+          servicePriceInputs.assistantsRatePerHour
+        ),
+      },
+    };
+
+    const hasInvalidServiceOptions = [
+      ...parsedServices.photographyOptions,
+      ...parsedServices.makeupOptions,
+      ...parsedServices.stylingOptions,
+      ...parsedServices.artDirectionOptions,
+    ].some((item) => !Number.isFinite(item.price) || item.price < 0);
+
+    if (hasInvalidServiceOptions) {
+      setStatus("error");
+      setErrorMessage("Revisa los precios de opciones de servicios.");
+      return;
+    }
+
+    if (
+      Object.values(parsedServices.rates).some(
+        (value) => !Number.isFinite(value) || value < 0
+      )
+    ) {
+      setStatus("error");
+      setErrorMessage("Revisa las tarifas por categoria de servicios.");
+      return;
+    }
+
     try {
       const response = await fetch("/api/admin/pricing", {
         method: "POST",
@@ -166,6 +287,7 @@ export default function AdminPricingModal({
         body: JSON.stringify({
           basePrice: parsedBasePrice,
           extras: parsedExtraPrices,
+          services: parsedServices,
         }),
       });
 
@@ -188,6 +310,59 @@ export default function AdminPricingModal({
     } finally {
       setStatus((current) => (current === "saving" ? "idle" : current));
     }
+  };
+
+  const renderServiceOptionsGroup = ({
+    title,
+    options,
+    keyName,
+  }: {
+    title: string;
+    options: ServiceOptionPriceInput[];
+    keyName: keyof Pick<
+      ServicePriceInputs,
+      "photographyOptions" | "makeupOptions" | "stylingOptions" | "artDirectionOptions"
+    >;
+  }) => {
+    if (!options.length) {
+      return (
+        <div className="rounded-2xl border border-accent/15 bg-bg/80 px-4 py-3 text-sm text-muted">
+          No hay opciones cargadas.
+        </div>
+      );
+    }
+
+    return (
+      <div className="grid gap-3">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+          {title}
+        </p>
+        {options.map((item, index) => {
+          const parsedValue = parsePriceInput(item.price);
+          return (
+            <label
+              key={item.id}
+              className="grid gap-2 rounded-2xl border border-accent/20 bg-bg/70 p-3 text-sm font-semibold"
+            >
+              <span>{item.label}</span>
+              <input
+                className="w-full min-w-0 rounded-2xl border border-accent/25 bg-bg px-4 py-2 text-sm text-fg placeholder:text-muted outline-none transition focus:border-accent"
+                type="text"
+                inputMode="numeric"
+                value={item.price}
+                onChange={(event) =>
+                  handleServiceOptionPriceChange(keyName, index, event.target.value)
+                }
+                placeholder="0"
+              />
+              <span className="text-xs font-medium text-fg/75">
+                {Number.isFinite(parsedValue) ? formatArs(parsedValue) : "invalido"}
+              </span>
+            </label>
+          );
+        })}
+      </div>
+    );
   };
 
   return (
@@ -216,7 +391,7 @@ export default function AdminPricingModal({
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="admin-pricing-title"
-                className="relative z-10 w-full max-w-3xl max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-3xl border border-accent/25 bg-bg/95 p-4 text-fg shadow-[0_34px_70px_-42px_rgba(0,0,0,0.8)] sm:max-h-[calc(100dvh-3rem)] sm:p-6"
+                className="relative z-10 w-full max-w-4xl max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-3xl border border-accent/25 bg-bg/95 p-4 text-fg shadow-[0_34px_70px_-42px_rgba(0,0,0,0.8)] sm:max-h-[calc(100dvh-3rem)] sm:p-6"
               >
                 <button
                   type="button"
@@ -246,7 +421,7 @@ export default function AdminPricingModal({
                   Modificar precios
                 </p>
 
-                <form className="mt-5 grid gap-4 sm:mt-6" onSubmit={handleSave} noValidate>
+                <form className="mt-5 grid gap-5 sm:mt-6" onSubmit={handleSave} noValidate>
                   <label className="grid gap-2 text-sm font-semibold">
                     Precio base por hora
                     <input
@@ -259,10 +434,9 @@ export default function AdminPricingModal({
                       required
                     />
                     <span className="text-xs font-medium text-fg/75">
-                      Valor actual:{" "}
-                      {Number.isFinite(normalizedBasePrice)
+                      Valor actual: {Number.isFinite(normalizedBasePrice)
                         ? formatArs(normalizedBasePrice)
-                        : "inválido"}
+                        : "invalido"}
                     </span>
                   </label>
 
@@ -306,7 +480,7 @@ export default function AdminPricingModal({
                                 <span className="text-xs font-medium text-fg/75">
                                   {Number.isFinite(parsedSinPisar)
                                     ? formatArs(parsedSinPisar)
-                                    : "inválido"}
+                                    : "invalido"}
                                 </span>
                               </label>
 
@@ -329,7 +503,7 @@ export default function AdminPricingModal({
                                 <span className="text-xs font-medium text-fg/75">
                                   {Number.isFinite(parsedPisando)
                                     ? formatArs(parsedPisando)
-                                    : "inválido"}
+                                    : "invalido"}
                                 </span>
                               </label>
                             </div>
@@ -337,6 +511,104 @@ export default function AdminPricingModal({
                         );
                       })
                     )}
+                  </div>
+
+                  <div className="grid gap-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                      Servicios - opciones
+                    </p>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      {renderServiceOptionsGroup({
+                        title: "Fotografia",
+                        options: servicePriceInputs.photographyOptions,
+                        keyName: "photographyOptions",
+                      })}
+                      {renderServiceOptionsGroup({
+                        title: "Maquillaje",
+                        options: servicePriceInputs.makeupOptions,
+                        keyName: "makeupOptions",
+                      })}
+                      {renderServiceOptionsGroup({
+                        title: "Estilismo",
+                        options: servicePriceInputs.stylingOptions,
+                        keyName: "stylingOptions",
+                      })}
+                      {renderServiceOptionsGroup({
+                        title: "Direccion de arte",
+                        options: servicePriceInputs.artDirectionOptions,
+                        keyName: "artDirectionOptions",
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                      Servicios - tarifas automaticas
+                    </p>
+
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <label className="grid gap-2 text-sm font-semibold">
+                        Modelos (precio por hora por modelo)
+                        <input
+                          className="w-full min-w-0 rounded-2xl border border-accent/25 bg-bg px-4 py-2 text-sm text-fg placeholder:text-muted outline-none transition focus:border-accent"
+                          type="text"
+                          inputMode="numeric"
+                          value={servicePriceInputs.modelRatePerHour}
+                          onChange={(event) =>
+                            handleRateChange("modelRatePerHour", event.target.value)
+                          }
+                          placeholder="0"
+                        />
+                      </label>
+
+                      <label className="grid gap-2 text-sm font-semibold">
+                        Peinado (precio por modelo)
+                        <input
+                          className="w-full min-w-0 rounded-2xl border border-accent/25 bg-bg px-4 py-2 text-sm text-fg placeholder:text-muted outline-none transition focus:border-accent"
+                          type="text"
+                          inputMode="numeric"
+                          value={servicePriceInputs.hairstyleRatePerModel}
+                          onChange={(event) =>
+                            handleRateChange(
+                              "hairstyleRatePerModel",
+                              event.target.value
+                            )
+                          }
+                          placeholder="0"
+                        />
+                      </label>
+
+                      <label className="grid gap-2 text-sm font-semibold">
+                        Operador de luces (precio por hora)
+                        <input
+                          className="w-full min-w-0 rounded-2xl border border-accent/25 bg-bg px-4 py-2 text-sm text-fg placeholder:text-muted outline-none transition focus:border-accent"
+                          type="text"
+                          inputMode="numeric"
+                          value={servicePriceInputs.lightOperatorRatePerHour}
+                          onChange={(event) =>
+                            handleRateChange(
+                              "lightOperatorRatePerHour",
+                              event.target.value
+                            )
+                          }
+                          placeholder="0"
+                        />
+                      </label>
+
+                      <label className="grid gap-2 text-sm font-semibold">
+                        Asistentes (precio por hora por asistente)
+                        <input
+                          className="w-full min-w-0 rounded-2xl border border-accent/25 bg-bg px-4 py-2 text-sm text-fg placeholder:text-muted outline-none transition focus:border-accent"
+                          type="text"
+                          inputMode="numeric"
+                          value={servicePriceInputs.assistantsRatePerHour}
+                          onChange={(event) =>
+                            handleRateChange("assistantsRatePerHour", event.target.value)
+                          }
+                          placeholder="0"
+                        />
+                      </label>
+                    </div>
                   </div>
 
                   {errorMessage ? (

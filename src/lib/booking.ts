@@ -349,3 +349,212 @@ export const formatSlotLabel = (date: Date) => {
     minute: "2-digit",
   }).format(date);
 };
+
+export type BookingSlotRange = {
+  start: Date;
+  end: Date;
+};
+
+export type BookingBasePricingBreakdown = {
+  hours: number;
+  baseSubtotal: number;
+  weekendOrHolidayHours: number;
+  nightHours: number;
+  weekendOrHolidaySurcharge: number;
+  nightSurcharge: number;
+  surchargeSubtotal: number;
+  totalBaseWithSurcharges: number;
+};
+
+export type BookingPricingBreakdown = BookingBasePricingBreakdown & {
+  extrasTotal: number;
+  servicesTotal: number;
+  grandTotal: number;
+};
+
+type BookingPricingInput = {
+  basePrice: number;
+  slots: BookingSlotRange[];
+  extrasTotal?: number;
+  servicesTotal?: number;
+  holidayDates?: Iterable<string>;
+  fallbackHours?: number;
+};
+
+export const WEEKEND_OR_HOLIDAY_SURCHARGE_RATE = 0.3;
+export const NIGHT_SURCHARGE_RATE = 0.4;
+export const NIGHT_SURCHARGE_START_HOUR = 22;
+export const NIGHT_SURCHARGE_END_HOUR = 8;
+
+const ONE_HOUR_IN_MS = 60 * 60 * 1000;
+const HOLIDAY_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const WEEKEND_WEEKDAYS = new Set(["sat", "sun"]);
+
+const bookingDateKeyFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: BOOKING_TIMEZONE,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+const bookingWeekdayFormatter = new Intl.DateTimeFormat("en-US", {
+  timeZone: BOOKING_TIMEZONE,
+  weekday: "short",
+});
+
+const bookingHourFormatter = new Intl.DateTimeFormat("en-US", {
+  timeZone: BOOKING_TIMEZONE,
+  hour: "2-digit",
+  hour12: false,
+});
+
+const roundMoney = (value: number) => Math.round(value);
+const roundHours = (value: number) => Math.round(value * 100) / 100;
+
+const normalizeHolidayDate = (value: string) => {
+  const normalized = value.trim();
+  if (!normalized || !HOLIDAY_DATE_PATTERN.test(normalized)) {
+    return null;
+  }
+  return normalized;
+};
+
+const buildHolidayDateSet = (dates?: Iterable<string>) =>
+  new Set(
+    Array.from(dates ?? []).flatMap((date) => {
+      const normalized = normalizeHolidayDate(String(date || ""));
+      return normalized ? [normalized] : [];
+    })
+  );
+
+const parseHolidayDatesFromEnv = (value: string | undefined) =>
+  value
+    ?.split(/[,\s]+/g)
+    .flatMap((item) => {
+      const normalized = normalizeHolidayDate(item);
+      return normalized ? [normalized] : [];
+    }) ?? [];
+
+const toHourStartDate = (value: Date) => new Date(value.getTime());
+
+const getLocalDateKey = (value: Date) => bookingDateKeyFormatter.format(value);
+
+const getLocalHour = (value: Date) => {
+  const parsedHour = Number(bookingHourFormatter.format(value));
+  if (!Number.isFinite(parsedHour)) {
+    return 0;
+  }
+  return parsedHour === 24 ? 0 : parsedHour;
+};
+
+const isWeekendDate = (value: Date) =>
+  WEEKEND_WEEKDAYS.has(bookingWeekdayFormatter.format(value).toLowerCase());
+
+const isNightHour = (hour: number) =>
+  hour >= NIGHT_SURCHARGE_START_HOUR || hour < NIGHT_SURCHARGE_END_HOUR;
+
+const resolveFallbackHours = (value: unknown) => {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return 0;
+  }
+  return parsed;
+};
+
+export const getConfiguredBookingHolidayDates = () => {
+  return Array.from(new Set(parseHolidayDatesFromEnv(process.env.BOOKING_HOLIDAYS)));
+};
+
+export const calculateBookingPricing = ({
+  basePrice,
+  slots,
+  extrasTotal = 0,
+  servicesTotal = 0,
+  holidayDates,
+  fallbackHours = 0,
+}: BookingPricingInput): BookingPricingBreakdown => {
+  const safeBasePrice = resolveBasePrice(basePrice);
+  const safeExtrasTotal = Number.isFinite(extrasTotal)
+    ? Math.max(0, roundMoney(extrasTotal))
+    : 0;
+  const safeServicesTotal = Number.isFinite(servicesTotal)
+    ? Math.max(0, roundMoney(servicesTotal))
+    : 0;
+  const configuredHolidayDates = buildHolidayDateSet(holidayDates);
+  let baseSubtotalRaw = 0;
+  let weekendOrHolidayHoursRaw = 0;
+  let nightHoursRaw = 0;
+  let weekendOrHolidaySurchargeRaw = 0;
+  let nightSurchargeRaw = 0;
+  let hoursRaw = 0;
+
+  slots.forEach((slot) => {
+    const startTime = slot.start.getTime();
+    const endTime = slot.end.getTime();
+    if (
+      !Number.isFinite(startTime) ||
+      !Number.isFinite(endTime) ||
+      endTime <= startTime
+    ) {
+      return;
+    }
+
+    let cursor = startTime;
+
+    while (cursor < endTime) {
+      const nextCursor = Math.min(endTime, cursor + ONE_HOUR_IN_MS);
+      const durationHours = (nextCursor - cursor) / ONE_HOUR_IN_MS;
+      if (!Number.isFinite(durationHours) || durationHours <= 0) {
+        cursor = nextCursor;
+        continue;
+      }
+
+      const hourStart = toHourStartDate(new Date(cursor));
+      const hourBaseAmount = safeBasePrice * durationHours;
+      const isWeekend = isWeekendDate(hourStart);
+      const isHoliday = configuredHolidayDates.has(getLocalDateKey(hourStart));
+      const weekendOrHoliday = isWeekend || isHoliday;
+      const night = isNightHour(getLocalHour(hourStart));
+
+      hoursRaw += durationHours;
+      baseSubtotalRaw += hourBaseAmount;
+
+      if (weekendOrHoliday) {
+        weekendOrHolidayHoursRaw += durationHours;
+        weekendOrHolidaySurchargeRaw +=
+          hourBaseAmount * WEEKEND_OR_HOLIDAY_SURCHARGE_RATE;
+      }
+
+      if (night) {
+        nightHoursRaw += durationHours;
+        nightSurchargeRaw += hourBaseAmount * NIGHT_SURCHARGE_RATE;
+      }
+
+      cursor = nextCursor;
+    }
+  });
+
+  const normalizedFallbackHours = resolveFallbackHours(fallbackHours);
+  const effectiveHours = hoursRaw > 0 ? hoursRaw : normalizedFallbackHours;
+  const baseSubtotal =
+    hoursRaw > 0 ? roundMoney(baseSubtotalRaw) : roundMoney(safeBasePrice * effectiveHours);
+  const weekendOrHolidaySurcharge =
+    hoursRaw > 0 ? roundMoney(weekendOrHolidaySurchargeRaw) : 0;
+  const nightSurcharge = hoursRaw > 0 ? roundMoney(nightSurchargeRaw) : 0;
+  const surchargeSubtotal = weekendOrHolidaySurcharge + nightSurcharge;
+  const totalBaseWithSurcharges = baseSubtotal + surchargeSubtotal;
+
+  return {
+    hours: roundHours(effectiveHours),
+    baseSubtotal,
+    weekendOrHolidayHours: roundHours(weekendOrHolidayHoursRaw),
+    nightHours: roundHours(nightHoursRaw),
+    weekendOrHolidaySurcharge,
+    nightSurcharge,
+    surchargeSubtotal,
+    totalBaseWithSurcharges,
+    extrasTotal: safeExtrasTotal,
+    servicesTotal: safeServicesTotal,
+    grandTotal: totalBaseWithSurcharges + safeExtrasTotal + safeServicesTotal,
+  };
+};

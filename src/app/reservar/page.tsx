@@ -5,6 +5,7 @@ import { getAvailabilityCutoffDate } from "@/lib/availability";
 import { getSessionFromCookies } from "@/lib/auth";
 import {
   BOOKING_TIMEZONE,
+  getConfiguredBookingHolidayDates,
   normalizeExtraBackgrounds,
   resolveBasePrice,
   resolveExtraMaxSelections,
@@ -48,6 +49,7 @@ const getBookingSlotIds = (slotIdsValue: string, slotId: string | null) => {
 const getEditSection = (value: string | undefined) => {
   if (value === "horario") return "horario" as const;
   if (value === "extras") return "extras" as const;
+  if (value === "servicios") return "servicios" as const;
   return null;
 };
 
@@ -164,6 +166,7 @@ export default async function ReservarPage({ searchParams }: ReservarPageProps) 
           slotIds: true,
           slotId: true,
           extras: true,
+          services: true,
           status: true,
         },
       })
@@ -188,6 +191,7 @@ export default async function ReservarPage({ searchParams }: ReservarPageProps) 
   const basePrice = resolveBasePrice(studio.pricing.basePrice);
   const extraBackgrounds = normalizeExtraBackgrounds(studio.extras.backgrounds);
   const maxExtraSelections = resolveExtraMaxSelections(studio.extras.maxSelections);
+  const bookingHolidayDates = getConfiguredBookingHolidayDates();
   const cutoff = getAvailabilityCutoffDate();
   const editSlotIds = editingBooking
     ? getBookingSlotIds(editingBooking.slotIds, editingBooking.slotId)
@@ -250,6 +254,8 @@ export default async function ReservarPage({ searchParams }: ReservarPageProps) 
             extraBackgrounds={extraBackgrounds}
             maxExtraSelections={maxExtraSelections}
             basePrice={basePrice}
+            services={studio.services}
+            holidayDates={bookingHolidayDates}
             policies={studio.footer.policies}
             profileName={profileName}
             profilePhone={profilePhone}
@@ -260,6 +266,7 @@ export default async function ReservarPage({ searchParams }: ReservarPageProps) 
             initialSelectedExtras={
               editingBooking ? parseStringArray(editingBooking.extras) : []
             }
+            initialSelectedServicesRaw={editingBooking?.services}
             pageTitle={editingBooking ? "Editar reserva" : "Agendar sesion"}
           />
         </div>

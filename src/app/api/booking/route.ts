@@ -2,11 +2,18 @@ import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { getAvailabilityCutoffDate } from "@/lib/availability";
 import {
+  calculateBookingPricing,
   filterExtrasToAllowed,
+  getConfiguredBookingHolidayDates,
   getExtrasTotal,
   resolveBasePrice,
   resolveExtraMaxSelections,
 } from "@/lib/booking";
+import {
+  getServicesBreakdown,
+  normalizeBookingServicesSelection,
+  stringifyServicesSelection,
+} from "@/lib/services";
 import { AUTH_COOKIE, hashPassword, signSession, verifySession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getStudioContent } from "@/lib/studio-content";
@@ -19,6 +26,7 @@ type BookingInput = {
   slotId?: string;
   slotIds?: string[];
   extras?: string[];
+  services?: unknown;
 };
 
 const MIN_BOOKING_HOURS = 2;
@@ -76,6 +84,7 @@ export async function POST(request: NextRequest) {
   const requestedExtras = Array.isArray(body.extras)
     ? body.extras.map((item) => String(item))
     : [];
+  const requestedServices = body.services;
 
   const selectedSlotIds = Array.from(
     new Set(slotIds.length ? slotIds : slotId ? [slotId] : [])
@@ -113,8 +122,13 @@ export async function POST(request: NextRequest) {
     studio.extras.backgrounds,
     resolveExtraMaxSelections(studio.extras.maxSelections)
   );
+  const normalizedServicesSelection = normalizeBookingServicesSelection(
+    requestedServices,
+    studio.services
+  );
   const basePrice = resolveBasePrice(studio.pricing.basePrice);
   const extrasTotal = getExtrasTotal(extras, studio.extras.backgrounds);
+  const bookingHolidayDates = getConfiguredBookingHolidayDates();
   const cutoff = getAvailabilityCutoffDate();
 
   let result: {
@@ -308,7 +322,22 @@ export async function POST(request: NextRequest) {
       }
 
       const hours = orderedSlotIds.length;
-      const total = basePrice * hours + extrasTotal;
+      const servicesBreakdown = getServicesBreakdown({
+        selection: normalizedServicesSelection,
+        catalog: studio.services,
+        hours,
+      });
+      if (servicesBreakdown.errors.length) {
+        throw new Error(servicesBreakdown.errors[0]);
+      }
+      const pricing = calculateBookingPricing({
+        basePrice,
+        extrasTotal,
+        servicesTotal: servicesBreakdown.total,
+        slots: orderedSlots,
+        holidayDates: bookingHolidayDates,
+      });
+      const total = pricing.grandTotal;
 
       const booking = await tx.booking.create({
         data: {
@@ -320,6 +349,10 @@ export async function POST(request: NextRequest) {
           email: user.email,
           phone: bookingPhone,
           extras: JSON.stringify(extras),
+          services: stringifyServicesSelection(
+            servicesBreakdown.selection,
+            studio.services
+          ),
           total,
           status: "pending_payment",
         },

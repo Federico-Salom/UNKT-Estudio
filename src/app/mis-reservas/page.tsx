@@ -4,6 +4,10 @@ import Container from "@/components/Container";
 import Header from "@/components/Header";
 import { getSessionFromCookies } from "@/lib/auth";
 import { BOOKING_TIMEZONE } from "@/lib/booking";
+import {
+  getServicesSummaryLines,
+  parseStoredServicesSelection,
+} from "@/lib/services";
 import { prisma } from "@/lib/prisma";
 import { getStudioContent } from "@/lib/studio-content";
 
@@ -86,6 +90,7 @@ export default async function MisReservasPage() {
         email: true,
         phone: true,
         extras: true,
+        services: true,
         total: true,
         status: true,
         hours: true,
@@ -159,11 +164,23 @@ export default async function MisReservasPage() {
           )} - ${timeFormatter.format(lastSlot.end)}`
         : "Sin horario asignado";
     const extras = parseStringArray(booking.extras);
+    const hoursCount = booking.hours || bookingSlots.length || 1;
+    const servicesSelection = parseStoredServicesSelection(
+      booking.services || "[]",
+      studio.services
+    );
+    const services = getServicesSummaryLines({
+      selection: servicesSelection,
+      catalog: studio.services,
+      hours: hoursCount,
+    }).map((item) => item.label);
 
     return {
       ...booking,
       slotLabel,
       extrasLabel: extras.length ? extras.join(", ") : "Sin extras",
+      servicesLabel: services.length ? services.join(", ") : "Sin servicios",
+      hoursCount,
       totalLabel: `$${booking.total.toLocaleString("es-AR")}`,
       createdAtLabel: dateTimeFormatter.format(booking.createdAt),
       statusLabel: getStatusLabel(booking.status),
@@ -223,11 +240,15 @@ export default async function MisReservasPage() {
                       </p>
                       <p>
                         <span className="font-semibold">Horas:</span>{" "}
-                        {booking.hours || slotIdsByBookingId.get(booking.id)?.length || 1}
+                        {booking.hoursCount}
                       </p>
                       <p>
                         <span className="font-semibold">Extras:</span>{" "}
                         {booking.extrasLabel}
+                      </p>
+                      <p>
+                        <span className="font-semibold">Servicios:</span>{" "}
+                        {booking.servicesLabel}
                       </p>
                       <p>
                         <span className="font-semibold">Total:</span>{" "}

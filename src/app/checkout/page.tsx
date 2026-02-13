@@ -9,10 +9,17 @@ import PaymentBrick from "@/components/mercadopago/PaymentBrick";
 import { getSessionFromCookies } from "@/lib/auth";
 import {
   BOOKING_TIMEZONE,
+  calculateBookingPricing,
   dedupeExtras,
   getExtraPrice,
+  getConfiguredBookingHolidayDates,
   resolveBasePrice,
 } from "@/lib/booking";
+import {
+  getServicesBreakdown,
+  getServicesSummaryLines,
+  parseStoredServicesSelection,
+} from "@/lib/services";
 import { prisma } from "@/lib/prisma";
 import { getStudioContent } from "@/lib/studio-content";
 
@@ -170,6 +177,7 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
       name: true,
       email: true,
       extras: true,
+      services: true,
       total: true,
       hours: true,
       status: true,
@@ -242,19 +250,44 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
       : "border-fg/20 bg-bg/70 text-fg";
   const hours = booking.hours || slots.length || 1;
   const extrasList = dedupeExtras(extras);
+  const servicesSelection = parseStoredServicesSelection(
+    booking.services || "[]",
+    studio.services
+  );
+  const servicesBreakdown = getServicesBreakdown({
+    selection: servicesSelection,
+    catalog: studio.services,
+    hours,
+  });
+  const servicesDetails = getServicesSummaryLines({
+    selection: servicesBreakdown.selection,
+    catalog: studio.services,
+    hours,
+  });
   const basePrice = resolveBasePrice(studio.pricing.basePrice);
   const extrasBreakdown = extrasList.map((extraLabel) => ({
     label: extraLabel,
     amount: getExtraPrice(extraLabel, studio.extras.backgrounds),
   }));
-  const baseSubtotal = basePrice * hours;
   const extrasSubtotal = extrasBreakdown.reduce(
     (acc, extra) => acc + extra.amount,
     0
   );
-  const pricingAdjustment = booking.total - (baseSubtotal + extrasSubtotal);
+  const pricingBreakdown = calculateBookingPricing({
+    basePrice,
+    extrasTotal: extrasSubtotal,
+    servicesTotal: servicesBreakdown.total,
+    slots: slots.map((slot) => ({
+      start: slot.start,
+      end: slot.end,
+    })),
+    holidayDates: getConfiguredBookingHolidayDates(),
+    fallbackHours: hours,
+  });
+  const pricingAdjustment = booking.total - pricingBreakdown.grandTotal;
   const editScheduleHref = `/reservar?editBookingId=${booking.id}&editSection=horario`;
   const editExtrasHref = `/reservar?editBookingId=${booking.id}&editSection=extras`;
+  const editServicesHref = `/reservar?editBookingId=${booking.id}&editSection=servicios`;
   const infoEntries = [
     {
       label: "Nombre",
@@ -320,6 +353,28 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
       booking.status === "pending_payment" ? editExtrasHref : undefined,
     editLabel: "Editar extras",
   },
+  {
+    id: "services",
+    value: servicesDetails.length ? (
+      <ul className="space-y-1 text-left">
+        {servicesDetails.map((service) => (
+          <li key={service.label} className="flex items-start gap-2">
+            <span
+              aria-hidden
+              className="mt-[0.45rem] h-1.5 w-1.5 shrink-0 rounded-full bg-accent/70"
+            />
+            <span>{service.label}</span>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      "Sin servicios"
+    ),
+    spanFull: true,
+    editHref:
+      booking.status === "pending_payment" ? editServicesHref : undefined,
+    editLabel: "Editar servicios",
+  },
 ];
 
   return (
@@ -381,6 +436,13 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
                     basePrice={basePrice}
                     hours={hours}
                     extras={extrasBreakdown}
+                    services={servicesDetails}
+                    weekendOrHolidaySurcharge={
+                      pricingBreakdown.weekendOrHolidaySurcharge
+                    }
+                    weekendOrHolidayHours={pricingBreakdown.weekendOrHolidayHours}
+                    nightSurcharge={pricingBreakdown.nightSurcharge}
+                    nightHours={pricingBreakdown.nightHours}
                     adjustment={pricingAdjustment}
                     buttonClassName="h-10"
                   />

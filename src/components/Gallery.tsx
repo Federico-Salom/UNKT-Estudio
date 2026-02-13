@@ -93,12 +93,12 @@ export default function Gallery({ studio }: GalleryProps) {
   const [isLocationOpen, setIsLocationOpen] = useState(false);
   const [planZoom, setPlanZoom] = useState(1);
   const [activeCatalogModal, setActiveCatalogModal] = useState<
-    "included" | "extras" | null
+    "included" | "extras" | "services" | null
   >(null);
   const [selectedCatalogItem, setSelectedCatalogItem] = useState<{
     index: number;
     label: string;
-    type: "included" | "extras";
+    type: "included" | "extras" | "services";
   } | null>(null);
 
   useEffect(() => {
@@ -146,7 +146,7 @@ export default function Gallery({ studio }: GalleryProps) {
     return null;
   }
 
-  const openCatalogModal = (type: "included" | "extras") => {
+  const openCatalogModal = (type: "included" | "extras" | "services") => {
     setActiveCatalogModal(type);
     setSelectedCatalogItem((currentItem) =>
       currentItem?.type === type ? currentItem : null
@@ -162,7 +162,7 @@ export default function Gallery({ studio }: GalleryProps) {
   const selectCatalogItem = (
     index: number,
     label: string,
-    type: "included" | "extras"
+    type: "included" | "extras" | "services"
   ) => {
     setSelectedCatalogItem({ index, label, type });
   };
@@ -197,6 +197,8 @@ export default function Gallery({ studio }: GalleryProps) {
       ? studio.included.items
       : activeCatalogModal === "extras"
         ? studio.extras.items
+        : activeCatalogModal === "services"
+          ? studio.services.photographyOptions.map((option) => option.label)
         : [];
   const activeCatalogImages =
     activeCatalogModal === "included"
@@ -232,6 +234,7 @@ export default function Gallery({ studio }: GalleryProps) {
     selectedExtraBackground !== null
       ? formatExtraPriceLabel(selectedExtraBackground.pricePisando)
       : "";
+  const formatArs = (value: number) => formatExtraPriceLabel(value);
 
   const topActionButtonClass =
     "inline-flex h-9 w-full items-center justify-center rounded-full border border-accent/30 bg-bg/90 px-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-accent shadow-[0_12px_26px_-18px_rgba(0,0,0,0.45)] transition hover:border-accent hover:bg-bg sm:px-3 md:h-11 md:px-5 md:text-[13px] md:tracking-[0.12em]";
@@ -245,7 +248,17 @@ export default function Gallery({ studio }: GalleryProps) {
     >
       <Container>
         <div className="mb-5 flex flex-col items-center gap-4 md:mb-6 md:gap-5">
-          <div className="grid w-full max-w-5xl grid-cols-2 items-stretch gap-2 sm:grid-cols-5 sm:gap-4 md:gap-5">
+          <div className="grid w-full max-w-5xl grid-cols-2 items-stretch gap-2 sm:grid-cols-6 sm:gap-4 md:gap-5">
+            <div className="w-full">
+              <button
+                type="button"
+                onClick={() => openCatalogModal("services")}
+                className={topActionButtonClass}
+              >
+                <span className="button-label">Servicios</span>
+              </button>
+            </div>
+
             <div className="w-full">
               <button
                 type="button"
@@ -294,94 +307,90 @@ export default function Gallery({ studio }: GalleryProps) {
           </div>
         </div>
 
-        <div className="gallery-frame mx-auto w-full max-w-3xl">
-          <div className="gallery-stage relative overflow-visible">
-            <button
-              type="button"
-              aria-label="Imagen anterior"
-              onClick={handlePrev}
-              className="gallery-nav-btn absolute left-1 top-1/2 z-10 -translate-y-1/2 items-center justify-center rounded-full border border-accent/30 bg-bg/90 p-3 text-accent shadow-[0_10px_30px_-20px_rgba(0,0,0,0.4)] transition hover:border-accent hover:bg-bg md:left-3 md:inline-flex"
+        <div className="gallery-stage relative overflow-visible">
+          <button
+            type="button"
+            aria-label="Imagen anterior"
+            onClick={handlePrev}
+            className="gallery-nav-btn absolute left-1 top-1/2 z-10 -translate-y-1/2 items-center justify-center rounded-full border border-accent/30 bg-bg/90 p-3 text-accent shadow-[0_10px_30px_-20px_rgba(0,0,0,0.4)] transition hover:border-accent hover:bg-bg md:left-3 md:inline-flex"
+          >
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              className="h-5 w-5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             >
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 24 24"
-                className="h-5 w-5"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
-            </button>
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
 
-            <div
-              ref={containerRef}
-              onScroll={handleScroll}
-              className="gallery-scroll -mb-[44px] flex snap-x snap-mandatory gap-0 overflow-x-auto px-0 pb-[56px] pt-2"
-            >
-              {gallery.map((image, index) => (
-                <div
-                  key={`${image.src}-${index}`}
-                  ref={(el) => {
-                    slideRefs.current[index] = el;
-                  }}
-                  className="gallery-slide snap-center px-4 md:px-7"
-                >
-                  <div className="gallery-card relative overflow-hidden rounded-3xl border border-accent/15 bg-muted/10 shadow-[0_26px_56px_-32px_rgba(0,0,0,0.6)]">
-                    <div className="relative aspect-[16/9] w-full">
-                      <Image
-                        src={image.src}
-                        alt={image.alt}
-                        fill
-                        className="gallery-image object-cover object-center"
-                        sizes="(min-width: 1280px) 60rem, (min-width: 768px) 80vw, 92vw"
-                      />
-                    </div>
+          <div
+            ref={containerRef}
+            onScroll={handleScroll}
+            className="gallery-scroll -mb-[44px] flex snap-x snap-mandatory gap-0 overflow-x-auto px-0 pb-[56px] pt-2"
+          >
+            {gallery.map((image, index) => (
+              <div
+                key={`${image.src}-${index}`}
+                ref={(el) => {
+                  slideRefs.current[index] = el;
+                }}
+                className="gallery-slide snap-center px-4 md:px-7"
+              >
+                <div className="gallery-card relative overflow-hidden rounded-3xl border border-accent/15 bg-muted/10 shadow-[0_26px_56px_-32px_rgba(0,0,0,0.6)]">
+                  <div className="relative aspect-[16/9] w-full">
+                    <Image
+                      src={image.src}
+                      alt={image.alt}
+                      fill
+                      className="gallery-image object-cover object-center"
+                      sizes="(min-width: 1280px) 60rem, (min-width: 768px) 80vw, 92vw"
+                    />
                   </div>
                 </div>
-              ))}
-            </div>
-
-            <button
-              type="button"
-              aria-label="Imagen siguiente"
-              onClick={handleNext}
-              className="gallery-nav-btn absolute right-1 top-1/2 z-10 -translate-y-1/2 items-center justify-center rounded-full border border-accent/30 bg-bg/90 p-3 text-accent shadow-[0_10px_30px_-20px_rgba(0,0,0,0.4)] transition hover:border-accent hover:bg-bg md:right-3 md:inline-flex"
-            >
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 24 24"
-                className="h-5 w-5"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M9 18l6-6-6-6" />
-              </svg>
-            </button>
-          </div>
-
-          <div className="gallery-dots mt-0.5 flex h-4 items-center justify-center gap-1.5">
-            {gallery.map((_, index) => (
-              <button
-                key={`dot-${index}`}
-                type="button"
-                aria-label={`Ir a la imagen ${index + 1}`}
-                onClick={() => {
-                  scrollToIndex(index);
-                }}
-                className={`inline-flex h-2 w-2 items-center justify-center rounded-full transition ${
-                  index === currentIndex
-                    ? "bg-accent"
-                    : "bg-accent/30 hover:bg-accent/60"
-                }`}
-              />
+              </div>
             ))}
           </div>
+
+          <button
+            type="button"
+            aria-label="Imagen siguiente"
+            onClick={handleNext}
+            className="gallery-nav-btn absolute right-1 top-1/2 z-10 -translate-y-1/2 items-center justify-center rounded-full border border-accent/30 bg-bg/90 p-3 text-accent shadow-[0_10px_30px_-20px_rgba(0,0,0,0.4)] transition hover:border-accent hover:bg-bg md:right-3 md:inline-flex"
+          >
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              className="h-5 w-5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="gallery-dots mt-0.5 flex h-4 items-center justify-center gap-1.5">
+          {gallery.map((_, index) => (
+            <button
+              key={`dot-${index}`}
+              type="button"
+              aria-label={`Ir a la imagen ${index + 1}`}
+              onClick={() => {
+                scrollToIndex(index);
+              }}
+              className={`inline-flex h-2 w-2 items-center justify-center rounded-full transition ${
+                index === currentIndex ? "bg-accent" : "bg-accent/30 hover:bg-accent/60"
+              }`}
+            />
+          ))}
         </div>
 
       </Container>
@@ -418,7 +427,11 @@ export default function Gallery({ studio }: GalleryProps) {
 
             <div className="flex items-center justify-between gap-3 pr-8">
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted">
-                {activeCatalogModal === "included" ? "Incluidos" : "Extras"}
+                {activeCatalogModal === "included"
+                  ? "Incluidos"
+                  : activeCatalogModal === "extras"
+                    ? "Extras"
+                    : "Servicios"}
               </p>
             </div>
             {activeCatalogModal === "extras" ? (
@@ -428,76 +441,178 @@ export default function Gallery({ studio }: GalleryProps) {
               </p>
             ) : null}
 
-            <div className="mt-4 flex flex-wrap gap-2">
-              {activeCatalogItems.map((item, index) => {
-                const isSelected =
-                  selectedCatalogItem?.type === activeCatalogModal &&
-                  selectedCatalogItem.index === index;
-
-                return (
-                  <button
-                    type="button"
-                    key={`${item}-${index}`}
-                    onClick={() =>
-                      selectCatalogItem(index, item, activeCatalogModal)
-                    }
-                    className={`rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-wide transition ${
-                      isSelected
-                        ? "border-accent bg-accent text-bg"
-                        : "border-accent/25 bg-bg text-fg hover:border-accent"
-                    }`}
-                  >
-                    <span className="button-label">{item}</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="mt-5 rounded-2xl border border-accent/20 bg-bg/80 p-4">
-              {isSelectedCatalogItem ? (
-                <>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">
-                    {activeCatalogModal === "included" ? "Incluido" : "Extra"}
-                  </p>
-                  <h3 className="mt-2 font-display text-2xl uppercase tracking-[0.08em] text-fg">
-                    {selectedCatalogItem.label}
-                  </h3>
-                  <p className="mt-2 text-sm text-muted">
-                    {activeCatalogModal === "included"
-                      ? studio.included.subtitle
-                      : studio.extras.subtitle}
-                  </p>
-                  {activeCatalogModal === "extras" && selectedExtraBackground ? (
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <span className="inline-flex rounded-full border border-accent/30 bg-bg px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-accent">
-                        Sin pisar - {selectedExtraSinPisarPrice}
-                      </span>
-                      <span className="inline-flex rounded-full border border-accent bg-accent px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-bg">
-                        Pisando - {selectedExtraPisandoPrice}
-                      </span>
-                    </div>
-                  ) : null}
-
-                  <div className="mt-4 overflow-hidden rounded-2xl border border-accent/20 bg-bg">
-                    {selectedCatalogImageSrc ? (
-                      <img
-                        src={selectedCatalogImageSrc}
-                        alt={selectedCatalogImageAlt}
-                        className="h-52 w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-52 items-center justify-center px-4 text-center text-sm text-muted">
-                        Sin imagen de referencia para esta opción.
-                      </div>
-                    )}
-                  </div>
-                </>
-              ) : (
-                <p className="text-sm text-muted">
-                  Elegí una opción para visualizar su detalle.
+            {activeCatalogModal === "services" ? (
+              <div className="mt-4 space-y-3 rounded-2xl border border-accent/20 bg-bg/80 p-4">
+                <h3 className="font-display text-2xl uppercase tracking-[0.08em] text-fg">
+                  {studio.services.subtitle}
+                </h3>
+                <p className="text-sm text-muted">{studio.services.description}</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">
+                  {studio.services.bookingNotice}
                 </p>
-              )}
-            </div>
+
+                <section className="rounded-2xl border border-accent/15 bg-white/70 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                    {studio.services.photographyTitle}
+                  </p>
+                  <ul className="mt-2 space-y-1 text-sm text-fg">
+                    {studio.services.photographyOptions.map((option) => (
+                      <li key={option.id}>
+                        - {option.label} - {formatArs(option.price)} ({option.minHours || 1} horas)
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+
+                <section className="rounded-2xl border border-accent/15 bg-white/70 p-3 text-sm text-fg">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                    {studio.services.modelsTitle}
+                  </p>
+                  <p className="mt-1">
+                    {formatArs(studio.services.modelRatePerHour)} x hora x modelo
+                  </p>
+                </section>
+
+                <section className="rounded-2xl border border-accent/15 bg-white/70 p-3 text-sm text-fg">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                    {studio.services.makeupTitle}
+                  </p>
+                  <ul className="mt-2 space-y-1">
+                    {studio.services.makeupOptions.map((option) => (
+                      <li key={option.id}>
+                        - {option.label} - {formatArs(option.price)} por modelo
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+
+                <section className="rounded-2xl border border-accent/15 bg-white/70 p-3 text-sm text-fg">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                    {studio.services.hairstyleTitle}
+                  </p>
+                  <p className="mt-1">
+                    - {studio.services.hairstyleLabel} - {formatArs(studio.services.hairstyleRatePerModel)} por modelo
+                  </p>
+                </section>
+
+                <section className="rounded-2xl border border-accent/15 bg-white/70 p-3 text-sm text-fg">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                    {studio.services.stylingTitle}
+                  </p>
+                  <ul className="mt-2 space-y-1">
+                    {studio.services.stylingOptions.map((option) => (
+                      <li key={option.id}>
+                        - {option.label} - {formatArs(option.price)}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+
+                <section className="rounded-2xl border border-accent/15 bg-white/70 p-3 text-sm text-fg">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                    {studio.services.artDirectionTitle}
+                  </p>
+                  <ul className="mt-2 space-y-1">
+                    {studio.services.artDirectionOptions.map((option) => (
+                      <li key={option.id}>
+                        - {option.label} - {formatArs(option.price)}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+
+                <section className="rounded-2xl border border-accent/15 bg-white/70 p-3 text-sm text-fg">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                    {studio.services.lightOperatorTitle}
+                  </p>
+                  <p className="mt-1">
+                    - {studio.services.lightOperatorLabel} - {formatArs(studio.services.lightOperatorRatePerHour)} x hora
+                  </p>
+                </section>
+
+                <section className="rounded-2xl border border-accent/15 bg-white/70 p-3 text-sm text-fg">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                    {studio.services.assistantsTitle}
+                  </p>
+                  <p className="mt-1">
+                    - {studio.services.assistantsLabel} - {formatArs(studio.services.assistantsRatePerHour)} x hora por asistente
+                  </p>
+                </section>
+              </div>
+            ) : (
+              <>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {activeCatalogItems.map((item, index) => {
+                    const isSelected =
+                      selectedCatalogItem?.type === activeCatalogModal &&
+                      selectedCatalogItem.index === index;
+
+                    return (
+                      <button
+                        type="button"
+                        key={`${item}-${index}`}
+                        onClick={() =>
+                          selectCatalogItem(index, item, activeCatalogModal)
+                        }
+                        className={`rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-wide transition ${
+                          isSelected
+                            ? "border-accent bg-accent text-bg"
+                            : "border-accent/25 bg-bg text-fg hover:border-accent"
+                        }`}
+                      >
+                        <span className="button-label">{item}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="mt-5 rounded-2xl border border-accent/20 bg-bg/80 p-4">
+                  {isSelectedCatalogItem ? (
+                    <>
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">
+                        {activeCatalogModal === "included" ? "Incluido" : "Extra"}
+                      </p>
+                      <h3 className="mt-2 font-display text-2xl uppercase tracking-[0.08em] text-fg">
+                        {selectedCatalogItem.label}
+                      </h3>
+                      <p className="mt-2 text-sm text-muted">
+                        {activeCatalogModal === "included"
+                          ? studio.included.subtitle
+                          : studio.extras.subtitle}
+                      </p>
+                      {activeCatalogModal === "extras" && selectedExtraBackground ? (
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          <span className="inline-flex rounded-full border border-accent/30 bg-bg px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-accent">
+                            Sin pisar - {selectedExtraSinPisarPrice}
+                          </span>
+                          <span className="inline-flex rounded-full border border-accent bg-accent px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-bg">
+                            Pisando - {selectedExtraPisandoPrice}
+                          </span>
+                        </div>
+                      ) : null}
+
+                      <div className="mt-4 overflow-hidden rounded-2xl border border-accent/20 bg-bg">
+                        {selectedCatalogImageSrc ? (
+                          <img
+                            src={selectedCatalogImageSrc}
+                            alt={selectedCatalogImageAlt}
+                            className="h-52 w-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-52 items-center justify-center px-4 text-center text-sm text-muted">
+                            Sin imagen de referencia para esta opcion.
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  ) : (
+                    <p className="text-sm text-muted">
+                      Elegi una opcion para visualizar su detalle.
+                    </p>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </div>
       ) : null}
@@ -642,3 +757,4 @@ export default function Gallery({ studio }: GalleryProps) {
     </section>
   );
 }
+

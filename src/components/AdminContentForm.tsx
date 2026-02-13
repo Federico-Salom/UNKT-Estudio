@@ -454,7 +454,7 @@ export default function AdminContentForm({
             <summary className="cursor-pointer break-words pr-4 text-[11px] font-semibold uppercase tracking-[0.06em] text-fg/80 sm:text-sm sm:tracking-wide">
               Ubicación
             </summary>
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <div className="mt-4 grid gap-4 md:grid-cols-3">
               <label className="grid gap-2 text-sm font-semibold">
                 Texto dirección
                 <input
@@ -661,6 +661,92 @@ export default function AdminContentForm({
                     className="min-h-[120px] rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
                     name="extrasItems"
                     defaultValue={studio.extras.items.join("\n")}
+                  />
+                </label>
+              </div>
+              <div className="grid gap-3 rounded-2xl border border-accent/15 bg-bg/60 p-3 sm:p-4">
+                <label className="grid gap-2 text-sm font-semibold">
+                  Titulo servicios
+                  <input
+                    className="rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:text-sm"
+                    type="text"
+                    name="servicesTitle"
+                    defaultValue={studio.services.title}
+                  />
+                </label>
+                <label className="grid gap-2 text-sm font-semibold">
+                  Subtitulo servicios
+                  <input
+                    className="rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:text-sm"
+                    type="text"
+                    name="servicesSubtitle"
+                    defaultValue={studio.services.subtitle}
+                  />
+                </label>
+                <label className="grid gap-2 text-sm font-semibold">
+                  Descripcion servicios
+                  <textarea
+                    className="min-h-[90px] rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
+                    name="servicesDescription"
+                    defaultValue={studio.services.description}
+                  />
+                </label>
+                <label className="grid gap-2 text-sm font-semibold">
+                  Aviso servicios
+                  <input
+                    className="rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:text-sm"
+                    type="text"
+                    name="servicesBookingNotice"
+                    defaultValue={studio.services.bookingNotice}
+                  />
+                </label>
+                <label className="grid gap-2 text-sm font-semibold">
+                  Fotografia (uno por linea, formato: opcion|minHoras)
+                  <textarea
+                    className="min-h-[120px] rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
+                    name="servicesPhotographyItems"
+                    defaultValue={studio.services.photographyOptions
+                      .map((option) => `${option.label}|${option.minHours || 1}`)
+                      .join("\n")}
+                  />
+                </label>
+                <label className="grid gap-2 text-sm font-semibold">
+                  Maquillaje (uno por linea)
+                  <textarea
+                    className="min-h-[90px] rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
+                    name="servicesMakeupItems"
+                    defaultValue={studio.services.makeupOptions
+                      .map((option) => option.label)
+                      .join("\n")}
+                  />
+                </label>
+                <label className="grid gap-2 text-sm font-semibold">
+                  Estilismo (uno por linea)
+                  <textarea
+                    className="min-h-[90px] rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
+                    name="servicesStylingItems"
+                    defaultValue={studio.services.stylingOptions
+                      .map((option) => option.label)
+                      .join("\n")}
+                  />
+                </label>
+                <label className="grid gap-2 text-sm font-semibold">
+                  Direccion de arte (uno por linea)
+                  <textarea
+                    className="min-h-[90px] rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
+                    name="servicesArtDirectionItems"
+                    defaultValue={studio.services.artDirectionOptions
+                      .map((option) => option.label)
+                      .join("\n")}
+                  />
+                </label>
+                <label className="grid gap-2 text-sm font-semibold">
+                  Titulo total servicios
+                  <input
+                    className="rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:text-sm"
+                    type="text"
+                    name="servicesTotalsTitle"
+                    defaultValue={studio.services.totalsTitle}
                   />
                 </label>
               </div>

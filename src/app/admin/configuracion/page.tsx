@@ -8,6 +8,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import UserMenu from "@/components/UserMenu";
 import { getSessionFromCookies } from "@/lib/auth";
 import { normalizeExtraBackgrounds, resolveBasePrice } from "@/lib/booking";
+import { normalizeServiceCatalog } from "@/lib/services";
 import { prisma } from "@/lib/prisma";
 import { getStudioContent } from "@/lib/studio-content";
 
@@ -31,6 +32,7 @@ export default async function AdminConfiguracionPage() {
   const createdAtLabel = user.createdAt.toLocaleString("es-AR");
   const pricingBasePrice = resolveBasePrice(studio.pricing.basePrice);
   const pricingExtras = normalizeExtraBackgrounds(studio.extras.backgrounds);
+  const pricingServices = normalizeServiceCatalog(studio.services);
 
   return (
     <div className="admin-dashboard min-h-screen bg-bg text-fg">
@@ -95,6 +97,7 @@ export default async function AdminConfiguracionPage() {
                 <AdminPricingModal
                   basePrice={pricingBasePrice}
                   extras={pricingExtras}
+                  services={pricingServices}
                   triggerClassName="w-full md:w-auto"
                 />
               </div>
