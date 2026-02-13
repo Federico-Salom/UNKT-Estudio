@@ -64,7 +64,7 @@ export default function BrandMark({
       {showText ? (
         isDefaultWordmark ? (
           <span
-            className="inline-flex min-w-0 max-w-full shrink items-center gap-2 overflow-hidden whitespace-nowrap text-accent"
+            className="inline-flex min-w-0 max-w-full shrink items-center gap-1.5 overflow-hidden whitespace-nowrap text-accent"
             style={
               wordmarkOffsetY
                 ? {
@@ -83,10 +83,6 @@ export default function BrandMark({
             >
               {brandCore}
             </span>
-            <span
-              aria-hidden
-              className="h-1 w-1 shrink-0 self-center rounded-full bg-accent/45"
-            />
             <span
               className="truncate leading-none font-semibold uppercase tracking-[0.16em] text-accent/82"
               style={{

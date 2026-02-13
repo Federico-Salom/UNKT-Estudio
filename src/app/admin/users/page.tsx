@@ -63,7 +63,7 @@ export default async function AdminUsersPage() {
               className="inline-flex h-9 items-center justify-center rounded-full border border-accent/35 bg-accent/10 px-4 text-center text-[10px] font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/20 md:h-10 md:px-5"
               href="/admin"
             >
-              Volver
+              Gestion
             </Link>
             <ThemeToggle className="h-9 w-9 md:h-10 md:w-10" />
             <UserMenu

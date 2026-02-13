@@ -7,7 +7,10 @@ type ExtrasProps = {
 
 export default function Extras({ studio }: ExtrasProps) {
   return (
-    <section className="bg-bg py-14 md:py-20">
+    <section className="relative bg-bg py-14 md:py-20">
+      <span className="absolute right-4 top-4 rounded-full border border-accent/30 bg-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.4em] text-accent shadow-[0_10px_24px_-14px_rgba(0,0,0,0.8)]">
+        Extras
+      </span>
       <Container>
         <div className="grid gap-8 md:grid-cols-[1fr_1.2fr] md:items-center">
           <div>

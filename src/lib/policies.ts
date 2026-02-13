@@ -12,6 +12,8 @@ export const BOOKING_CONDITIONS = [
   "Los extras se cobran por cada color de fondo seleccionado (hasta 5).",
   "Cada fondo extra puede configurarse como sin pisar o pisando según necesidad.",
   "El uso del estudio debe respetar el horario contratado para no afectar los turnos siguientes.",
+  "Hora extra: $70.000 por hora (equipo base). Servicios adicionales se prorratean.",
+  "Entrega digital dentro de X días hábiles.",
 ];
 
 export const POLICY_ACCEPTANCE_COPY =

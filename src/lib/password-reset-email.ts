@@ -263,7 +263,7 @@ const buildResetEmailHtml = (resetUrl: string) => {
                               color: #f4d6de;
                             "
                           >
-                            UNKT <span style="opacity: 0.55;">&bull;</span> ESTUDIO
+                            UNKT ESTUDIO
                           </span>
                         </td>
                       </tr>

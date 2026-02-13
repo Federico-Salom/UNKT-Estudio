@@ -18,6 +18,119 @@ type PreferenceApiResponse = {
 };
 
 const BRICK_CONTAINER_ID = "checkout-payment-brick";
+const PAYMENT_METHODS_TITLE_TEXT = "medios de pago";
+
+const normalizeText = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+
+const PAY_BUTTON_LABELS = new Set(["pagar", "pay"]);
+
+const hidePaymentMethodsTitle = (container: HTMLElement | null) => {
+  if (!container) return;
+
+  const candidates = container.querySelectorAll<HTMLElement>(
+    "h1, h2, h3, h4, p, span, div, label, strong"
+  );
+
+  for (const node of candidates) {
+    if (normalizeText(node.textContent || "") !== PAYMENT_METHODS_TITLE_TEXT) {
+      continue;
+    }
+
+    node.style.display = "none";
+    node.setAttribute("aria-hidden", "true");
+    node.dataset.mpTitleHidden = "true";
+    break;
+  }
+};
+
+const isPayButton = (node: HTMLElement) => {
+  const tagName = node.tagName.toLowerCase();
+  const text =
+    tagName === "input"
+      ? normalizeText((node as HTMLInputElement).value || "")
+      : normalizeText(node.textContent || "");
+
+  return PAY_BUTTON_LABELS.has(text);
+};
+
+const findPayButton = (container: HTMLElement) => {
+  const explicitSubmit = container.querySelector<HTMLElement>(
+    "button[type='submit'], input[type='submit']"
+  );
+
+  if (explicitSubmit) return explicitSubmit;
+
+  const allButtons = container.querySelectorAll<HTMLElement>(
+    "button, input[type='button'], input[type='submit'], [role='button']"
+  );
+
+  for (const candidate of allButtons) {
+    if (isPayButton(candidate)) return candidate;
+  }
+
+  return null;
+};
+
+const alignSubmitButtonToRight = (container: HTMLElement | null) => {
+  if (!container) return;
+
+  const submitControl = findPayButton(container);
+
+  if (!submitControl) return;
+
+  submitControl.style.marginInlineStart = "auto";
+  submitControl.style.alignSelf = "flex-end";
+  submitControl.style.marginTop = "0";
+  submitControl.style.marginBottom = "0";
+  submitControl.style.display = "inline-flex";
+  submitControl.style.width = "auto";
+  submitControl.style.maxWidth = "100%";
+  submitControl.dataset.mpSubmitAligned = "true";
+
+  const form = submitControl.closest("form");
+  if (form) {
+    form.style.display = "flex";
+    form.style.flexDirection = "column";
+    form.style.justifyContent = "flex-start";
+    form.style.width = "100%";
+    form.dataset.mpFormAligned = "true";
+
+    let actionBlock: HTMLElement | null = submitControl;
+    while (actionBlock && actionBlock.parentElement !== form) {
+      actionBlock = actionBlock.parentElement;
+    }
+
+    if (actionBlock && actionBlock !== form) {
+      actionBlock.style.marginTop = "auto";
+      actionBlock.style.marginBottom = "0";
+      actionBlock.style.marginInlineStart = "auto";
+      actionBlock.style.alignSelf = "flex-end";
+      actionBlock.style.width = "fit-content";
+      actionBlock.style.maxWidth = "100%";
+      actionBlock.style.textAlign = "right";
+      actionBlock.dataset.mpSubmitRowAligned = "true";
+      return;
+    }
+  }
+
+  const row = submitControl.parentElement;
+  if (!row) return;
+  row.style.marginTop = "auto";
+  row.style.marginBottom = "0";
+  row.style.marginInlineStart = "auto";
+  row.style.display = "flex";
+  row.style.justifyContent = "flex-end";
+  row.style.width = "fit-content";
+  row.style.maxWidth = "100%";
+  row.style.textAlign = "right";
+  row.dataset.mpSubmitRowAligned = "true";
+};
 
 const publicKey =
   process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY?.trim() || "";
@@ -36,6 +149,7 @@ export default function PaymentBrick({
   const [preferenceId, setPreferenceId] = useState("");
   const [error, setError] = useState("");
   const [brickReady, setBrickReady] = useState(false);
+  const [isCompactViewport, setIsCompactViewport] = useState(false);
 
   const normalizedPayload = useMemo(
     () => ({
@@ -113,6 +227,58 @@ export default function PaymentBrick({
     };
   }, [normalizedPayload]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const mediaQuery = window.matchMedia("(max-width: 560px)");
+    const syncViewport = () => {
+      setIsCompactViewport(mediaQuery.matches);
+    };
+
+    syncViewport();
+
+    const handleViewportChange = (event: MediaQueryListEvent) => {
+      setIsCompactViewport(event.matches);
+    };
+
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", handleViewportChange);
+      return () => {
+        mediaQuery.removeEventListener("change", handleViewportChange);
+      };
+    }
+
+    mediaQuery.addListener(handleViewportChange);
+    return () => {
+      mediaQuery.removeListener(handleViewportChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!preferenceId) return;
+
+    const container = document.getElementById(BRICK_CONTAINER_ID);
+    if (!container) return;
+
+    hidePaymentMethodsTitle(container);
+    alignSubmitButtonToRight(container);
+
+    const observer = new MutationObserver(() => {
+      hidePaymentMethodsTitle(container);
+      alignSubmitButtonToRight(container);
+    });
+
+    observer.observe(container, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+    });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [preferenceId, brickReady]);
+
   const initialization = useMemo(
     () => ({
       amount: normalizedPayload.amount,
@@ -126,32 +292,45 @@ export default function PaymentBrick({
     [normalizedPayload.amount, normalizedPayload.payerEmail, preferenceId]
   );
 
-  const customization = useMemo(
-    () => ({
+  const customization = useMemo(() => {
+    const compactVariables = isCompactViewport
+      ? {
+          formPadding: "10px",
+          borderRadiusMedium: "14px",
+          borderRadiusLarge: "16px",
+          inputVerticalPadding: "10px",
+          inputHorizontalPadding: "10px",
+          fontSizeExtraSmall: "0.54rem",
+          fontSizeSmall: "0.68rem",
+          fontSizeMedium: "0.78rem",
+          fontSizeLarge: "0.86rem",
+        }
+      : {
+          formPadding: "16px",
+          borderRadiusMedium: "16px",
+          borderRadiusLarge: "20px",
+          fontSizeExtraSmall: "0.58rem",
+          fontSizeSmall: "0.74rem",
+          fontSizeMedium: "0.82rem",
+          fontSizeLarge: "0.9rem",
+        };
+
+    return {
       paymentMethods: {
         mercadoPago: "all" as const,
       },
       visual: {
         style: {
           theme: "flat" as const,
-          customVariables: {
-            formPadding: "16px",
-            borderRadiusMedium: "16px",
-            borderRadiusLarge: "20px",
-            fontSizeExtraSmall: "0.58rem",
-            fontSizeSmall: "0.74rem",
-            fontSizeMedium: "0.82rem",
-            fontSizeLarge: "0.9rem",
-          },
+          customVariables: compactVariables,
         },
       },
-    }),
-    []
-  );
+    };
+  }, [isCompactViewport]);
 
   if (loadingPreference) {
     return (
-      <div className="checkout-summary-item mt-5 rounded-2xl px-4 py-4 text-sm text-muted">
+      <div className="checkout-summary-item rounded-2xl px-4 py-4 text-sm text-muted">
         Preparando checkout seguro...
       </div>
     );
@@ -160,7 +339,7 @@ export default function PaymentBrick({
   if (error) {
     return (
       <div
-        className="mt-5 rounded-2xl border border-accent/35 bg-accent/10 px-4 py-4 text-sm text-accent"
+        className="rounded-2xl border border-accent/35 bg-accent/10 px-4 py-4 text-sm text-accent"
         role="alert"
       >
         {error}
@@ -171,7 +350,7 @@ export default function PaymentBrick({
   if (!preferenceId) {
     return (
       <div
-        className="mt-5 rounded-2xl border border-accent/35 bg-accent/10 px-4 py-4 text-sm text-accent"
+        className="rounded-2xl border border-accent/35 bg-accent/10 px-4 py-4 text-sm text-accent"
         role="alert"
       >
         No se pudo iniciar el checkout.
@@ -180,14 +359,14 @@ export default function PaymentBrick({
   }
 
   return (
-    <div className="mt-5 space-y-3 checkout-payment-shell">
+    <div className="checkout-payment-shell w-full min-w-0 space-y-3">
       {!brickReady && (
         <div className="checkout-summary-item rounded-2xl px-4 py-3 text-sm text-muted">
           Cargando medios de pago...
         </div>
       )}
 
-      <div className="checkout-payment-host rounded-[1.7rem] p-2.5 sm:p-3.5">
+      <div className="checkout-payment-host w-full min-w-0 rounded-[1.7rem] p-2.5 sm:p-3.5">
         <Payment
           id={BRICK_CONTAINER_ID}
           initialization={initialization}
@@ -204,7 +383,6 @@ export default function PaymentBrick({
           }}
         />
       </div>
-
     </div>
   );
 }

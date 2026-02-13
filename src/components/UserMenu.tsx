@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createPortal } from "react-dom";
 
@@ -14,12 +15,14 @@ type UserMenuProps = {
   };
   triggerClassName?: string;
   authenticated?: boolean;
+  showHomeButton?: boolean;
 };
 
 export default function UserMenu({
   user,
   triggerClassName = "",
   authenticated = true,
+  showHomeButton = false,
 }: UserMenuProps) {
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
@@ -68,6 +71,7 @@ export default function UserMenu({
   const showBookingsButton = authenticated && !isAdmin;
   const isInAdminArea = pathname.startsWith("/admin");
   const showActionButton = !authenticated || !isAdmin || !isInAdminArea;
+  const showAdminHomeButton = showHomeButton && authenticated;
   const showLogoutButton = authenticated;
   const canUsePortal = typeof document !== "undefined";
   const panelToneClassName = isAdmin
@@ -100,10 +104,18 @@ export default function UserMenu({
           {actionLabel}
         </a>
       ) : null}
+      {showAdminHomeButton ? (
+        <Link
+          href="/"
+          className={`${showActionButton || showBookingsButton ? "mt-3" : "mt-4"} inline-flex w-full items-center justify-center rounded-full border px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] transition ${secondaryButtonToneClassName}`}
+        >
+          Ir al home
+        </Link>
+      ) : null}
       {showLogoutButton ? (
         <a
           href="/auth/logout"
-          className={`${showActionButton || showBookingsButton ? "mt-3" : "mt-4"} inline-flex w-full items-center justify-center rounded-full border px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] transition ${logoutButtonToneClassName}`}
+          className={`${showAdminHomeButton || showActionButton || showBookingsButton ? "mt-3" : "mt-4"} inline-flex w-full items-center justify-center rounded-full border px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] transition ${logoutButtonToneClassName}`}
         >
           Cerrar sesión
         </a>

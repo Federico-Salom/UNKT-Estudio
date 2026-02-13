@@ -740,10 +740,6 @@ export default function AdminContentForm({
                         <span className="truncate text-lg font-semibold uppercase tracking-[0.08em] sm:text-xl">
                           {wordmarkCore}
                         </span>
-                        <span
-                          aria-hidden
-                          className="h-1 w-1 shrink-0 rounded-full bg-accent/45"
-                        />
                         <span className="truncate text-xs font-semibold uppercase tracking-[0.16em] text-accent/82 sm:text-sm">
                           {wordmarkTail}
                         </span>

@@ -107,6 +107,7 @@ export default async function AdminPage() {
           <div className="flex shrink-0 items-center gap-2 md:gap-4">
             <ThemeToggle className="h-9 w-9 md:h-10 md:w-10" />
             <UserMenu
+              showHomeButton
               user={{
                 email: user.email,
                 roleLabel: "Administrador",

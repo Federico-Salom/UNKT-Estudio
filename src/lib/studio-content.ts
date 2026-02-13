@@ -64,6 +64,25 @@ const dedupeList = (items: string[]) => {
     return true;
   });
 };
+const REQUIRED_BOOKING_POLICIES = [
+  "Hora extra: $70.000 por hora (equipo base). Servicios adicionales se prorratean.",
+  "Entrega digital dentro de X días hábiles.",
+] as const;
+const ensureRequiredBookingPolicies = (items: string[]) => {
+  const seen = new Set(items.map(normalizeListValue));
+  const nextItems = [...items];
+
+  for (const condition of REQUIRED_BOOKING_POLICIES) {
+    const normalizedCondition = normalizeListValue(condition);
+    if (!normalizedCondition || seen.has(normalizedCondition)) {
+      continue;
+    }
+    seen.add(normalizedCondition);
+    nextItems.push(condition);
+  }
+
+  return nextItems;
+};
 const hasAnyLegacyExtra = (items: string[]) => {
   const normalizedItems = new Set(items.map(normalizeListValue));
   return LEGACY_EXTRA_ITEMS.some((item) =>
@@ -318,6 +337,16 @@ const normalizeAssetPaths = (content: StudioContent): StudioContent => {
       items: normalizedExtraItems,
       backgrounds: normalizedExtrasBackgrounds,
       images: normalizeCatalogImages(normalizedExtraItems, content.extras.images),
+    },
+    footer: {
+      ...content.footer,
+      policies: {
+        ...content.footer.policies,
+        cancellation: [...content.footer.policies.cancellation],
+        booking: ensureRequiredBookingPolicies([
+          ...content.footer.policies.booking,
+        ]),
+      },
     },
     gallery,
   };
