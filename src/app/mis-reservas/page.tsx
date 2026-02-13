@@ -178,7 +178,7 @@ export default async function MisReservasPage() {
     return {
       ...booking,
       slotLabel,
-      extrasLabel: extras.length ? extras.join(", ") : "Sin extras",
+      extrasLabel: extras.length ? extras.join(", ") : "Sin fondos",
       servicesLabel: services.length ? services.join(", ") : "Sin servicios",
       hoursCount,
       totalLabel: `$${booking.total.toLocaleString("es-AR")}`,
@@ -243,7 +243,7 @@ export default async function MisReservasPage() {
                         {booking.hoursCount}
                       </p>
                       <p>
-                        <span className="font-semibold">Extras:</span>{" "}
+                        <span className="font-semibold">Fondos:</span>{" "}
                         {booking.extrasLabel}
                       </p>
                       <p>

@@ -35,6 +35,11 @@ export type ServicesBreakdown = {
 
 const DEFAULT_MAX_MODELS = 10;
 const DEFAULT_MAX_ASSISTANTS = 10;
+const DEFAULT_PHOTOGRAPHY_HINT =
+  "Opcional. Si elegis una opcion, las horas seleccionadas se usan como base de calculo.";
+const LEGACY_PHOTOGRAPHY_HINT_PATTERNS = [
+  "obligatorio seleccionar una opcion",
+];
 
 const normalizeToken = (value: string) =>
   value
@@ -154,6 +159,14 @@ export const normalizeServiceCatalog = (catalog: ServiceCatalog): ServiceCatalog
     1,
     normalizeCount(catalog.maxAssistants, 50) || DEFAULT_MAX_ASSISTANTS
   );
+  const rawPhotographyHint = normalizeText(catalog.photographyHint);
+  const isLegacyPhotographyHint = LEGACY_PHOTOGRAPHY_HINT_PATTERNS.some((pattern) =>
+    rawPhotographyHint.toLowerCase().includes(pattern)
+  );
+  const normalizedPhotographyHint =
+    !rawPhotographyHint || isLegacyPhotographyHint
+      ? DEFAULT_PHOTOGRAPHY_HINT
+      : rawPhotographyHint;
 
   const photographyOptions = normalizeServiceOptions(
     catalog.photographyOptions,
@@ -171,7 +184,7 @@ export const normalizeServiceCatalog = (catalog: ServiceCatalog): ServiceCatalog
     description: normalizeText(catalog.description),
     bookingNotice: normalizeText(catalog.bookingNotice),
     photographyTitle: normalizeText(catalog.photographyTitle, "Fotografia"),
-    photographyHint: normalizeText(catalog.photographyHint),
+    photographyHint: normalizedPhotographyHint,
     photographyOptions,
     modelsTitle: normalizeText(catalog.modelsTitle, "Modelos"),
     modelsHint: normalizeText(catalog.modelsHint),
@@ -227,11 +240,11 @@ const hasOptionId = (optionId: string | null, options: ServiceOption[]) => {
 };
 
 export const getDefaultServiceSelection = (
-  catalog: ServiceCatalog
+  _catalog: ServiceCatalog
 ): BookingServicesSelection => {
-  const normalized = normalizeServiceCatalog(catalog);
+  void _catalog;
   return {
-    photographyOptionId: normalized.photographyOptions[0]?.id ?? null,
+    photographyOptionId: null,
     modelsCount: 0,
     makeupOptionId: null,
     hairstyleEnabled: false,
@@ -381,10 +394,6 @@ export const getServicesBreakdown = ({
 
   const errors: string[] = [];
 
-  if (!photographyOption) {
-    errors.push("Selecciona una opcion de fotografia.");
-  }
-
   if (
     photographyOption?.minHours &&
     safeHours > 0 &&
@@ -424,7 +433,7 @@ export const getServicesBreakdown = ({
               ? ` (minimo ${photographyOption.minHours} horas)`
               : ""
           }`
-        : "Sin opcion",
+        : "Sin fotografia",
       amount: photographyAmount,
     },
     {

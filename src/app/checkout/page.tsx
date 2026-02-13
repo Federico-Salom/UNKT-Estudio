@@ -346,12 +346,12 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
         ))}
       </ul>
     ) : (
-      "Sin extras"
+      "Sin fondos"
     ),
     spanFull: true,
     editHref:
       booking.status === "pending_payment" ? editExtrasHref : undefined,
-    editLabel: "Editar extras",
+    editLabel: "Editar fondos",
   },
   {
     id: "services",

@@ -105,13 +105,13 @@ export async function POST(request: NextRequest) {
   const breakdownExtras =
     resolvedExtras.length === extras.length
       ? resolvedExtras.map((extra) => ({
-          title: `Extra: ${extra.label}`,
+          title: `Fondo: ${extra.label}`,
           quantity: 1,
           currency_id: "ARS",
           unit_price: extra.price,
         }))
       : extras.map((extra) => ({
-          title: `Extra: ${extra}`,
+          title: `Fondo: ${extra}`,
           quantity: 1,
           currency_id: "ARS",
           unit_price: getExtraPrice(extra, studio.extras.backgrounds),

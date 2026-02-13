@@ -265,7 +265,7 @@ export default function Gallery({ studio }: GalleryProps) {
                 onClick={() => openCatalogModal("extras")}
                 className={topActionButtonClass}
               >
-                <span className="button-label">Extras</span>
+                <span className="button-label">Fondos</span>
               </button>
             </div>
 
@@ -299,7 +299,7 @@ export default function Gallery({ studio }: GalleryProps) {
               </button>
             </div>
 
-            <div className="col-span-2 w-full sm:col-span-1">
+            <div className="w-full">
               <a href={bookingLink} className={bookingActionButtonClass}>
                 <span className="button-label">{primaryCta}</span>
               </a>
@@ -312,7 +312,7 @@ export default function Gallery({ studio }: GalleryProps) {
             type="button"
             aria-label="Imagen anterior"
             onClick={handlePrev}
-            className="gallery-nav-btn absolute left-1 top-1/2 z-10 -translate-y-1/2 items-center justify-center rounded-full border border-accent/30 bg-bg/90 p-3 text-accent shadow-[0_10px_30px_-20px_rgba(0,0,0,0.4)] transition hover:border-accent hover:bg-bg md:left-3 md:inline-flex"
+            className="gallery-nav-btn absolute left-2 top-1/2 z-10 inline-flex -translate-y-1/2 items-center justify-center rounded-full border border-accent/30 bg-bg/90 p-3 text-accent shadow-[0_10px_30px_-20px_rgba(0,0,0,0.4)] transition hover:border-accent hover:bg-bg md:left-3"
           >
             <svg
               aria-hidden="true"
@@ -331,7 +331,7 @@ export default function Gallery({ studio }: GalleryProps) {
           <div
             ref={containerRef}
             onScroll={handleScroll}
-            className="gallery-scroll -mb-[44px] flex snap-x snap-mandatory gap-0 overflow-x-auto px-0 pb-[56px] pt-2"
+            className="gallery-scroll flex snap-x snap-mandatory gap-0 overflow-x-auto px-0 pt-2"
           >
             {gallery.map((image, index) => (
               <div
@@ -339,7 +339,7 @@ export default function Gallery({ studio }: GalleryProps) {
                 ref={(el) => {
                   slideRefs.current[index] = el;
                 }}
-                className="gallery-slide snap-center px-4 md:px-7"
+                className="gallery-slide snap-center"
               >
                 <div className="gallery-card relative overflow-hidden rounded-3xl border border-accent/15 bg-muted/10 shadow-[0_26px_56px_-32px_rgba(0,0,0,0.6)]">
                   <div className="relative aspect-[16/9] w-full">
@@ -360,7 +360,7 @@ export default function Gallery({ studio }: GalleryProps) {
             type="button"
             aria-label="Imagen siguiente"
             onClick={handleNext}
-            className="gallery-nav-btn absolute right-1 top-1/2 z-10 -translate-y-1/2 items-center justify-center rounded-full border border-accent/30 bg-bg/90 p-3 text-accent shadow-[0_10px_30px_-20px_rgba(0,0,0,0.4)] transition hover:border-accent hover:bg-bg md:right-3 md:inline-flex"
+            className="gallery-nav-btn absolute right-2 top-1/2 z-10 inline-flex -translate-y-1/2 items-center justify-center rounded-full border border-accent/30 bg-bg/90 p-3 text-accent shadow-[0_10px_30px_-20px_rgba(0,0,0,0.4)] transition hover:border-accent hover:bg-bg md:right-3"
           >
             <svg
               aria-hidden="true"
@@ -403,7 +403,13 @@ export default function Gallery({ studio }: GalleryProps) {
             onClick={closeCatalogModal}
             className="absolute inset-0 h-full w-full cursor-default"
           />
-          <div className="relative z-10 w-full max-w-3xl rounded-3xl border border-accent/20 bg-bg p-4 shadow-[0_30px_60px_-40px_rgba(0,0,0,0.75)] md:p-6">
+          <div
+            className={`relative z-10 w-full max-w-3xl rounded-3xl border border-accent/20 bg-bg p-4 shadow-[0_30px_60px_-40px_rgba(0,0,0,0.75)] md:p-6 ${
+              activeCatalogModal === "services"
+                ? "max-h-[90dvh] overflow-hidden"
+                : ""
+            }`}
+          >
             <button
               type="button"
               onClick={closeCatalogModal}
@@ -430,7 +436,7 @@ export default function Gallery({ studio }: GalleryProps) {
                 {activeCatalogModal === "included"
                   ? "Incluidos"
                   : activeCatalogModal === "extras"
-                    ? "Extras"
+                    ? "Fondos"
                     : "Servicios"}
               </p>
             </div>
@@ -442,102 +448,101 @@ export default function Gallery({ studio }: GalleryProps) {
             ) : null}
 
             {activeCatalogModal === "services" ? (
-              <div className="mt-4 space-y-3 rounded-2xl border border-accent/20 bg-bg/80 p-4">
-                <h3 className="font-display text-2xl uppercase tracking-[0.08em] text-fg">
-                  {studio.services.subtitle}
-                </h3>
-                <p className="text-sm text-muted">{studio.services.description}</p>
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">
-                  {studio.services.bookingNotice}
-                </p>
+              <div className="mt-4 rounded-2xl border border-accent/20 bg-bg/80 p-4">
+                <div className="max-h-[58dvh] space-y-3 overflow-y-auto pr-1 sm:max-h-[62dvh]">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">
+                    {studio.services.bookingNotice}
+                  </p>
 
-                <section className="rounded-2xl border border-accent/15 bg-white/70 p-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
-                    {studio.services.photographyTitle}
-                  </p>
-                  <ul className="mt-2 space-y-1 text-sm text-fg">
-                    {studio.services.photographyOptions.map((option) => (
-                      <li key={option.id}>
-                        - {option.label} - {formatArs(option.price)} ({option.minHours || 1} horas)
-                      </li>
-                    ))}
-                  </ul>
-                </section>
+                  <section className="rounded-2xl border border-accent/15 bg-white/70 p-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                      {studio.services.photographyTitle}
+                    </p>
+                    <p className="mt-1 text-sm text-muted">{studio.services.description}</p>
+                    <ul className="mt-2 space-y-1 text-sm text-fg">
+                      {studio.services.photographyOptions.map((option) => (
+                        <li key={option.id}>
+                          - {option.label} - {formatArs(option.price)} ({option.minHours || 1} horas)
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
 
-                <section className="rounded-2xl border border-accent/15 bg-white/70 p-3 text-sm text-fg">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
-                    {studio.services.modelsTitle}
-                  </p>
-                  <p className="mt-1">
-                    {formatArs(studio.services.modelRatePerHour)} x hora x modelo
-                  </p>
-                </section>
+                  <section className="rounded-2xl border border-accent/15 bg-white/70 p-3 text-sm text-fg">
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                      {studio.services.modelsTitle}
+                    </p>
+                    <p className="mt-1">
+                      {formatArs(studio.services.modelRatePerHour)} x hora x modelo
+                    </p>
+                  </section>
 
-                <section className="rounded-2xl border border-accent/15 bg-white/70 p-3 text-sm text-fg">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
-                    {studio.services.makeupTitle}
-                  </p>
-                  <ul className="mt-2 space-y-1">
-                    {studio.services.makeupOptions.map((option) => (
-                      <li key={option.id}>
-                        - {option.label} - {formatArs(option.price)} por modelo
-                      </li>
-                    ))}
-                  </ul>
-                </section>
+                  <section className="rounded-2xl border border-accent/15 bg-white/70 p-3 text-sm text-fg">
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                      {studio.services.makeupTitle}
+                    </p>
+                    <ul className="mt-2 space-y-1">
+                      {studio.services.makeupOptions.map((option) => (
+                        <li key={option.id}>
+                          - {option.label} - {formatArs(option.price)} por modelo
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
 
-                <section className="rounded-2xl border border-accent/15 bg-white/70 p-3 text-sm text-fg">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
-                    {studio.services.hairstyleTitle}
-                  </p>
-                  <p className="mt-1">
-                    - {studio.services.hairstyleLabel} - {formatArs(studio.services.hairstyleRatePerModel)} por modelo
-                  </p>
-                </section>
+                  <section className="rounded-2xl border border-accent/15 bg-white/70 p-3 text-sm text-fg">
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                      {studio.services.hairstyleTitle}
+                    </p>
+                    <p className="mt-1">
+                      - {studio.services.hairstyleLabel} - {formatArs(studio.services.hairstyleRatePerModel)} por modelo
+                    </p>
+                  </section>
 
-                <section className="rounded-2xl border border-accent/15 bg-white/70 p-3 text-sm text-fg">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
-                    {studio.services.stylingTitle}
-                  </p>
-                  <ul className="mt-2 space-y-1">
-                    {studio.services.stylingOptions.map((option) => (
-                      <li key={option.id}>
-                        - {option.label} - {formatArs(option.price)}
-                      </li>
-                    ))}
-                  </ul>
-                </section>
+                  <section className="rounded-2xl border border-accent/15 bg-white/70 p-3 text-sm text-fg">
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                      {studio.services.stylingTitle}
+                    </p>
+                    <ul className="mt-2 space-y-1">
+                      {studio.services.stylingOptions.map((option) => (
+                        <li key={option.id}>
+                          - {option.label} - {formatArs(option.price)}
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
 
-                <section className="rounded-2xl border border-accent/15 bg-white/70 p-3 text-sm text-fg">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
-                    {studio.services.artDirectionTitle}
-                  </p>
-                  <ul className="mt-2 space-y-1">
-                    {studio.services.artDirectionOptions.map((option) => (
-                      <li key={option.id}>
-                        - {option.label} - {formatArs(option.price)}
-                      </li>
-                    ))}
-                  </ul>
-                </section>
+                  <section className="rounded-2xl border border-accent/15 bg-white/70 p-3 text-sm text-fg">
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                      {studio.services.artDirectionTitle}
+                    </p>
+                    <ul className="mt-2 space-y-1">
+                      {studio.services.artDirectionOptions.map((option) => (
+                        <li key={option.id}>
+                          - {option.label} - {formatArs(option.price)}
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
 
-                <section className="rounded-2xl border border-accent/15 bg-white/70 p-3 text-sm text-fg">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
-                    {studio.services.lightOperatorTitle}
-                  </p>
-                  <p className="mt-1">
-                    - {studio.services.lightOperatorLabel} - {formatArs(studio.services.lightOperatorRatePerHour)} x hora
-                  </p>
-                </section>
+                  <section className="rounded-2xl border border-accent/15 bg-white/70 p-3 text-sm text-fg">
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                      {studio.services.lightOperatorTitle}
+                    </p>
+                    <p className="mt-1">
+                      - {studio.services.lightOperatorLabel} - {formatArs(studio.services.lightOperatorRatePerHour)} x hora
+                    </p>
+                  </section>
 
-                <section className="rounded-2xl border border-accent/15 bg-white/70 p-3 text-sm text-fg">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
-                    {studio.services.assistantsTitle}
-                  </p>
-                  <p className="mt-1">
-                    - {studio.services.assistantsLabel} - {formatArs(studio.services.assistantsRatePerHour)} x hora por asistente
-                  </p>
-                </section>
+                  <section className="rounded-2xl border border-accent/15 bg-white/70 p-3 text-sm text-fg">
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                      {studio.services.assistantsTitle}
+                    </p>
+                    <p className="mt-1">
+                      - {studio.services.assistantsLabel} - {formatArs(studio.services.assistantsRatePerHour)} x hora por asistente
+                    </p>
+                  </section>
+                </div>
               </div>
             ) : (
               <>
@@ -570,7 +575,7 @@ export default function Gallery({ studio }: GalleryProps) {
                   {isSelectedCatalogItem ? (
                     <>
                       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">
-                        {activeCatalogModal === "included" ? "Incluido" : "Extra"}
+                        {activeCatalogModal === "included" ? "Incluido" : "Fondo"}
                       </p>
                       <h3 className="mt-2 font-display text-2xl uppercase tracking-[0.08em] text-fg">
                         {selectedCatalogItem.label}

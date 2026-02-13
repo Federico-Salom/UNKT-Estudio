@@ -253,7 +253,7 @@ export const studio: StudioContent = {
     images: buildCatalogImageDefaults(includedItems),
   },
   extras: {
-    title: "Extras",
+    title: "Fondos",
     subtitle:
       "Elegi hasta 5 colores de fondo. Cada color se cobra por separado y podes indicar si es sin pisar o pisando.",
     maxSelections: 5,
@@ -269,7 +269,7 @@ export const studio: StudioContent = {
     bookingNotice: "Reservas con minimo 5 dias de anticipacion.",
     photographyTitle: "1. FOTOGRAFIA",
     photographyHint:
-      "Obligatorio seleccionar una opcion. Las horas seleccionadas se usan como base de calculo.",
+      "Opcional. Si elegis una opcion, las horas seleccionadas se usan como base de calculo.",
     photographyOptions,
     modelsTitle: "2. MODELOS",
     modelsHint:
@@ -308,7 +308,7 @@ export const studio: StudioContent = {
     whatsapp: {
       phone: "5491158524000",
       message:
-        "Hola, quiero reservar UNKT Estudio. Fecha: __ / Horario: __ / Extras: __ / Servicios: __",
+        "Hola, quiero reservar UNKT Estudio. Fecha: __ / Horario: __ / Fondos: __ / Servicios: __",
     },
     instagram: "https://www.instagram.com/unkt.estudio/",
     email: "hola@unktestudio.com",
@@ -330,8 +330,8 @@ export const studio: StudioContent = {
         "La reserva minima es de 2 horas consecutivas.",
         "Solo se habilitan reservas con un minimo de 2 horas de anticipacion.",
         "La reserva queda confirmada cuando el pago figura acreditado por Mercado Pago.",
-        "Los extras se cobran por cada color de fondo seleccionado (hasta 5).",
-        "Cada fondo extra puede configurarse como sin pisar o pisando segun necesidad.",
+        "Los fondos se cobran por cada color de fondo seleccionado (hasta 5).",
+        "Cada fondo puede configurarse como sin pisar o pisando segun necesidad.",
         "Sabados, domingos y feriados tienen un recargo del 30% sobre la tarifa por hora.",
         "La franja nocturna (de 22:00 a 08:00) tiene un recargo del 40% sobre la tarifa por hora.",
         "Los servicios se calculan automaticamente por categoria y se suman al total general.",

@@ -967,7 +967,7 @@ html[data-theme="dark"] .booking-page .text-muted {
   color: color-mix(in srgb, var(--fg) 82%, #f4cad6 18%) !important;
 }
 
-html[data-theme="dark"] .booking-page .booking-form input:not([type="checkbox"]),
+html[data-theme="dark"] .booking-page .booking-form input:not([type="checkbox"]):not([type="radio"]),
 html[data-theme="dark"] .booking-page .booking-form textarea {
   background: color-mix(in srgb, var(--bg) 76%, #391824 24%) !important;
   border-color: color-mix(in srgb, #d68ca6 36%, transparent) !important;
@@ -977,7 +977,7 @@ html[data-theme="dark"] .booking-page .booking-form textarea {
 html[data-theme="dark"]
   .booking-page
   .booking-form
-  input:not([type="checkbox"])::placeholder,
+  input:not([type="checkbox"]):not([type="radio"])::placeholder,
 html[data-theme="dark"] .booking-page .booking-form textarea::placeholder {
   color: color-mix(in srgb, var(--fg) 46%, #c3a2ad 54%);
 }
@@ -992,6 +992,39 @@ html[data-theme="dark"] .booking-page .booking-extras,
 html[data-theme="dark"] .booking-page .booking-calendar {
   background: color-mix(in srgb, var(--bg) 82%, #2d151e 18%) !important;
   border-color: color-mix(in srgb, #d68ca6 34%, transparent) !important;
+}
+
+html[data-theme="dark"] .booking-page .booking-services-panel {
+  background: color-mix(in srgb, var(--bg) 82%, #2d151e 18%) !important;
+  border-color: color-mix(in srgb, #d68ca6 34%, transparent) !important;
+}
+
+html[data-theme="dark"] .booking-page .booking-services-section {
+  background: color-mix(in srgb, var(--bg) 88%, #25131b 12%) !important;
+  border-color: color-mix(in srgb, #cf8ca3 30%, transparent) !important;
+}
+
+html[data-theme="dark"]
+  .booking-page
+  .booking-services-photography-option[data-selected="false"] {
+  background: color-mix(in srgb, var(--bg) 78%, #341925) !important;
+  border-color: color-mix(in srgb, #d98ea8 34%, transparent) !important;
+  color: var(--fg) !important;
+}
+
+html[data-theme="dark"]
+  .booking-page
+  .booking-services-photography-option[data-selected="true"] {
+  background: color-mix(in srgb, var(--accent) 22%, #2b141d) !important;
+  border-color: color-mix(in srgb, #e77fa3 58%, transparent) !important;
+  color: var(--fg) !important;
+}
+
+html[data-theme="dark"]
+  .booking-page
+  .booking-services-photography-option
+  .booking-services-photography-option-price {
+  color: color-mix(in srgb, var(--fg) 82%, #f4cad6 18%) !important;
 }
 
 html[data-theme="dark"] .booking-page .booking-calendar .fc {

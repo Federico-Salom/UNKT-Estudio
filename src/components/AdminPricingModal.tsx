@@ -233,7 +233,7 @@ export default function AdminPricingModal({
       )
     ) {
       setStatus("error");
-      setErrorMessage("Revisa los precios de extras.");
+      setErrorMessage("Revisa los precios de fondos.");
       return;
     }
 
@@ -442,7 +442,7 @@ export default function AdminPricingModal({
 
                   <div className="grid gap-3">
                     <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
-                      Fondos extras
+                      Fondos
                     </p>
                     {extraPriceInputs.length === 0 ? (
                       <div className="rounded-2xl border border-accent/15 bg-bg/80 px-4 py-3 text-sm text-muted">

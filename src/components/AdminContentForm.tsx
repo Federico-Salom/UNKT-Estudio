@@ -638,7 +638,7 @@ export default function AdminContentForm({
               </div>
               <div className="grid gap-3">
                 <label className="grid gap-2 text-sm font-semibold">
-                  Título extras
+                  Título fondos
                   <input
                     className="rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:text-sm"
                     type="text"
@@ -647,7 +647,7 @@ export default function AdminContentForm({
                   />
                 </label>
                 <label className="grid gap-2 text-sm font-semibold">
-                  Subtítulo extras
+                  Subtítulo fondos
                   <input
                     className="rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:text-sm"
                     type="text"
@@ -1069,7 +1069,7 @@ export default function AdminContentForm({
 
           <details className="rounded-2xl border border-accent/15 bg-white/80 p-4 sm:p-6">
             <summary className="cursor-pointer break-words pr-4 text-[11px] font-semibold uppercase tracking-[0.06em] text-fg/80 sm:text-sm sm:tracking-wide">
-              Imágenes de incluidos y extras
+              Imágenes de incluidos y fondos
             </summary>
             <div className="mt-4 grid gap-6">
               <div className="grid gap-3">
@@ -1155,11 +1155,11 @@ export default function AdminContentForm({
 
               <div className="grid gap-3">
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">
-                  Extras
+                  Fondos
                 </p>
                 {extrasCatalogImages.length === 0 ? (
                   <div className="rounded-2xl border border-accent/15 bg-bg/80 px-4 py-3 text-sm text-muted">
-                    No hay extras cargados.
+                    No hay fondos cargados.
                   </div>
                 ) : (
                   <div className="grid gap-4 md:grid-cols-2">

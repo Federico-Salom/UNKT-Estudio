@@ -75,8 +75,8 @@ export default function UserMenu({
   const showLogoutButton = authenticated;
   const canUsePortal = typeof document !== "undefined";
   const panelToneClassName = isAdmin
-    ? "border-accent/55 bg-bg/80 shadow-[0_28px_64px_-36px_rgba(0,0,0,0.95),0_0_0_1px_rgba(207,63,105,0.18)]"
-    : "border-accent/30 bg-bg/95 shadow-[0_22px_50px_-34px_rgba(0,0,0,0.85)]";
+    ? "border-accent/55 bg-bg shadow-[0_28px_64px_-36px_rgba(0,0,0,0.95),0_0_0_1px_rgba(207,63,105,0.18)]"
+    : "border-accent/30 bg-bg shadow-[0_22px_50px_-34px_rgba(0,0,0,0.85)]";
   const secondaryButtonToneClassName = isAdmin
     ? "border-accent/60 bg-accent/[0.08] text-accent hover:border-accent hover:bg-accent/20"
     : "border-accent/45 bg-accent/[0.08] text-accent hover:border-accent/60 hover:bg-accent/20";

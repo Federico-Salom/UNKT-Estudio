@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (!extraPricesRaw) {
-    return errorResponse("Faltan los precios de extras.");
+    return errorResponse("Faltan los precios de fondos.");
   }
   if (!servicesRaw) {
     return errorResponse("Faltan los precios de servicios.");
@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
   const currentServices = normalizeServiceCatalog(current.services);
 
   if (extraPricesRaw.length !== currentBackgrounds.length) {
-    return errorResponse("La cantidad de extras no coincide.");
+    return errorResponse("La cantidad de fondos no coincide.");
   }
 
   const incomingById = new Map(
@@ -189,7 +189,7 @@ export async function POST(request: NextRequest) {
   });
 
   if (invalidPrice) {
-    return errorResponse("Revisa los precios de extras.");
+    return errorResponse("Revisa los precios de fondos.");
   }
 
   nextContent.extras.backgrounds = normalizeExtraBackgrounds(nextBackgrounds);

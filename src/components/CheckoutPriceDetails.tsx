@@ -180,7 +180,7 @@ export default function CheckoutPriceDetails({
 
               <div className="space-y-1">
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
-                  Extras
+                  Fondos
                 </p>
                 {extras.length ? (
                   extras.map((extra) => (
@@ -194,14 +194,14 @@ export default function CheckoutPriceDetails({
                   ))
                 ) : (
                   <div className="flex items-center justify-between text-sm text-fg">
-                    <p>Sin extras</p>
+                    <p>Sin fondos</p>
                     <p className="font-semibold">{formatMoney(0)}</p>
                   </div>
                 )}
               </div>
 
               <div className="flex items-center justify-between text-sm text-fg">
-                <p className="font-semibold">Subtotal extras</p>
+                <p className="font-semibold">Subtotal fondos</p>
                 <p className="font-semibold">{formatMoney(extrasSubtotal)}</p>
               </div>
 

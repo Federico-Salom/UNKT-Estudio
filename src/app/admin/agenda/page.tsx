@@ -66,9 +66,9 @@ export default async function AdminAgendaPage() {
     const extrasLabel = (() => {
       try {
         const extras = JSON.parse(booking.extras || "[]") as string[];
-        return extras.length ? `Extras: ${extras.join(", ")}` : "Sin extras";
+        return extras.length ? `Fondos: ${extras.join(", ")}` : "Sin fondos";
       } catch {
-        return "Sin extras";
+        return "Sin fondos";
       }
     })();
     if (!slotIds.length && booking.slotId) {

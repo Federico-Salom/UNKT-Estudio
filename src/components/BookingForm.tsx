@@ -19,12 +19,13 @@ import {
   type ExtraMode,
 } from "@/lib/booking";
 import {
-  getDefaultServiceSelection,
+  getEmptyServiceSelection,
   getServicesBreakdown,
   normalizeBookingServicesSelection,
   normalizeServiceCatalog,
   parseStoredServicesSelection,
   type BookingServicesSelection,
+  type ServiceSubtotal,
 } from "@/lib/services";
 
 type SlotOption = {
@@ -237,7 +238,7 @@ export default function BookingForm({
   const normalizedServicesCatalog = normalizeServiceCatalog(services);
   const initialServicesSelection = initialSelectedServicesRaw
     ? parseStoredServicesSelection(initialSelectedServicesRaw, normalizedServicesCatalog)
-    : getDefaultServiceSelection(normalizedServicesCatalog);
+    : getEmptyServiceSelection();
   const shouldOpenScheduleByDefault =
     Boolean(editBookingId) && editSection === "horario";
   const shouldOpenExtrasByDefault =
@@ -367,6 +368,21 @@ export default function BookingForm({
     [normalizedServicesCatalog, selectedServices, selectedSlotIds.length]
   );
   const servicesTotal = servicesBreakdown.total;
+  const servicesSubtotalsByKey = useMemo(
+    () =>
+      new Map<ServiceSubtotal["key"], ServiceSubtotal>(
+        servicesBreakdown.subtotals.map((item) => [item.key, item] as const)
+      ),
+    [servicesBreakdown.subtotals]
+  );
+  const photographySubtotal = servicesSubtotalsByKey.get("photography");
+  const modelsSubtotal = servicesSubtotalsByKey.get("models");
+  const makeupSubtotal = servicesSubtotalsByKey.get("makeup");
+  const hairstyleSubtotal = servicesSubtotalsByKey.get("hairstyle");
+  const stylingSubtotal = servicesSubtotalsByKey.get("styling");
+  const artDirectionSubtotal = servicesSubtotalsByKey.get("art_direction");
+  const lightOperatorSubtotal = servicesSubtotalsByKey.get("light_operator");
+  const assistantsSubtotal = servicesSubtotalsByKey.get("assistants");
   const selectedPhotographyOption = useMemo(
     () =>
       normalizedServicesCatalog.photographyOptions.find(
@@ -394,6 +410,7 @@ export default function BookingForm({
         })),
     [selectedSlotIds, slots]
   );
+  const selectedSlotCount = selectedSlotIds.length;
 
   const pricingSummary = useMemo(
     () =>
@@ -403,18 +420,34 @@ export default function BookingForm({
         servicesTotal,
         slots: selectedSlotRanges,
         holidayDates,
-        fallbackHours: Math.max(selectedSlotIds.length, 1),
+        fallbackHours: selectedSlotCount,
       }),
     [
       basePrice,
       extrasTotal,
       servicesTotal,
       holidayDates,
-      selectedSlotIds.length,
+      selectedSlotCount,
       selectedSlotRanges,
     ]
   );
   const total = pricingSummary.grandTotal;
+  const hoursBreakdownLabel =
+    selectedSlotCount > 0
+      ? `${selectedSlotCount} ${selectedSlotCount === 1 ? "hora" : "horas"} x $${basePrice.toLocaleString("es-AR")}`
+      : "Selecciona minimo 2 horas consecutivas.";
+  const surchargesBreakdownLabel = useMemo(() => {
+    const parts: string[] = [];
+    if (pricingSummary.weekendOrHolidaySurcharge > 0) {
+      parts.push(
+        `finde/feriado $${pricingSummary.weekendOrHolidaySurcharge.toLocaleString("es-AR")}`
+      );
+    }
+    if (pricingSummary.nightSurcharge > 0) {
+      parts.push(`nocturno $${pricingSummary.nightSurcharge.toLocaleString("es-AR")}`);
+    }
+    return parts.join(" + ");
+  }, [pricingSummary.nightSurcharge, pricingSummary.weekendOrHolidaySurcharge]);
 
   const groupedSlots = useMemo(() => {
     const map = new Map<string, SlotOption[]>();
@@ -478,7 +511,6 @@ export default function BookingForm({
     editBookingId,
   ]);
 
-  const selectedSlotCount = selectedSlotIds.length;
   const normalizedName = sanitizeNameInput(name);
   const normalizedPhone = sanitizePhoneInput(phone);
   const normalizedProfileName = normalizeContactValue(profileName);
@@ -628,7 +660,7 @@ export default function BookingForm({
     }));
   };
 
-  const setPhotographyOption = (optionId: string) => {
+  const setPhotographyOption = (optionId: string | null) => {
     setSelectedServices((prev) => ({
       ...prev,
       photographyOptionId: optionId,
@@ -802,22 +834,37 @@ export default function BookingForm({
         ? normalizedProfilePhone
         : normalizedPhone;
 
-      const response = await fetch("/api/booking", {
-        method: "POST",
+      const endpoint = editBookingId
+        ? `/api/booking/${encodeURIComponent(editBookingId)}`
+        : "/api/booking";
+      const method = editBookingId ? "PATCH" : "POST";
+      const requestPayload = editBookingId
+        ? {
+            slotIds: selectedSlotIds,
+            extras: selectedExtras.map((extra) => extra.label),
+            services: normalizeBookingServicesSelection(
+              selectedServices,
+              normalizedServicesCatalog
+            ),
+          }
+        : {
+            name: bookingName,
+            phone: bookingPhone,
+            slotIds: selectedSlotIds,
+            extras: selectedExtras.map((extra) => extra.label),
+            services: normalizeBookingServicesSelection(
+              selectedServices,
+              normalizedServicesCatalog
+            ),
+          };
+
+      const response = await fetch(endpoint, {
+        method,
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
-        body: JSON.stringify({
-          name: bookingName,
-          phone: bookingPhone,
-          slotIds: selectedSlotIds,
-          extras: selectedExtras.map((extra) => extra.label),
-          services: normalizeBookingServicesSelection(
-            selectedServices,
-            normalizedServicesCatalog
-          ),
-        }),
+        body: JSON.stringify(requestPayload),
       });
 
       const data = await response.json().catch(() => ({}));
@@ -1033,6 +1080,10 @@ export default function BookingForm({
     closeSlotsPanel();
     openServicesPanel();
   };
+  const handleConfirmServices = () => {
+    closeServicesPanel();
+    openExtrasPanel();
+  };
   const openGuideModal = () => setIsGuideModalOpen(true);
   const closeGuideModal = () => setIsGuideModalOpen(false);
   const openPolicyModal = () => setIsPolicyModalOpen(true);
@@ -1045,10 +1096,13 @@ export default function BookingForm({
     ].join(" ");
   const sectionToggleButtonClass =
     "group inline-flex min-h-14 w-full items-center justify-between rounded-2xl border border-accent/15 bg-white/80 px-4 py-3 text-left transition hover:border-accent/35 hover:bg-white";
-  const sectionContentTransitionClass = (isExpanded: boolean) =>
+  const sectionContentTransitionClass = (
+    isExpanded: boolean,
+    expandedMaxHeightClass = "max-h-[90rem]"
+  ) =>
     `overflow-hidden transition-[max-height,opacity,transform] duration-300 ease-out ${
       isExpanded
-        ? "pointer-events-auto max-h-[90rem] translate-y-0 opacity-100"
+        ? `pointer-events-auto ${expandedMaxHeightClass} translate-y-0 opacity-100`
         : "pointer-events-none max-h-0 -translate-y-1 opacity-0"
     }`;
   const renderSectionEditIcon = () => (
@@ -1285,284 +1339,567 @@ export default function BookingForm({
         {showServicesPanel ? (
           <div
             id="booking-services-panel"
-            className={sectionContentTransitionClass(isServicesExpanded)}
+            className={sectionContentTransitionClass(
+              isServicesExpanded,
+              "max-h-[220rem]"
+            )}
           >
-            <div className="grid gap-3 rounded-2xl border border-accent/15 bg-white/80 px-4 py-4">
-              <div className="rounded-2xl border border-accent/15 bg-bg/70 p-3 text-sm text-fg">
+            <div className="booking-services-panel grid gap-3 rounded-2xl border border-accent/15 bg-white/80 px-4 py-4">
+              <div className="booking-services-section rounded-2xl border border-accent/15 bg-bg/70 p-3 text-sm text-fg">
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
                   {normalizedServicesCatalog.title}
                 </p>
-                <h3 className="mt-1 font-display text-xl uppercase tracking-[0.08em] text-fg">
-                  {normalizedServicesCatalog.subtitle}
-                </h3>
-                <p className="mt-2 text-sm text-muted">
-                  {normalizedServicesCatalog.description}
-                </p>
-                <p className="mt-2 text-xs font-semibold uppercase tracking-[0.12em] text-accent">
+                <p className="mt-1 text-xs font-semibold uppercase tracking-[0.12em] text-accent">
                   {normalizedServicesCatalog.bookingNotice}
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-accent/20 bg-bg/65 p-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
-                  {normalizedServicesCatalog.photographyTitle}
-                </p>
-                <p className="mt-1 text-xs text-muted">
-                  {normalizedServicesCatalog.photographyHint}
-                </p>
-                <div className="mt-2 grid gap-2">
-                  {normalizedServicesCatalog.photographyOptions.map((option) => {
-                    const isSelected = selectedServices.photographyOptionId === option.id;
-                    return (
-                      <label
-                        key={option.id}
-                        className={`flex items-start justify-between gap-3 rounded-xl border px-3 py-2 text-sm font-semibold ${
-                          isSelected
-                            ? "border-accent bg-accent/10 text-accent"
-                            : "border-accent/20 bg-white text-fg"
-                        }`}
+              <details className="booking-services-section group rounded-2xl border border-accent/20 bg-bg/65 p-3">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                      {normalizedServicesCatalog.photographyTitle}
+                    </p>
+                    <p className="mt-1 text-xs text-muted">
+                      {photographySubtotal?.description || "Sin fotografia"}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 pl-3">
+                    <span className="text-xs font-semibold text-fg/85">
+                      {selectedPhotographyOption
+                        ? formatExtraPriceLabel(selectedPhotographyOption.price)
+                        : "Opcional"}
+                    </span>
+                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-accent/25 text-accent transition-transform group-open:rotate-180">
+                      <svg
+                        viewBox="0 0 24 24"
+                        className="h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
                       >
-                        <span className="flex items-start gap-2">
-                          <input
-                            type="radio"
-                            name="service-photography-option"
-                            checked={isSelected}
-                            onChange={() => setPhotographyOption(option.id)}
-                          />
-                          <span>{option.label}</span>
-                        </span>
-                        <span className="text-xs font-medium text-muted">
-                          {formatExtraPriceLabel(option.price)} / min {option.minHours || 1} h
-                        </span>
-                      </label>
-                    );
-                  })}
+                        <path d="m6 9 6 6 6-6" />
+                      </svg>
+                    </span>
+                  </div>
+                </summary>
+                <div className="mt-3">
+                  <p className="text-sm text-muted">
+                    {normalizedServicesCatalog.description}
+                  </p>
+                  {normalizedServicesCatalog.photographyHint ? (
+                    <p className="mt-1 text-xs text-muted">
+                      {normalizedServicesCatalog.photographyHint}
+                    </p>
+                  ) : null}
+                  <div className="mt-2 grid gap-2">
+                    <label
+                      data-selected={selectedServices.photographyOptionId ? "false" : "true"}
+                      className={`booking-services-photography-option flex items-start justify-between gap-3 rounded-xl border px-3 py-2 text-sm font-semibold ${
+                        selectedServices.photographyOptionId
+                          ? "border-accent/20 bg-white text-fg"
+                          : "border-accent bg-accent/10 text-accent"
+                      }`}
+                    >
+                      <span className="flex items-start gap-2">
+                        <input
+                          type="radio"
+                          name="service-photography-option"
+                          checked={!selectedServices.photographyOptionId}
+                          onChange={() => setPhotographyOption(null)}
+                        />
+                        <span>Sin servicio de fotografia</span>
+                      </span>
+                      <span className="booking-services-photography-option-price text-xs font-medium text-muted">
+                        Opcional
+                      </span>
+                    </label>
+                    {normalizedServicesCatalog.photographyOptions.map((option) => {
+                      const isSelected =
+                        selectedServices.photographyOptionId === option.id;
+                      return (
+                        <label
+                          key={option.id}
+                          data-selected={isSelected ? "true" : "false"}
+                          className={`booking-services-photography-option flex items-start justify-between gap-3 rounded-xl border px-3 py-2 text-sm font-semibold ${
+                            isSelected
+                              ? "border-accent bg-accent/10 text-accent"
+                              : "border-accent/20 bg-white text-fg"
+                          }`}
+                        >
+                          <span className="flex items-start gap-2">
+                            <input
+                              type="radio"
+                              name="service-photography-option"
+                              checked={isSelected}
+                              onChange={() => setPhotographyOption(option.id)}
+                            />
+                            <span>{option.label}</span>
+                          </span>
+                          <span className="booking-services-photography-option-price text-xs font-medium text-muted">
+                            {formatExtraPriceLabel(option.price)} / min{" "}
+                            {option.minHours || 1} h
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
                 </div>
+              </details>
+
+              <div className="grid gap-3 md:grid-cols-2">
+                <details className="booking-services-section group rounded-2xl border border-accent/20 bg-bg/65 p-3">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                        {normalizedServicesCatalog.modelsTitle}
+                      </p>
+                      <p className="mt-1 text-xs text-muted">
+                        {modelsSubtotal?.description || "Sin modelos"}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 pl-3">
+                      <span className="text-xs font-semibold text-fg/85">
+                        {formatExtraPriceLabel(modelsSubtotal?.amount ?? 0)}
+                      </span>
+                      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-accent/25 text-accent transition-transform group-open:rotate-180">
+                        <svg
+                          viewBox="0 0 24 24"
+                          className="h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden="true"
+                        >
+                          <path d="m6 9 6 6 6-6" />
+                        </svg>
+                      </span>
+                    </div>
+                  </summary>
+                  <div className="mt-3">
+                    <p className="text-xs text-muted">
+                      {normalizedServicesCatalog.modelsHint}
+                    </p>
+                    <div className="mt-2 flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setModelsCount(selectedServices.modelsCount - 1)}
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-accent/30 text-sm font-semibold text-accent transition hover:border-accent hover:bg-accent/10"
+                      >
+                        -
+                      </button>
+                      <span className="min-w-10 text-center text-sm font-semibold text-fg">
+                        {selectedServices.modelsCount}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setModelsCount(selectedServices.modelsCount + 1)}
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-accent/30 text-sm font-semibold text-accent transition hover:border-accent hover:bg-accent/10"
+                      >
+                        +
+                      </button>
+                    </div>
+                    <p className="mt-2 text-xs text-muted">
+                      Tarifa:{" "}
+                      {formatExtraPriceLabel(normalizedServicesCatalog.modelRatePerHour)}{" "}
+                      x hora x modelo
+                    </p>
+                  </div>
+                </details>
+
+                <details className="booking-services-section group rounded-2xl border border-accent/20 bg-bg/65 p-3">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                        {normalizedServicesCatalog.makeupTitle}
+                      </p>
+                      <p className="mt-1 text-xs text-muted">
+                        {makeupSubtotal?.description || "Sin maquillaje"}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 pl-3">
+                      <span className="text-xs font-semibold text-fg/85">
+                        {formatExtraPriceLabel(makeupSubtotal?.amount ?? 0)}
+                      </span>
+                      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-accent/25 text-accent transition-transform group-open:rotate-180">
+                        <svg
+                          viewBox="0 0 24 24"
+                          className="h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden="true"
+                        >
+                          <path d="m6 9 6 6 6-6" />
+                        </svg>
+                      </span>
+                    </div>
+                  </summary>
+                  <div className="mt-3">
+                    <p className="text-xs text-muted">
+                      {normalizedServicesCatalog.makeupHint}
+                    </p>
+                    <div className="mt-2 grid gap-2">
+                      <label className="flex items-center gap-2 text-xs font-semibold text-fg">
+                        <input
+                          type="radio"
+                          name="service-makeup-option"
+                          checked={!selectedServices.makeupOptionId}
+                          onChange={() => setMakeupOption(null)}
+                        />
+                        Sin maquillaje
+                      </label>
+                      {normalizedServicesCatalog.makeupOptions.map((option) => (
+                        <label
+                          key={option.id}
+                          className="flex items-center justify-between gap-2 text-xs font-semibold text-fg"
+                        >
+                          <span className="flex items-center gap-2">
+                            <input
+                              type="radio"
+                              name="service-makeup-option"
+                              checked={selectedServices.makeupOptionId === option.id}
+                              onChange={() => setMakeupOption(option.id)}
+                              disabled={selectedServices.modelsCount === 0}
+                            />
+                            {option.label}
+                          </span>
+                          <span className="text-muted">
+                            {formatExtraPriceLabel(option.price)} / modelo
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </details>
               </div>
 
               <div className="grid gap-3 md:grid-cols-2">
-                <div className="rounded-2xl border border-accent/20 bg-bg/65 p-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
-                    {normalizedServicesCatalog.modelsTitle}
-                  </p>
-                  <p className="mt-1 text-xs text-muted">
-                    {normalizedServicesCatalog.modelsHint}
+                <details className="booking-services-section group rounded-2xl border border-accent/20 bg-bg/65 p-3">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                        {normalizedServicesCatalog.hairstyleTitle}
+                      </p>
+                      <p className="mt-1 text-xs text-muted">
+                        {hairstyleSubtotal?.description || "Sin peinado"}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 pl-3">
+                      <span className="text-xs font-semibold text-fg/85">
+                        {formatExtraPriceLabel(hairstyleSubtotal?.amount ?? 0)}
+                      </span>
+                      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-accent/25 text-accent transition-transform group-open:rotate-180">
+                        <svg
+                          viewBox="0 0 24 24"
+                          className="h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden="true"
+                        >
+                          <path d="m6 9 6 6 6-6" />
+                        </svg>
+                      </span>
+                    </div>
+                  </summary>
+                  <div className="mt-3">
+                    <p className="text-xs text-muted">
+                      {normalizedServicesCatalog.hairstyleHint}
+                    </p>
+                    <label className="mt-2 flex items-center justify-between gap-2 text-xs font-semibold text-fg">
+                      <span className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={selectedServices.hairstyleEnabled}
+                          onChange={(event) => setHairStyleEnabled(event.target.checked)}
+                          disabled={selectedServices.modelsCount === 0}
+                        />
+                        {normalizedServicesCatalog.hairstyleLabel}
+                      </span>
+                      <span className="text-muted">
+                        {formatExtraPriceLabel(
+                          normalizedServicesCatalog.hairstyleRatePerModel
+                        )}{" "}
+                        / modelo
+                      </span>
+                    </label>
+                  </div>
+                </details>
+
+                <details className="booking-services-section group rounded-2xl border border-accent/20 bg-bg/65 p-3">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                        {normalizedServicesCatalog.lightOperatorTitle}
+                      </p>
+                      <p className="mt-1 text-xs text-muted">
+                        {lightOperatorSubtotal?.description || "Sin operador de luces"}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 pl-3">
+                      <span className="text-xs font-semibold text-fg/85">
+                        {formatExtraPriceLabel(lightOperatorSubtotal?.amount ?? 0)}
+                      </span>
+                      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-accent/25 text-accent transition-transform group-open:rotate-180">
+                        <svg
+                          viewBox="0 0 24 24"
+                          className="h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden="true"
+                        >
+                          <path d="m6 9 6 6 6-6" />
+                        </svg>
+                      </span>
+                    </div>
+                  </summary>
+                  <div className="mt-3">
+                    <p className="text-xs text-muted">
+                      {normalizedServicesCatalog.lightOperatorHint}
+                    </p>
+                    <label className="mt-2 flex items-center justify-between gap-2 text-xs font-semibold text-fg">
+                      <span className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={selectedServices.lightOperatorEnabled}
+                          onChange={(event) =>
+                            setLightOperatorEnabled(event.target.checked)
+                          }
+                        />
+                        {normalizedServicesCatalog.lightOperatorLabel}
+                      </span>
+                      <span className="text-muted">
+                        {formatExtraPriceLabel(
+                          normalizedServicesCatalog.lightOperatorRatePerHour
+                        )}{" "}
+                        / hora
+                      </span>
+                    </label>
+                  </div>
+                </details>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-2">
+                <details className="booking-services-section group rounded-2xl border border-accent/20 bg-bg/65 p-3">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                        {normalizedServicesCatalog.stylingTitle}
+                      </p>
+                      <p className="mt-1 text-xs text-muted">
+                        {stylingSubtotal?.description || "Sin estilismo"}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 pl-3">
+                      <span className="text-xs font-semibold text-fg/85">
+                        {formatExtraPriceLabel(stylingSubtotal?.amount ?? 0)}
+                      </span>
+                      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-accent/25 text-accent transition-transform group-open:rotate-180">
+                        <svg
+                          viewBox="0 0 24 24"
+                          className="h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden="true"
+                        >
+                          <path d="m6 9 6 6 6-6" />
+                        </svg>
+                      </span>
+                    </div>
+                  </summary>
+                  <div className="mt-3">
+                    {normalizedServicesCatalog.stylingHint ? (
+                      <p className="text-xs text-muted">
+                        {normalizedServicesCatalog.stylingHint}
+                      </p>
+                    ) : null}
+                    <div className="mt-2 grid gap-2">
+                      <label className="flex items-center gap-2 text-xs font-semibold text-fg">
+                        <input
+                          type="radio"
+                          name="service-styling-option"
+                          checked={!selectedServices.stylingOptionId}
+                          onChange={() => setStylingOption(null)}
+                        />
+                        Sin estilismo
+                      </label>
+                      {normalizedServicesCatalog.stylingOptions.map((option) => (
+                        <label
+                          key={option.id}
+                          className="flex items-center justify-between gap-2 text-xs font-semibold text-fg"
+                        >
+                          <span className="flex items-center gap-2">
+                            <input
+                              type="radio"
+                              name="service-styling-option"
+                              checked={selectedServices.stylingOptionId === option.id}
+                              onChange={() => setStylingOption(option.id)}
+                            />
+                            {option.label}
+                          </span>
+                          <span className="text-muted">
+                            {formatExtraPriceLabel(option.price)}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </details>
+
+                <details className="booking-services-section group rounded-2xl border border-accent/20 bg-bg/65 p-3">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                        {normalizedServicesCatalog.artDirectionTitle}
+                      </p>
+                      <p className="mt-1 text-xs text-muted">
+                        {artDirectionSubtotal?.description || "Sin direccion de arte"}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 pl-3">
+                      <span className="text-xs font-semibold text-fg/85">
+                        {formatExtraPriceLabel(artDirectionSubtotal?.amount ?? 0)}
+                      </span>
+                      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-accent/25 text-accent transition-transform group-open:rotate-180">
+                        <svg
+                          viewBox="0 0 24 24"
+                          className="h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden="true"
+                        >
+                          <path d="m6 9 6 6 6-6" />
+                        </svg>
+                      </span>
+                    </div>
+                  </summary>
+                  <div className="mt-3">
+                    {normalizedServicesCatalog.artDirectionHint ? (
+                      <p className="text-xs text-muted">
+                        {normalizedServicesCatalog.artDirectionHint}
+                      </p>
+                    ) : null}
+                    <div className="mt-2 grid gap-2">
+                      <label className="flex items-center gap-2 text-xs font-semibold text-fg">
+                        <input
+                          type="radio"
+                          name="service-art-direction-option"
+                          checked={!selectedServices.artDirectionOptionId}
+                          onChange={() => setArtDirectionOption(null)}
+                        />
+                        Sin direccion de arte
+                      </label>
+                      {normalizedServicesCatalog.artDirectionOptions.map((option) => (
+                        <label
+                          key={option.id}
+                          className="flex items-center justify-between gap-2 text-xs font-semibold text-fg"
+                        >
+                          <span className="flex items-center gap-2">
+                            <input
+                              type="radio"
+                              name="service-art-direction-option"
+                              checked={
+                                selectedServices.artDirectionOptionId === option.id
+                              }
+                              onChange={() => setArtDirectionOption(option.id)}
+                            />
+                            {option.label}
+                          </span>
+                          <span className="text-muted">
+                            {formatExtraPriceLabel(option.price)}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </details>
+              </div>
+
+              <details className="booking-services-section group rounded-2xl border border-accent/20 bg-bg/65 p-3">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                      {normalizedServicesCatalog.assistantsTitle}
+                    </p>
+                    <p className="mt-1 text-xs text-muted">
+                      {assistantsSubtotal?.description || "Sin asistentes"}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 pl-3">
+                    <span className="text-xs font-semibold text-fg/85">
+                      {formatExtraPriceLabel(assistantsSubtotal?.amount ?? 0)}
+                    </span>
+                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-accent/25 text-accent transition-transform group-open:rotate-180">
+                      <svg
+                        viewBox="0 0 24 24"
+                        className="h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="m6 9 6 6 6-6" />
+                      </svg>
+                    </span>
+                  </div>
+                </summary>
+                <div className="mt-3">
+                  <p className="text-xs text-muted">
+                    {normalizedServicesCatalog.assistantsHint}
                   </p>
                   <div className="mt-2 flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={() => setModelsCount(selectedServices.modelsCount - 1)}
+                      onClick={() =>
+                        setAssistantsCount(selectedServices.assistantsCount - 1)
+                      }
                       className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-accent/30 text-sm font-semibold text-accent transition hover:border-accent hover:bg-accent/10"
                     >
                       -
                     </button>
                     <span className="min-w-10 text-center text-sm font-semibold text-fg">
-                      {selectedServices.modelsCount}
+                      {selectedServices.assistantsCount}
                     </span>
                     <button
                       type="button"
-                      onClick={() => setModelsCount(selectedServices.modelsCount + 1)}
+                      onClick={() =>
+                        setAssistantsCount(selectedServices.assistantsCount + 1)
+                      }
                       className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-accent/30 text-sm font-semibold text-accent transition hover:border-accent hover:bg-accent/10"
                     >
                       +
                     </button>
                   </div>
                   <p className="mt-2 text-xs text-muted">
-                    Tarifa: {formatExtraPriceLabel(normalizedServicesCatalog.modelRatePerHour)} x hora x modelo
+                    Tarifa:{" "}
+                    {formatExtraPriceLabel(normalizedServicesCatalog.assistantsRatePerHour)}{" "}
+                    x hora por asistente
                   </p>
                 </div>
+              </details>
 
-                <div className="rounded-2xl border border-accent/20 bg-bg/65 p-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
-                    {normalizedServicesCatalog.makeupTitle}
-                  </p>
-                  <p className="mt-1 text-xs text-muted">
-                    {normalizedServicesCatalog.makeupHint}
-                  </p>
-                  <div className="mt-2 grid gap-2">
-                    <label className="flex items-center gap-2 text-xs font-semibold text-fg">
-                      <input
-                        type="radio"
-                        name="service-makeup-option"
-                        checked={!selectedServices.makeupOptionId}
-                        onChange={() => setMakeupOption(null)}
-                      />
-                      Sin maquillaje
-                    </label>
-                    {normalizedServicesCatalog.makeupOptions.map((option) => (
-                      <label key={option.id} className="flex items-center justify-between gap-2 text-xs font-semibold text-fg">
-                        <span className="flex items-center gap-2">
-                          <input
-                            type="radio"
-                            name="service-makeup-option"
-                            checked={selectedServices.makeupOptionId === option.id}
-                            onChange={() => setMakeupOption(option.id)}
-                            disabled={selectedServices.modelsCount === 0}
-                          />
-                          {option.label}
-                        </span>
-                        <span className="text-muted">
-                          {formatExtraPriceLabel(option.price)} / modelo
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid gap-3 md:grid-cols-2">
-                <div className="rounded-2xl border border-accent/20 bg-bg/65 p-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
-                    {normalizedServicesCatalog.hairstyleTitle}
-                  </p>
-                  <p className="mt-1 text-xs text-muted">
-                    {normalizedServicesCatalog.hairstyleHint}
-                  </p>
-                  <label className="mt-2 flex items-center justify-between gap-2 text-xs font-semibold text-fg">
-                    <span className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={selectedServices.hairstyleEnabled}
-                        onChange={(event) => setHairStyleEnabled(event.target.checked)}
-                        disabled={selectedServices.modelsCount === 0}
-                      />
-                      {normalizedServicesCatalog.hairstyleLabel}
-                    </span>
-                    <span className="text-muted">
-                      {formatExtraPriceLabel(normalizedServicesCatalog.hairstyleRatePerModel)} / modelo
-                    </span>
-                  </label>
-                </div>
-
-                <div className="rounded-2xl border border-accent/20 bg-bg/65 p-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
-                    {normalizedServicesCatalog.lightOperatorTitle}
-                  </p>
-                  <p className="mt-1 text-xs text-muted">
-                    {normalizedServicesCatalog.lightOperatorHint}
-                  </p>
-                  <label className="mt-2 flex items-center justify-between gap-2 text-xs font-semibold text-fg">
-                    <span className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={selectedServices.lightOperatorEnabled}
-                        onChange={(event) =>
-                          setLightOperatorEnabled(event.target.checked)
-                        }
-                      />
-                      {normalizedServicesCatalog.lightOperatorLabel}
-                    </span>
-                    <span className="text-muted">
-                      {formatExtraPriceLabel(normalizedServicesCatalog.lightOperatorRatePerHour)} / hora
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="grid gap-3 md:grid-cols-2">
-                <div className="rounded-2xl border border-accent/20 bg-bg/65 p-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
-                    {normalizedServicesCatalog.stylingTitle}
-                  </p>
-                  <div className="mt-2 grid gap-2">
-                    <label className="flex items-center gap-2 text-xs font-semibold text-fg">
-                      <input
-                        type="radio"
-                        name="service-styling-option"
-                        checked={!selectedServices.stylingOptionId}
-                        onChange={() => setStylingOption(null)}
-                      />
-                      Sin estilismo
-                    </label>
-                    {normalizedServicesCatalog.stylingOptions.map((option) => (
-                      <label key={option.id} className="flex items-center justify-between gap-2 text-xs font-semibold text-fg">
-                        <span className="flex items-center gap-2">
-                          <input
-                            type="radio"
-                            name="service-styling-option"
-                            checked={selectedServices.stylingOptionId === option.id}
-                            onChange={() => setStylingOption(option.id)}
-                          />
-                          {option.label}
-                        </span>
-                        <span className="text-muted">
-                          {formatExtraPriceLabel(option.price)}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="rounded-2xl border border-accent/20 bg-bg/65 p-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
-                    {normalizedServicesCatalog.artDirectionTitle}
-                  </p>
-                  <div className="mt-2 grid gap-2">
-                    <label className="flex items-center gap-2 text-xs font-semibold text-fg">
-                      <input
-                        type="radio"
-                        name="service-art-direction-option"
-                        checked={!selectedServices.artDirectionOptionId}
-                        onChange={() => setArtDirectionOption(null)}
-                      />
-                      Sin direccion de arte
-                    </label>
-                    {normalizedServicesCatalog.artDirectionOptions.map((option) => (
-                      <label key={option.id} className="flex items-center justify-between gap-2 text-xs font-semibold text-fg">
-                        <span className="flex items-center gap-2">
-                          <input
-                            type="radio"
-                            name="service-art-direction-option"
-                            checked={selectedServices.artDirectionOptionId === option.id}
-                            onChange={() => setArtDirectionOption(option.id)}
-                          />
-                          {option.label}
-                        </span>
-                        <span className="text-muted">
-                          {formatExtraPriceLabel(option.price)}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-accent/20 bg-bg/65 p-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
-                  {normalizedServicesCatalog.assistantsTitle}
-                </p>
-                <p className="mt-1 text-xs text-muted">
-                  {normalizedServicesCatalog.assistantsHint}
-                </p>
-                <div className="mt-2 flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setAssistantsCount(selectedServices.assistantsCount - 1)
-                    }
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-accent/30 text-sm font-semibold text-accent transition hover:border-accent hover:bg-accent/10"
-                  >
-                    -
-                  </button>
-                  <span className="min-w-10 text-center text-sm font-semibold text-fg">
-                    {selectedServices.assistantsCount}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setAssistantsCount(selectedServices.assistantsCount + 1)
-                    }
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-accent/30 text-sm font-semibold text-accent transition hover:border-accent hover:bg-accent/10"
-                  >
-                    +
-                  </button>
-                </div>
-                <p className="mt-2 text-xs text-muted">
-                  Tarifa: {formatExtraPriceLabel(normalizedServicesCatalog.assistantsRatePerHour)} x hora por asistente
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-accent/20 bg-bg/75 p-3">
+              <div className="booking-services-section rounded-2xl border border-accent/20 bg-bg/75 p-3">
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
                   {normalizedServicesCatalog.totalsTitle}
                 </p>
@@ -1580,6 +1917,13 @@ export default function BookingForm({
                   <span>Total servicios</span>
                   <span>{formatExtraPriceLabel(servicesTotal)}</span>
                 </div>
+                <button
+                  type="button"
+                  onClick={handleConfirmServices}
+                  className="mt-3 inline-flex w-full items-center justify-center rounded-full border border-accent/55 bg-accent/20 px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-accent transition-all duration-200 hover:-translate-y-0.5 hover:border-accent2 hover:bg-accent2 hover:text-bg hover:shadow-[0_14px_28px_-18px_rgba(0,0,0,0.75)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2 active:translate-y-0"
+                >
+                  Confirmar
+                </button>
               </div>
 
               {servicesError ? (
@@ -1598,12 +1942,12 @@ export default function BookingForm({
           type="button"
           onClick={toggleExtrasPanel}
           className={sectionToggleButtonClass}
-          aria-label="Editar extras"
+          aria-label="Editar fondos"
           aria-expanded={isExtrasExpanded}
           aria-controls="booking-extras-panel"
         >
           <span className="text-sm font-semibold uppercase tracking-wide text-fg">
-            Extras
+            Fondos
           </span>
           {renderSectionEditIcon()}
         </button>
@@ -1615,7 +1959,7 @@ export default function BookingForm({
           >
       <div className="booking-extras grid gap-2 rounded-2xl border border-accent/15 bg-white/80 px-4 py-4">
         {normalizedExtraBackgrounds.length === 0 ? (
-          <p className="text-sm text-muted">No hay extras configurados.</p>
+          <p className="text-sm text-muted">No hay fondos configurados.</p>
         ) : (
           <div className="grid gap-3">
             <p className="text-xs text-muted">
@@ -1700,31 +2044,19 @@ export default function BookingForm({
 
       <div className="booking-summary rounded-2xl border border-accent/15 bg-bg px-4 py-3 text-sm">
         <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-muted">
-          <span>Base</span>
+          <span>Horas</span>
           <span>
-            ${basePrice.toLocaleString("es-AR")} x {selectedSlotCount || 1}
+            ${pricingSummary.totalBaseWithSurcharges.toLocaleString("es-AR")}
           </span>
         </div>
-        <div className="mt-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-muted">
-          <span>Subtotal base</span>
-          <span>${pricingSummary.baseSubtotal.toLocaleString("es-AR")}</span>
-        </div>
-        {pricingSummary.weekendOrHolidaySurcharge > 0 ? (
-          <div className="mt-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-muted">
-            <span>Recargo finde/feriado (+30%)</span>
-            <span>
-              ${pricingSummary.weekendOrHolidaySurcharge.toLocaleString("es-AR")}
-            </span>
-          </div>
-        ) : null}
-        {pricingSummary.nightSurcharge > 0 ? (
-          <div className="mt-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-muted">
-            <span>Recargo nocturno (+40%)</span>
-            <span>${pricingSummary.nightSurcharge.toLocaleString("es-AR")}</span>
+        <div className="mt-1 text-xs text-muted">{hoursBreakdownLabel}</div>
+        {surchargesBreakdownLabel ? (
+          <div className="mt-1 text-xs text-muted">
+            Recargos incluidos: {surchargesBreakdownLabel}
           </div>
         ) : null}
         <div className="mt-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-muted">
-          <span>Extras</span>
+          <span>Fondos</span>
           <span>${extrasTotal.toLocaleString("es-AR")}</span>
         </div>
         {selectedExtras.length > 0 && (
@@ -1754,14 +2086,6 @@ export default function BookingForm({
             Horario seleccionado:{" "}
             <span className="font-semibold text-fg">
               {selectedRangeLabel}
-            </span>
-          </div>
-        )}
-        {selectedSlotCount > 0 && (
-          <div className="mt-1 text-xs text-muted">
-            Horas seleccionadas:{" "}
-            <span className="font-semibold text-fg">
-              {selectedSlotCount}
             </span>
           </div>
         )}
@@ -1852,7 +2176,7 @@ export default function BookingForm({
                   </p>
                   <p className="mt-2 text-sm text-muted">
                     Para editar, elegi un nuevo bloque horario y ajusta servicios
-                    y extras antes de confirmar.
+                    y fondos antes de confirmar.
                   </p>
                 </div>
 
@@ -1867,7 +2191,7 @@ export default function BookingForm({
                     3. Se reserva 1 hora posterior para mantenimiento, no se cobra y es para uso exclusivo de UNKT para asegurar el funcionamiento correcto del taller.
                   </li>
                   <li className="rounded-2xl border border-accent/20 bg-bg/90 px-4 py-3">
-                    4. Configura servicios, luego activa extras y elige el modo de cada fondo.
+                    4. Configura servicios, luego activa fondos y elige el modo de cada fondo.
                   </li>
                   <li className="rounded-2xl border border-accent/20 bg-bg/90 px-4 py-3">
                     5. Revisa el total y confirma con &quot;Reservar y pagar&quot;.
