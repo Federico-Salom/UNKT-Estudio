@@ -16,6 +16,11 @@ import {
   parseStoredServicesSelection,
   stringifyServicesSelection,
 } from "@/lib/services";
+import {
+  getBookingSlotIds,
+  pruneExpiredPendingBookings,
+  releaseSlotsLinkedToBookings,
+} from "@/lib/booking-expiration";
 import { prisma } from "@/lib/prisma";
 import { getStudioContent } from "@/lib/studio-content";
 
@@ -57,17 +62,6 @@ const parseStringArray = (value: string) => {
   } catch {
     return [];
   }
-};
-
-const getBookingSlotIds = (slotIdsValue: string, slotId: string | null) => {
-  const parsed = parseStringArray(slotIdsValue);
-  if (parsed.length) {
-    return Array.from(new Set(parsed));
-  }
-  if (slotId) {
-    return [slotId];
-  }
-  return [];
 };
 
 const areConsecutiveSlots = (slots: { start: Date; end: Date }[]) =>
@@ -142,6 +136,8 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   if (!session) {
     return errorResponse("No autorizado.", 401);
   }
+
+  await pruneExpiredPendingBookings();
 
   const body = (await request.json().catch(() => ({}))) as BookingUpdateInput;
   const hasSlotIds = Array.isArray(body.slotIds);
@@ -414,5 +410,96 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     }
 
     return errorResponse("No se pudo actualizar la reserva.");
+  }
+}
+
+export async function DELETE(request: NextRequest, context: RouteContext) {
+  const params = await context.params;
+  const bookingId = params.id?.trim();
+  if (!bookingId) {
+    return errorResponse("Reserva invalida.");
+  }
+
+  const sessionToken = request.cookies.get(AUTH_COOKIE)?.value;
+  const session = sessionToken ? verifySession(sessionToken) : null;
+
+  if (!session) {
+    return errorResponse("No autorizado.", 401);
+  }
+
+  await pruneExpiredPendingBookings();
+
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      const booking = await tx.booking.findUnique({
+        where: { id: bookingId },
+        select: {
+          id: true,
+          userId: true,
+          slotId: true,
+          slotIds: true,
+          status: true,
+        },
+      });
+
+      if (!booking) {
+        throw new BookingUpdateError("Reserva no encontrada.", 404);
+      }
+
+      const canCancel =
+        session.role === "admin" || booking.userId === session.userId;
+      if (!canCancel) {
+        throw new BookingUpdateError("No tienes permisos para cancelar esta reserva.", 403);
+      }
+
+      if (booking.status !== "pending_payment") {
+        throw new BookingUpdateError(
+          "Solo puedes cancelar reservas con pago pendiente.",
+          409
+        );
+      }
+
+      const deleted = await tx.booking.deleteMany({
+        where: {
+          id: booking.id,
+          status: "pending_payment",
+        },
+      });
+
+      if (deleted.count !== 1) {
+        throw new BookingUpdateError("La reserva ya no se puede cancelar.", 409);
+      }
+
+      const releasedSlots = await releaseSlotsLinkedToBookings(
+        tx,
+        [
+          {
+            id: booking.id,
+            slotId: booking.slotId,
+            slotIds: booking.slotIds,
+          },
+        ],
+        [booking.id]
+      );
+
+      return {
+        bookingId: booking.id,
+        releasedSlots,
+      };
+    });
+
+    return NextResponse.json(
+      {
+        ok: true,
+        bookingId: result.bookingId,
+        releasedSlots: result.releasedSlots,
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    if (error instanceof BookingUpdateError) {
+      return errorResponse(error.message, error.status);
+    }
+    return errorResponse("No se pudo cancelar la reserva.");
   }
 }

@@ -20,7 +20,7 @@ export default function Footer({ studio }: FooterProps) {
   const iconButtonClassName =
     "inline-flex h-11 w-11 items-center justify-center rounded-full border border-accent/30 bg-bg text-accent transition hover:border-accent hover:bg-accent/10";
   const policyButtonClassName =
-    "inline-flex h-11 w-fit items-center justify-center rounded-full border border-accent/30 bg-bg px-6 text-left backdrop-blur transition hover:border-accent hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30";
+    "inline-flex h-11 w-full items-center justify-center rounded-full border border-accent/30 bg-bg px-6 text-center backdrop-blur transition hover:border-accent hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30";
   const [isPolicyModalOpen, setIsPolicyModalOpen] = useState(false);
 
   const openPolicyModal = () => {
@@ -35,7 +35,7 @@ export default function Footer({ studio }: FooterProps) {
     <footer className="border-t border-accent/20 bg-bg/95 py-4 backdrop-blur md:py-5">
       <Container className="space-y-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
-          <div className="mx-auto w-fit lg:mx-0">
+          <div className="mx-auto w-full max-w-[20rem] lg:mx-0 lg:max-w-none">
             <button
               type="button"
               onClick={openPolicyModal}
@@ -48,7 +48,7 @@ export default function Footer({ studio }: FooterProps) {
           </div>
 
           <div className="flex w-full justify-center lg:w-[14rem] lg:justify-end">
-            <div className="flex w-full max-w-[14rem] items-center justify-between">
+            <div className="flex w-full max-w-[20rem] items-center justify-between lg:max-w-[14rem]">
               <a
                 className={iconButtonClassName}
                 href={`mailto:${studio.contact.email}`}

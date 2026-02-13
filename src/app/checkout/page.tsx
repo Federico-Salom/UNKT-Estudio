@@ -15,6 +15,7 @@ import {
   getConfiguredBookingHolidayDates,
   resolveBasePrice,
 } from "@/lib/booking";
+import { pruneExpiredPendingBookings } from "@/lib/booking-expiration";
 import {
   getServicesBreakdown,
   getServicesSummaryLines,
@@ -80,6 +81,8 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
   if (!session) {
     redirect("/login");
   }
+
+  await pruneExpiredPendingBookings();
 
   const resolvedSearchParams = await searchParams;
   const bookingId = getFirstParamValue(resolvedSearchParams?.bookingId)?.trim();

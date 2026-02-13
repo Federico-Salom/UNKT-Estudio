@@ -1,9 +1,14 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import CancelBookingButton from "@/components/CancelBookingButton";
 import Container from "@/components/Container";
 import Header from "@/components/Header";
 import { getSessionFromCookies } from "@/lib/auth";
 import { BOOKING_TIMEZONE } from "@/lib/booking";
+import {
+  getBookingSlotIds,
+  pruneExpiredPendingBookings,
+} from "@/lib/booking-expiration";
 import {
   getServicesSummaryLines,
   parseStoredServicesSelection,
@@ -23,17 +28,6 @@ const parseStringArray = (value: string) => {
   } catch {
     return [];
   }
-};
-
-const getBookingSlotIds = (slotIdsValue: string, slotId: string | null) => {
-  const parsed = parseStringArray(slotIdsValue);
-  if (parsed.length) {
-    return Array.from(new Set(parsed));
-  }
-  if (slotId) {
-    return [slotId];
-  }
-  return [];
 };
 
 const getStatusLabel = (status: string) => {
@@ -57,6 +51,8 @@ export default async function MisReservasPage() {
   if (!session) {
     redirect("/login");
   }
+
+  await pruneExpiredPendingBookings();
 
   const user = await prisma.user.findUnique({
     where: { id: session.userId },
@@ -222,6 +218,12 @@ export default async function MisReservasPage() {
                         {booking.statusLabel}
                       </span>
                     </div>
+                    {booking.status === "pending_payment" ? (
+                      <p className="mt-2 text-xs text-muted">
+                        Si no completas el pago en 1 hora, esta reserva se elimina
+                        automaticamente y el horario vuelve a disponible.
+                      </p>
+                    ) : null}
 
                     <div className="mt-4 grid gap-2 text-sm text-fg/90">
                       <p>
@@ -256,7 +258,7 @@ export default async function MisReservasPage() {
                       </p>
                     </div>
 
-                    <div className="mt-5">
+                    <div className="mt-5 flex flex-wrap gap-2">
                       <Link
                         href={`/checkout?bookingId=${booking.id}`}
                         className="inline-flex items-center rounded-full border border-accent/35 bg-accent/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-accent transition hover:border-accent hover:bg-accent/20"
@@ -265,6 +267,9 @@ export default async function MisReservasPage() {
                           ? "Pagar reserva"
                           : "Ver detalle"}
                       </Link>
+                      {booking.status === "pending_payment" ? (
+                        <CancelBookingButton bookingId={booking.id} />
+                      ) : null}
                     </div>
                   </article>
                 ))}

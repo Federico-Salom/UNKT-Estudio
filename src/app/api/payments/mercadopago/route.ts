@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionFromCookies } from "@/lib/auth";
+import { pruneExpiredPendingBookings } from "@/lib/booking-expiration";
 import { prisma } from "@/lib/prisma";
 import {
   dedupeExtras,
@@ -49,6 +50,8 @@ export async function POST(request: NextRequest) {
   if (!session) {
     return errorResponse("Inicia sesión para pagar.", 401);
   }
+
+  await pruneExpiredPendingBookings();
 
   const body = await request.json().catch(() => ({}));
   const bookingId = typeof body.bookingId === "string" ? body.bookingId : "";

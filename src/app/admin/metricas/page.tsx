@@ -6,6 +6,7 @@ import Container from "@/components/Container";
 import UserMenu from "@/components/UserMenu";
 import ThemeToggle from "@/components/ThemeToggle";
 import { getSessionFromCookies } from "@/lib/auth";
+import { pruneExpiredPendingBookings } from "@/lib/booking-expiration";
 import { prisma } from "@/lib/prisma";
 import { getStudioContent } from "@/lib/studio-content";
 
@@ -92,6 +93,8 @@ export default async function AdminMetricasPage({ searchParams }: AdminPageProps
   if (user.role !== "admin") {
     redirect("/account");
   }
+
+  await pruneExpiredPendingBookings();
 
   const studio = await getStudioContent();
   const metric = await prisma.siteMetric.findUnique({

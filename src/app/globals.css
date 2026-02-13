@@ -1244,6 +1244,15 @@ html[data-theme="dark"] .map-embed-overlay {
   border-radius: 16px;
 }
 
+.booking-page .booking-calendar .fc .fc-unavailable-day {
+  cursor: not-allowed;
+}
+
+.booking-page .booking-calendar .fc .fc-unavailable-day .fc-daygrid-day-frame {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
 .agenda-panel {
   position: relative;
   isolation: isolate;

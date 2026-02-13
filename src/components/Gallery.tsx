@@ -331,7 +331,7 @@ export default function Gallery({ studio }: GalleryProps) {
           <div
             ref={containerRef}
             onScroll={handleScroll}
-            className="gallery-scroll flex snap-x snap-mandatory gap-0 overflow-x-auto px-0 pt-2"
+            className="gallery-scroll flex snap-x snap-mandatory gap-0 overflow-x-auto px-0"
           >
             {gallery.map((image, index) => (
               <div

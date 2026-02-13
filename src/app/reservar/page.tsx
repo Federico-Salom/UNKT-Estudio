@@ -10,6 +10,10 @@ import {
   resolveBasePrice,
   resolveExtraMaxSelections,
 } from "@/lib/booking";
+import {
+  getBookingSlotIds,
+  pruneExpiredPendingBookings,
+} from "@/lib/booking-expiration";
 import { prisma } from "@/lib/prisma";
 import { getStudioContent } from "@/lib/studio-content";
 
@@ -33,17 +37,6 @@ const parseStringArray = (value: string) => {
   } catch {
     return [];
   }
-};
-
-const getBookingSlotIds = (slotIdsValue: string, slotId: string | null) => {
-  const parsed = parseStringArray(slotIdsValue);
-  if (parsed.length) {
-    return Array.from(new Set(parsed));
-  }
-  if (slotId) {
-    return [slotId];
-  }
-  return [];
 };
 
 const getEditSection = (value: string | undefined) => {
@@ -133,6 +126,8 @@ export default async function ReservarPage({ searchParams }: ReservarPageProps) 
   if (!session) {
     redirect("/login");
   }
+
+  await pruneExpiredPendingBookings();
 
   const resolvedSearchParams = await searchParams;
   const editBookingId = getFirstParamValue(

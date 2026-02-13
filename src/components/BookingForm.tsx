@@ -405,6 +405,19 @@ export default function BookingForm({
   const artDirectionSubtotal = servicesSubtotalsByKey.get("art_direction");
   const lightOperatorSubtotal = servicesSubtotalsByKey.get("light_operator");
   const assistantsSubtotal = servicesSubtotalsByKey.get("assistants");
+  const selectedPhotographyOption = useMemo(() => {
+    const selectedPhotographyOptionId = selectedServices.photographyOptionId;
+    if (!selectedPhotographyOptionId) return null;
+
+    return (
+      normalizedServicesCatalog.photographyOptions.find(
+        (option) => option.id === selectedPhotographyOptionId
+      ) ?? null
+    );
+  }, [
+    normalizedServicesCatalog,
+    selectedServices.photographyOptionId,
+  ]);
 
   const selectedSlotRanges = useMemo(
     () =>
@@ -470,6 +483,11 @@ export default function BookingForm({
       },
     }));
   }, [groupedSlots]);
+  const selectableDateKeys = useMemo(
+    () => new Set(groupedSlots.keys()),
+    [groupedSlots]
+  );
+  const isSelectableDate = (dateKey: string) => selectableDateKeys.has(dateKey);
 
   const selectedSlots = useMemo(
     () => (selectedDate ? groupedSlots.get(selectedDate) ?? [] : []),
@@ -1087,6 +1105,10 @@ export default function BookingForm({
     openServicesPanel();
   };
   const handleDateSelection = (dateKey: string) => {
+    if (!isSelectableDate(dateKey)) {
+      return;
+    }
+
     setSelectedDate(dateKey);
     setSelectedSlotIds([]);
     setPhotographySelectionError("");
@@ -1241,16 +1263,30 @@ export default function BookingForm({
                 initialView="dayGridMonth"
                 events={calendarEvents}
                 displayEventTime={false}
-                dayCellClassNames={(arg) =>
-                  selectedDate && getDateKeyFromDate(arg.date) === selectedDate
-                    ? ["fc-selected-day"]
-                    : []
-                }
+                dayCellClassNames={(arg) => {
+                  const dateKey = getDateKeyFromDate(arg.date);
+                  const classNames: string[] = [];
+                  if (selectedDate && dateKey === selectedDate) {
+                    classNames.push("fc-selected-day");
+                  }
+                  if (!isSelectableDate(dateKey)) {
+                    classNames.push("fc-unavailable-day");
+                  }
+                  return classNames;
+                }}
                 dateClick={(info) => {
-                  handleDateSelection(getDateKey(info.dateStr));
+                  const dateKey = getDateKey(info.dateStr);
+                  if (!isSelectableDate(dateKey)) {
+                    return;
+                  }
+                  handleDateSelection(dateKey);
                 }}
                 eventClick={(info) => {
-                  handleDateSelection(info.event.id);
+                  const dateKey = info.event.id;
+                  if (!isSelectableDate(dateKey)) {
+                    return;
+                  }
+                  handleDateSelection(dateKey);
                 }}
                 headerToolbar={{
                   left: "prev,today,next",
@@ -1355,7 +1391,7 @@ export default function BookingForm({
           aria-expanded={isServicesExpanded}
           aria-controls="booking-services-panel"
         >
-          <span className="text-sm font-semibold tracking-wide text-fg">
+          <span className="text-sm font-semibold uppercase tracking-wide text-fg">
             Servicios
           </span>
           {renderSectionEditIcon()}
@@ -2115,15 +2151,15 @@ export default function BookingForm({
             </p>
           </div>
           <div className="rounded-xl border border-accent/20 bg-bg/50 px-3 py-2">
-            <p className="font-semibold uppercase tracking-[0.08em]">Fondos</p>
-            <p className="mt-1 text-sm font-semibold text-fg">
-              ${extrasTotal.toLocaleString("es-AR")}
-            </p>
-          </div>
-          <div className="rounded-xl border border-accent/20 bg-bg/50 px-3 py-2">
             <p className="font-semibold uppercase tracking-[0.08em]">Servicios</p>
             <p className="mt-1 text-sm font-semibold text-fg">
               ${servicesTotal.toLocaleString("es-AR")}
+            </p>
+          </div>
+          <div className="rounded-xl border border-accent/20 bg-bg/50 px-3 py-2">
+            <p className="font-semibold uppercase tracking-[0.08em]">Fondos</p>
+            <p className="mt-1 text-sm font-semibold text-fg">
+              ${extrasTotal.toLocaleString("es-AR")}
             </p>
           </div>
         </div>

@@ -15,6 +15,7 @@ import {
   stringifyServicesSelection,
 } from "@/lib/services";
 import { AUTH_COOKIE, hashPassword, signSession, verifySession } from "@/lib/auth";
+import { pruneExpiredPendingBookings } from "@/lib/booking-expiration";
 import { prisma } from "@/lib/prisma";
 import { getStudioContent } from "@/lib/studio-content";
 
@@ -74,6 +75,8 @@ const errorResponse = (message: string, status = 400) =>
   NextResponse.json({ ok: false, error: message }, { status });
 
 export async function POST(request: NextRequest) {
+  await pruneExpiredPendingBookings();
+
   const body = (await request.json().catch(() => ({}))) as BookingInput;
   const requestedName = normalizeName(String(body.name || ""));
   const requestedPhone = normalizePhoneInput(String(body.phone || ""));

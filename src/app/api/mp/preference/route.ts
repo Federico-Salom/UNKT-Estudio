@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionFromCookies } from "@/lib/auth";
+import { pruneExpiredPendingBookings } from "@/lib/booking-expiration";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
@@ -56,6 +57,8 @@ export async function POST(request: NextRequest) {
   if (!session) {
     return errorResponse("Inicia sesion para continuar.", 401);
   }
+
+  await pruneExpiredPendingBookings();
 
   const body = (await request.json().catch(() => ({}))) as PreferenceBody;
   const amount = parseAmount(body.amount);
