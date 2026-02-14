@@ -83,10 +83,10 @@ const dedupeList = (items: string[]) => {
   });
 };
 const REQUIRED_BOOKING_POLICIES = [
-  "Sabados, domingos y feriados tienen un recargo del 30% sobre la tarifa por hora.",
+  "S\u00e1bados, domingos y feriados tienen un recargo del 30% sobre la tarifa por hora.",
   "La franja nocturna (de 22:00 a 08:00) tiene un recargo del 40% sobre la tarifa por hora.",
   "Hora extra: $70.000 por hora (equipo base). Servicios adicionales se prorratean.",
-  "Entrega digital dentro de X dias habiles.",
+  "Entrega digital dentro de X d\u00edas h\u00e1biles.",
 ] as const;
 const ensureRequiredBookingPolicies = (items: string[]) => {
   const seen = new Set(items.map(normalizeListValue));

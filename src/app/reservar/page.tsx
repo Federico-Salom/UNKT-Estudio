@@ -239,7 +239,7 @@ export default async function ReservarPage({ searchParams }: ReservarPageProps) 
               className="booking-note mt-6 rounded-2xl border border-accent/20 bg-bg px-4 py-3 text-sm"
               role="status"
             >
-              No hay horarios disponibles. Vuelve mas tarde o consulta por
+              No hay horarios disponibles. Vuelve m\u00e1s tarde o consulta por
               WhatsApp.
             </div>
           )}

@@ -608,7 +608,7 @@ export default function AdminAgendaPanel({
           "saved",
           deletedCount > 0
             ? `${deletedCount} horario(s) eliminados.`
-            : "No habia horarios para borrar."
+            : "No hab\u00eda horarios para borrar."
         );
       } else {
         showToast("saved", "Vista limpiada.");

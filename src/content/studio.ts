@@ -118,13 +118,13 @@ const includedItems = [
   "Luces",
   "Difusores",
   "Fondos",
-  "Sillón Chesterfield",
+  "Sill\u00f3n Chesterfield",
   "Espacio de acero",
   "Mobiliario",
   "Zona MKP",
   "Zona planchado",
   "Cocina",
-  "Baños",
+  "Ba\u00f1os",
   "Terraza",
   "WiFi",
 ];
@@ -187,9 +187,9 @@ const makeupOptions: ServiceOption[] = [
 const stylingOptions: ServiceOption[] = [
   {
     id: "asesoria-personalizada",
-    label: "Asesoria personalizada",
+    label: "Asesor\u00eda personalizada",
     price: 190000,
-    description: "Servicio creativo. Produccion adicional se presupuesta aparte.",
+    description: "Servicio creativo. Producci\u00f3n adicional se presupuesta aparte.",
   },
 ];
 
@@ -198,7 +198,7 @@ const artDirectionOptions: ServiceOption[] = [
     id: "equipo-especializado",
     label: "Equipo especializado",
     price: 190000,
-    description: "Servicio creativo. Produccion adicional se presupuesta aparte.",
+    description: "Servicio creativo. Producci\u00f3n adicional se presupuesta aparte.",
   },
 ];
 
@@ -219,17 +219,17 @@ export const studio: StudioContent = {
     alt: "Logo UNKT Estudio",
   },
   seo: {
-    title: "UNKT Estudio | Alquiler de estudio fotografico",
+    title: "UNKT Estudio | Alquiler de estudio fotogr\u00e1fico",
     description:
-      "Alquiler de estudio fotografico listo para producir. Luces, difusores y fondos incluidos. Reserva online.",
+      "Alquiler de estudio fotogr\u00e1fico listo para producir. Luces, difusores y fondos incluidos. Reserva online.",
     ogImage: "/logo.jpg",
   },
   hero: {
     title: "Un estudio listo para producir",
-    subtitle: "Entras, prendes las luces y trabajas.",
+    subtitle: "Entr\u00e1s, prend\u00e9s las luces y trabajas.",
     image: {
       src: "/hero-placeholder.svg",
-      alt: "Vista del estudio fotografico con fondo y luces.",
+      alt: "Vista del estudio fotogr\u00e1fico con fondo y luces.",
     },
   },
   floorPlan: {
@@ -248,14 +248,14 @@ export const studio: StudioContent = {
   ],
   included: {
     title: "Incluido",
-    subtitle: "Llegas y ya esta armado.",
+    subtitle: "Lleg\u00e1s y ya est\u00e1 armado.",
     items: includedItems,
     images: buildCatalogImageDefaults(includedItems),
   },
   extras: {
     title: "Fondos",
     subtitle:
-      "Elegi hasta 5 colores de fondo. Cada color se cobra por separado y podes indicar si es sin pisar o pisando.",
+      "Eleg\u00ed hasta 5 colores de fondo. Cada color se cobra por separado y pod\u00e9s indicar si es sin pisar o pisando.",
     maxSelections: 5,
     items: extraItems,
     backgrounds: extraBackgrounds,
@@ -263,40 +263,40 @@ export const studio: StudioContent = {
   },
   services: {
     title: "Servicios UNKT Estudio",
-    subtitle: "Elegi tu produccion fotografica",
+    subtitle: "Eleg\u00ed tu producci\u00f3n fotogr\u00e1fica",
     description:
-      "Incluye produccion en estudio + edicion profesional + entrega digital.",
-    bookingNotice: "Reservas con minimo 5 dias de anticipacion.",
-    photographyTitle: "Fotografia",
+      "Incluye producci\u00f3n en estudio + edici\u00f3n profesional + entrega digital.",
+    bookingNotice: "Reservas con m\u00ednimo 5 d\u00edas de anticipaci\u00f3n.",
+    photographyTitle: "Fotograf\u00eda",
     photographyHint:
-      "Opcional. Si elegis una opcion, las horas seleccionadas se usan como base de calculo.",
+      "Opcional. Si eleg\u00eds una opci\u00f3n, las horas seleccionadas se usan como base de c\u00e1lculo.",
     photographyOptions,
     modelsTitle: "Modelos",
     modelsHint:
-      "Opcional (hasta 10 modelos). Calculo automatico: cantidad de modelos x horas x tarifa.",
+      "Opcional (hasta 10 modelos). C\u00e1lculo autom\u00e1tico: cantidad de modelos x horas x tarifa.",
     maxModels: 10,
     modelRatePerHour: 60000,
     makeupTitle: "Maquillaje",
-    makeupHint: "Opcional por modelo. Calculo automatico segun cantidad de modelos.",
+    makeupHint: "Opcional por modelo. C\u00e1lculo autom\u00e1tico seg\u00fan cantidad de modelos.",
     makeupOptions,
     hairstyleTitle: "Peinado",
     hairstyleHint: "Opcional por modelo.",
     hairstyleLabel: "Peinado",
     hairstyleRatePerModel: 20000,
     stylingTitle: "Estilismo",
-    stylingHint: "Opcional - solo una opcion.",
+    stylingHint: "Opcional - solo una opci\u00f3n.",
     stylingOptions,
-    artDirectionTitle: "Direccion de arte",
-    artDirectionHint: "Opcional - solo una opcion.",
+    artDirectionTitle: "Direcci\u00f3n de arte",
+    artDirectionHint: "Opcional - solo una opci\u00f3n.",
     artDirectionOptions,
     lightOperatorTitle: "Operador de luces",
-    lightOperatorHint: "Opcional - solo una opcion.",
-    lightOperatorLabel: "Disposicion durante la jornada",
+    lightOperatorHint: "Opcional - solo una opci\u00f3n.",
+    lightOperatorLabel: "Disposici\u00f3n durante la jornada",
     lightOperatorRatePerHour: 30000,
-    assistantsTitle: "Asistentes de produccion",
+    assistantsTitle: "Asistentes de producci\u00f3n",
     assistantsHint:
-      "Opcional - cantidad seleccionable. Calculo automatico: cantidad x horas x tarifa.",
-    assistantsLabel: "Disposicion durante la jornada",
+      "Opcional - cantidad seleccionable. C\u00e1lculo autom\u00e1tico: cantidad x horas x tarifa.",
+    assistantsLabel: "Disposici\u00f3n durante la jornada",
     maxAssistants: 10,
     assistantsRatePerHour: 30000,
     totalsTitle: "Total servicios",
@@ -321,22 +321,23 @@ export const studio: StudioContent = {
   footer: {
     policies: {
       cancellation: [
-        "Las cancelaciones o reprogramaciones se gestionan por WhatsApp con al menos 24 horas de anticipacion.",
-        "Con 24 horas o mas, se permite una unica reprogramacion sin cargo, sujeta a disponibilidad.",
+        "Las cancelaciones o reprogramaciones se gestionan por WhatsApp con al menos 24 horas de anticipaci\u00f3n.",
+        "Con 24 horas o m\u00e1s, se permite una \u00fanica reprogramaci\u00f3n sin cargo, sujeta a disponibilidad.",
         "Con menos de 24 horas, en caso de no presentarse o llegar con demoras que afecten el turno, no hay reintegro.",
-        "Si UNKT Estudio debe cancelar por fuerza mayor, se ofrece reprogramacion prioritaria o reintegro total.",
+        "Si UNKT Estudio debe cancelar por fuerza mayor, se ofrece reprogramaci\u00f3n prioritaria o reintegro total.",
       ],
       booking: [
-        "La reserva minima es de 2 horas consecutivas.",
-        "Solo se habilitan reservas con un minimo de 2 horas de anticipacion.",
+        "La reserva m\u00ednima es de 2 horas consecutivas.",
+        "Solo se habilitan reservas con un m\u00ednimo de 2 horas de anticipaci\u00f3n.",
         "La reserva queda confirmada cuando el pago figura acreditado por Mercado Pago.",
         "Los fondos se cobran por cada color de fondo seleccionado (hasta 5).",
-        "Cada fondo puede configurarse como sin pisar o pisando segun necesidad.",
-        "Sabados, domingos y feriados tienen un recargo del 30% sobre la tarifa por hora.",
+        "Cada fondo puede configurarse como sin pisar o pisando seg\u00fan necesidad.",
+        "S\u00e1bados, domingos y feriados tienen un recargo del 30% sobre la tarifa por hora.",
         "La franja nocturna (de 22:00 a 08:00) tiene un recargo del 40% sobre la tarifa por hora.",
-        "Los servicios se calculan automaticamente por categoria y se suman al total general.",
-        "Para producciones con servicios, la reserva debe hacerse con minimo 5 dias de anticipacion.",
+        "Los servicios se calculan autom\u00e1ticamente por categor\u00eda y se suman al total general.",
+        "Para producciones con servicios, la reserva debe hacerse con m\u00ednimo 5 d\u00edas de anticipaci\u00f3n.",
       ],
     },
   },
 };
+

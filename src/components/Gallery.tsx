@@ -605,14 +605,14 @@ export default function Gallery({ studio }: GalleryProps) {
                           />
                         ) : (
                           <div className="flex h-52 items-center justify-center px-4 text-center text-sm text-muted">
-                            Sin imagen de referencia para esta opcion.
+                            Sin imagen de referencia para esta opci\u00f3n.
                           </div>
                         )}
                       </div>
                     </>
                   ) : (
                     <p className="text-sm text-muted">
-                      Elegi una opcion para visualizar su detalle.
+                      Eleg\u00ed una opci\u00f3n para visualizar su detalle.
                     </p>
                   )}
                 </div>

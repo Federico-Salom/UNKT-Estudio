@@ -273,7 +273,7 @@ export default function AdminPricingModal({
       )
     ) {
       setStatus("error");
-      setErrorMessage("Revisa las tarifas por categoria de servicios.");
+      setErrorMessage("Revisa las tarifas por categor\u00eda de servicios.");
       return;
     }
 
@@ -356,7 +356,7 @@ export default function AdminPricingModal({
                 placeholder="0"
               />
               <span className="text-xs font-medium text-fg/75">
-                {Number.isFinite(parsedValue) ? formatArs(parsedValue) : "invalido"}
+                {Number.isFinite(parsedValue) ? formatArs(parsedValue) : "inv\u00e1lido"}
               </span>
             </label>
           );
@@ -436,7 +436,7 @@ export default function AdminPricingModal({
                     <span className="text-xs font-medium text-fg/75">
                       Valor actual: {Number.isFinite(normalizedBasePrice)
                         ? formatArs(normalizedBasePrice)
-                        : "invalido"}
+                        : "inv\u00e1lido"}
                     </span>
                   </label>
 
@@ -480,7 +480,7 @@ export default function AdminPricingModal({
                                 <span className="text-xs font-medium text-fg/75">
                                   {Number.isFinite(parsedSinPisar)
                                     ? formatArs(parsedSinPisar)
-                                    : "invalido"}
+                                    : "inv\u00e1lido"}
                                 </span>
                               </label>
 
@@ -503,7 +503,7 @@ export default function AdminPricingModal({
                                 <span className="text-xs font-medium text-fg/75">
                                   {Number.isFinite(parsedPisando)
                                     ? formatArs(parsedPisando)
-                                    : "invalido"}
+                                    : "inv\u00e1lido"}
                                 </span>
                               </label>
                             </div>
@@ -519,7 +519,7 @@ export default function AdminPricingModal({
                     </p>
                     <div className="grid gap-4 md:grid-cols-2">
                       {renderServiceOptionsGroup({
-                        title: "Fotografia",
+                        title: "Fotograf\u00eda",
                         options: servicePriceInputs.photographyOptions,
                         keyName: "photographyOptions",
                       })}
@@ -534,7 +534,7 @@ export default function AdminPricingModal({
                         keyName: "stylingOptions",
                       })}
                       {renderServiceOptionsGroup({
-                        title: "Direccion de arte",
+                        title: "Direcci\u00f3n de arte",
                         options: servicePriceInputs.artDirectionOptions,
                         keyName: "artDirectionOptions",
                       })}

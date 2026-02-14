@@ -18,7 +18,7 @@ const errorResponse = (message: string, status = 400) =>
 const getAccessToken = () => {
   const token = process.env.MERCADOPAGO_ACCESS_TOKEN?.trim();
   if (!token) {
-    throw new Error("MERCADOPAGO_ACCESS_TOKEN no esta configurado.");
+    throw new Error("MERCADOPAGO_ACCESS_TOKEN no est\u00e1 configurado.");
   }
   return token;
 };
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
   const externalReference = normalizeString(body.externalReference);
 
   if (!Number.isFinite(amount) || amount <= 0) {
-    return errorResponse("El monto es invalido.");
+    return errorResponse("El monto es inv\u00e1lido.");
   }
 
   if (!title) {
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (providedPayerEmail && !isValidEmail(providedPayerEmail)) {
-    return errorResponse("El email del pagador es invalido.");
+    return errorResponse("El email del pagador es inv\u00e1lido.");
   }
 
   let normalizedPayerEmail = providedPayerEmail;
@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
       }
 
       if (booking.status === "paid") {
-        return errorResponse("Esta reserva ya esta pagada.", 409);
+        return errorResponse("Esta reserva ya está pagada.", 409);
       }
 
       if (booking.total !== integerAmount) {
@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (normalizedPayerEmail && !isValidEmail(normalizedPayerEmail)) {
-    return errorResponse("El email del pagador es invalido.");
+    return errorResponse("El email del pagador es inv\u00e1lido.");
   }
 
   const accessToken = getAccessToken();

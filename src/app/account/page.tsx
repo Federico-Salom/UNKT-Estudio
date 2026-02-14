@@ -60,10 +60,10 @@ export default async function AccountPage() {
                   Cuenta
                 </p>
                 <h1 className="font-display text-3xl uppercase tracking-[0.2em] text-fg">
-                  Administrar informacion
+                  Administrar informaci\u00f3n
                 </h1>
                 <p className="text-sm text-muted">
-                  Gestiona mail, nombre, telefono y contrasena.
+                  Gestiona mail, nombre, tel\u00e9fono y contrase\u00f1a.
                 </p>
               </header>
 

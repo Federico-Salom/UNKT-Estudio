@@ -224,7 +224,7 @@ export async function POST(request: NextRequest) {
     !Number.isFinite(assistantsRatePerHour) ||
     assistantsRatePerHour < 0
   ) {
-    return errorResponse("Revisa las tarifas por categoria de servicios.");
+    return errorResponse("Revisa las tarifas por categor\u00eda de servicios.");
   }
 
   let invalidServicePrice = false;

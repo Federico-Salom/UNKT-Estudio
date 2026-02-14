@@ -224,7 +224,7 @@ export default async function AdminMetricasPage({ searchParams }: AdminPageProps
     totalRevenue: number;
   }[] = [];
 
-  let periodTitle = "Ultimos 7 dias";
+  let periodTitle = "\u00daltimos 7 d\u00edas";
   let periodSubtitle = "";
   let rangeStart: Date;
   let rangeEnd: Date;

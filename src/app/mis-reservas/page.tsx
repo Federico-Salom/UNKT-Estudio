@@ -221,7 +221,7 @@ export default async function MisReservasPage() {
                     {booking.status === "pending_payment" ? (
                       <p className="mt-2 text-xs text-muted">
                         Si no completas el pago en 1 hora, esta reserva se elimina
-                        automaticamente y el horario vuelve a disponible.
+                        autom\u00e1ticamente y el horario vuelve a disponible.
                       </p>
                     ) : null}
 
@@ -233,7 +233,7 @@ export default async function MisReservasPage() {
                         <span className="font-semibold">Email:</span> {booking.email}
                       </p>
                       <p>
-                        <span className="font-semibold">Telefono:</span>{" "}
+                        <span className="font-semibold">Tel\u00e9fono:</span>{" "}
                         {booking.phone}
                       </p>
                       <p>
@@ -277,8 +277,8 @@ export default async function MisReservasPage() {
             ) : (
               <div className="mt-8 rounded-3xl border border-accent/15 bg-white/70 p-6 sm:p-8">
                 <p className="text-sm text-muted">
-                  Todavia no tenes reservas registradas. Cuando hagas una, la vas
-                  a ver aca con todo su detalle.
+                  Todav\u00eda no ten\u00e9s reservas registradas. Cuando hagas una, la vas
+                  a ver ac\u00e1 con todo su detalle.
                 </p>
                 <Link
                   href="/reservar"

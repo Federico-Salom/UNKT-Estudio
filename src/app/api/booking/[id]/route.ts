@@ -127,7 +127,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   const params = await context.params;
   const bookingId = params.id?.trim();
   if (!bookingId) {
-    return errorResponse("Reserva invalida.");
+    return errorResponse("Reserva inv\u00e1lida.");
   }
 
   const sessionToken = request.cookies.get(AUTH_COOKIE)?.value;
@@ -160,7 +160,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   const requestedServices = hasServices ? body.services : null;
 
   if (requestedSlotIds && requestedSlotIds.length < MIN_BOOKING_HOURS) {
-    return errorResponse("La reserva minima es de 2 horas consecutivas.");
+    return errorResponse("La reserva m\u00ednima es de 2 horas consecutivas.");
   }
 
   const studio = await getStudioContent();
@@ -207,7 +207,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       const nextSlotIds = Array.from(new Set(nextRawSlotIds));
 
       if (nextSlotIds.length < MIN_BOOKING_HOURS) {
-        throw new BookingUpdateError("La reserva minima es de 2 horas consecutivas.");
+        throw new BookingUpdateError("La reserva m\u00ednima es de 2 horas consecutivas.");
       }
 
       const [currentSlots, nextSlots] = await Promise.all([
@@ -262,7 +262,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         );
         if (currentStartsInPast) {
           throw new BookingUpdateError(
-            "No se puede reprogramar con menos de 2 horas de anticipacion."
+            "No se puede reprogramar con menos de 2 horas de anticipaci\u00f3n."
           );
         }
 
@@ -271,7 +271,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         );
         if (nextStartsInPast) {
           throw new BookingUpdateError(
-            "Solo se puede reprogramar con 2 horas de anticipacion."
+            "Solo se puede reprogramar con 2 horas de anticipaci\u00f3n."
           );
         }
 
@@ -417,7 +417,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
   const params = await context.params;
   const bookingId = params.id?.trim();
   if (!bookingId) {
-    return errorResponse("Reserva invalida.");
+    return errorResponse("Reserva inv\u00e1lida.");
   }
 
   const sessionToken = request.cookies.get(AUTH_COOKIE)?.value;
