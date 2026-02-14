@@ -127,11 +127,11 @@ export default async function CheckoutStatusPage({
             <div className="grid gap-4 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] xl:gap-5">
               <article className="checkout-panel flex h-full flex-col rounded-3xl p-4 sm:p-5">
                 <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-fg/80">
-                  Informaci\u00f3n
+                  Información
                 </h2>
                 <p className="mt-2 text-sm text-muted">
                   {hasPaymentId
-                    ? "Mercado Pago actualiza el estado en tiempo real. Puedes refrescar esta p\u00e1gina en cualquier momento."
+                    ? "Mercado Pago actualiza el estado en tiempo real. Puedes refrescar esta página en cualquier momento."
                     : "Sin payment_id no podemos consultar el estado. Generalo desde Mis reservas con la reserva que quieras pagar."}
                 </p>
 
@@ -164,7 +164,7 @@ export default async function CheckoutStatusPage({
                 <p className="mt-2 text-sm text-muted">
                   {hasPaymentId
                     ? "El Status Screen Brick muestra como Mercado Pago ve la operacion."
-                    : "Mostraremos esta pantalla apenas tengas un payment_id v\u00e1lido."}
+                    : "Mostraremos esta pantalla apenas tengas un payment_id válido."}
                 </p>
 
                 <div className="mt-4 flex flex-1 flex-col">

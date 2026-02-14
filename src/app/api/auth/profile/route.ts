@@ -88,13 +88,13 @@ export async function PATCH(request: NextRequest) {
 
   if (!hasStoredName && nameRaw) {
     return jsonError(
-      "El nombre se completa autom\u00e1ticamente al terminar tu primera reserva."
+      "El nombre se completa automáticamente al terminar tu primera reserva."
     );
   }
 
   if (!hasStoredPhone && normalizedPhone) {
     return jsonError(
-      "El tel\u00e9fono se completa autom\u00e1ticamente al terminar tu primera reserva."
+      "El teléfono se completa automáticamente al terminar tu primera reserva."
     );
   }
 

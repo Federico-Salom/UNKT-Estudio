@@ -18,7 +18,7 @@ const errorResponse = (message: string, status = 400) =>
 const getAccessToken = () => {
   const token = process.env.MERCADOPAGO_ACCESS_TOKEN?.trim();
   if (!token) {
-    throw new Error("MERCADOPAGO_ACCESS_TOKEN no est\u00e1 configurado.");
+    throw new Error("MERCADOPAGO_ACCESS_TOKEN no está configurado.");
   }
   return token;
 };
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
   const externalReference = normalizeString(body.externalReference);
 
   if (!Number.isFinite(amount) || amount <= 0) {
-    return errorResponse("El monto es inv\u00e1lido.");
+    return errorResponse("El monto es inválido.");
   }
 
   if (!title) {
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (providedPayerEmail && !isValidEmail(providedPayerEmail)) {
-    return errorResponse("El email del pagador es inv\u00e1lido.");
+    return errorResponse("El email del pagador es inválido.");
   }
 
   let normalizedPayerEmail = providedPayerEmail;
@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (normalizedPayerEmail && !isValidEmail(normalizedPayerEmail)) {
-    return errorResponse("El email del pagador es inv\u00e1lido.");
+    return errorResponse("El email del pagador es inválido.");
   }
 
   const accessToken = getAccessToken();

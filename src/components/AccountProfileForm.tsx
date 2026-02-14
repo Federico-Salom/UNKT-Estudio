@@ -175,7 +175,7 @@ export default function AccountProfileForm({
         />
         {!canEditName && (
           <span className="text-xs font-normal text-muted">
-            Se completa autom\u00e1ticamente con tu primera reserva.
+            Se completa automáticamente con tu primera reserva.
           </span>
         )}
       </label>
@@ -194,7 +194,7 @@ export default function AccountProfileForm({
         />
         {!canEditPhone && (
           <span className="text-xs font-normal text-muted">
-            Se completa autom\u00e1ticamente con tu primera reserva.
+            Se completa automáticamente con tu primera reserva.
           </span>
         )}
       </label>

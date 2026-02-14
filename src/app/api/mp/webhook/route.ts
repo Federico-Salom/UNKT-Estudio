@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 const getAccessToken = () => {
   const token = process.env.MERCADOPAGO_ACCESS_TOKEN?.trim();
   if (!token) {
-    throw new Error("MERCADOPAGO_ACCESS_TOKEN no est\u00e1 configurado.");
+    throw new Error("MERCADOPAGO_ACCESS_TOKEN no está configurado.");
   }
   return token;
 };

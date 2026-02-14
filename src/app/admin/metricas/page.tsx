@@ -224,7 +224,7 @@ export default async function AdminMetricasPage({ searchParams }: AdminPageProps
     totalRevenue: number;
   }[] = [];
 
-  let periodTitle = "\u00daltimos 7 d\u00edas";
+  let periodTitle = "Últimos 7 días";
   let periodSubtitle = "";
   let rangeStart: Date;
   let rangeEnd: Date;
@@ -261,7 +261,7 @@ export default async function AdminMetricasPage({ searchParams }: AdminPageProps
     }
   } else if (selectedPeriod === "year") {
     const selectedYear = anchorDate.getFullYear();
-    periodTitle = "A\u00f1o";
+    periodTitle = "Año";
     periodSubtitle = String(selectedYear);
     rangeStart = new Date(selectedYear, 0, 1, 0, 0, 0, 0);
     rangeEnd = new Date(selectedYear + 1, 0, 1, 0, 0, 0, 0);
@@ -353,7 +353,7 @@ export default async function AdminMetricasPage({ searchParams }: AdminPageProps
   const periodOptions: { key: DashboardPeriod; label: string }[] = [
     { key: "week", label: "Semana" },
     { key: "month", label: "Mes" },
-    { key: "year", label: "A\u00f1o" },
+    { key: "year", label: "Año" },
   ];
   const chartOptions: { key: DashboardChart; label: string }[] = [
     { key: "bookings", label: "Reservas" },

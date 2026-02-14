@@ -36,7 +36,7 @@ export type ServicesBreakdown = {
 const DEFAULT_MAX_MODELS = 10;
 const DEFAULT_MAX_ASSISTANTS = 10;
 const DEFAULT_PHOTOGRAPHY_HINT =
-  "Opcional. Si eleg\u00eds una opci\u00f3n, las horas seleccionadas se usan como base de c\u00e1lculo.";
+  "Opcional. Si elegís una opción, las horas seleccionadas se usan como base de cálculo.";
 const LEGACY_PHOTOGRAPHY_HINT_PATTERNS = [
   "obligatorio seleccionar una opcion",
 ];
@@ -63,15 +63,15 @@ const DEFAULT_PHOTOGRAPHY_OPTIONS: ServiceOption[] = [
 const SERVICE_COPY_BY_KEY = new Map<string, string>([
   ["servicios", "Servicios"],
   ["servicios unkt estudio", "Servicios UNKT Estudio"],
-  ["elegi tu produccion fotografica", "Eleg\u00ed tu producci\u00f3n fotogr\u00e1fica"],
-  ["fotografia", "Fotograf\u00eda"],
+  ["elegi tu produccion fotografica", "Elegí tu producción fotográfica"],
+  ["fotografia", "Fotografía"],
   ["modelos", "Modelos"],
   ["maquillaje", "Maquillaje"],
   ["peinado", "Peinado"],
   ["estilismo", "Estilismo"],
-  ["direccion de arte", "Direcci\u00f3n de arte"],
+  ["direccion de arte", "Dirección de arte"],
   ["operador de luces", "Operador de luces"],
-  ["asistentes de produccion", "Asistentes de producci\u00f3n"],
+  ["asistentes de produccion", "Asistentes de producción"],
   ["total", "Total"],
   ["total servicios", "Total servicios"],
 ]);
@@ -266,7 +266,7 @@ export const normalizeServiceCatalog = (catalog: ServiceCatalog): ServiceCatalog
     normalizeServiceOptions(
       catalog.photographyOptions,
       "photo",
-      "Producci\u00f3n fotogr\u00e1fica"
+      "Producción fotográfica"
     )
   ).map((option, index) => ({
     ...option,
@@ -276,10 +276,10 @@ export const normalizeServiceCatalog = (catalog: ServiceCatalog): ServiceCatalog
   return {
     ...catalog,
     title: normalizeServiceCopy(catalog.title, "Servicios"),
-    subtitle: normalizeServiceCopy(catalog.subtitle, "Eleg\u00ed tu producci\u00f3n fotogr\u00e1fica"),
+    subtitle: normalizeServiceCopy(catalog.subtitle, "Elegí tu producción fotográfica"),
     description: normalizeServiceCopy(catalog.description),
     bookingNotice: normalizeServiceCopy(catalog.bookingNotice),
-    photographyTitle: normalizeServiceCopy(catalog.photographyTitle, "Fotograf\u00eda"),
+    photographyTitle: normalizeServiceCopy(catalog.photographyTitle, "Fotografía"),
     photographyHint: normalizedPhotographyHint,
     photographyOptions,
     modelsTitle: normalizeServiceCopy(catalog.modelsTitle, "Modelos"),
@@ -304,25 +304,25 @@ export const normalizeServiceCatalog = (catalog: ServiceCatalog): ServiceCatalog
       "styling",
       "Servicio de estilismo"
     ),
-    artDirectionTitle: normalizeServiceCopy(catalog.artDirectionTitle, "Direcci\u00f3n de arte"),
+    artDirectionTitle: normalizeServiceCopy(catalog.artDirectionTitle, "Dirección de arte"),
     artDirectionHint: normalizeServiceCopy(catalog.artDirectionHint),
     artDirectionOptions: normalizeServiceOptions(
       catalog.artDirectionOptions,
       "art",
-      "Direcci\u00f3n de arte"
+      "Dirección de arte"
     ),
     lightOperatorTitle: normalizeServiceCopy(catalog.lightOperatorTitle, "Operador de luces"),
     lightOperatorHint: normalizeServiceCopy(catalog.lightOperatorHint),
     lightOperatorLabel: normalizeServiceCopy(
       catalog.lightOperatorLabel,
-      "Disposici\u00f3n durante la jornada"
+      "Disposición durante la jornada"
     ),
     lightOperatorRatePerHour: normalizePrice(catalog.lightOperatorRatePerHour, 0),
-    assistantsTitle: normalizeServiceCopy(catalog.assistantsTitle, "Asistentes de producci\u00f3n"),
+    assistantsTitle: normalizeServiceCopy(catalog.assistantsTitle, "Asistentes de producción"),
     assistantsHint: normalizeServiceCopy(catalog.assistantsHint),
     assistantsLabel: normalizeServiceCopy(
       catalog.assistantsLabel,
-      "Disposici\u00f3n durante la jornada"
+      "Disposición durante la jornada"
     ),
     maxAssistants: safeMaxAssistants,
     assistantsRatePerHour: normalizePrice(catalog.assistantsRatePerHour, 0),
@@ -496,7 +496,7 @@ export const getServicesBreakdown = ({
     safeHours < photographyOption.minHours
   ) {
     errors.push(
-      `${photographyOption.label} requiere m\u00ednimo ${photographyOption.minHours} horas.`
+      `${photographyOption.label} requiere mínimo ${photographyOption.minHours} horas.`
     );
   }
 
@@ -526,10 +526,10 @@ export const getServicesBreakdown = ({
       description: photographyOption
         ? `${photographyOption.label}${
             photographyOption.minHours
-              ? ` (m\u00ednimo ${photographyOption.minHours} horas)`
+              ? ` (mínimo ${photographyOption.minHours} horas)`
               : ""
           }`
-        : "Sin fotograf\u00eda",
+        : "Sin fotografía",
       amount: photographyAmount,
     },
     {
@@ -568,7 +568,7 @@ export const getServicesBreakdown = ({
     {
       key: "art_direction",
       label: normalizedCatalog.artDirectionTitle,
-      description: artDirectionOption?.label || "Sin direcci\u00f3n de arte",
+      description: artDirectionOption?.label || "Sin dirección de arte",
       amount: artDirectionAmount,
     },
     {

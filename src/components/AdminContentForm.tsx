@@ -656,7 +656,7 @@ export default function AdminContentForm({
                   />
                 </label>
                 <label className="grid gap-2 text-sm font-semibold">
-                  Colores de fondos (uno por l\u00ednea, m\u00e1ximo 5)
+                  Colores de fondos (uno por línea, máximo 5)
                   <textarea
                     className="min-h-[120px] rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
                     name="extrasItems"
@@ -701,7 +701,7 @@ export default function AdminContentForm({
                   />
                 </label>
                 <label className="grid gap-2 text-sm font-semibold">
-                  Fotograf\u00eda (uno por l\u00ednea, formato: opci\u00f3n|minHoras)
+                  Fotografía (uno por línea, formato: opción|minHoras)
                   <textarea
                     className="min-h-[120px] rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
                     name="servicesPhotographyItems"
@@ -711,7 +711,7 @@ export default function AdminContentForm({
                   />
                 </label>
                 <label className="grid gap-2 text-sm font-semibold">
-                  Maquillaje (uno por l\u00ednea)
+                  Maquillaje (uno por línea)
                   <textarea
                     className="min-h-[90px] rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
                     name="servicesMakeupItems"
@@ -721,7 +721,7 @@ export default function AdminContentForm({
                   />
                 </label>
                 <label className="grid gap-2 text-sm font-semibold">
-                  Estilismo (uno por l\u00ednea)
+                  Estilismo (uno por línea)
                   <textarea
                     className="min-h-[90px] rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
                     name="servicesStylingItems"
@@ -731,7 +731,7 @@ export default function AdminContentForm({
                   />
                 </label>
                 <label className="grid gap-2 text-sm font-semibold">
-                  Direcci\u00f3n de arte (uno por l\u00ednea)
+                  Dirección de arte (uno por línea)
                   <textarea
                     className="min-h-[90px] rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
                     name="servicesArtDirectionItems"
@@ -767,7 +767,7 @@ export default function AdminContentForm({
                 />
               </label>
               <label className="grid gap-2 text-sm font-semibold">
-                Condiciones de reserva (un punto por l\u00ednea)
+                Condiciones de reserva (un punto por línea)
                 <textarea
                   className="min-h-[140px] rounded-2xl border border-accent/20 bg-white px-3 py-2 text-[13px] outline-none transition focus:border-accent sm:px-4 sm:py-3 sm:text-sm"
                   name="footerPoliciesBooking"

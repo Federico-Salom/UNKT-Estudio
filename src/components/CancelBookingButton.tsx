@@ -114,7 +114,7 @@ export default function CancelBookingButton({
               Cancelar reserva
             </h3>
             <p className="mt-3 text-sm text-muted">
-              Esta acci\u00f3n elimina la reserva y libera los horarios. No se puede deshacer.
+              Esta acción elimina la reserva y libera los horarios. No se puede deshacer.
             </p>
 
             {error ? (

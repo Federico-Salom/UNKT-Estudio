@@ -693,7 +693,7 @@ export default function BookingForm({
         selectedSlotIds.length === 1 ? "1 hora" : `${selectedSlotIds.length} horas`;
       const requiredHoursLabel = minHours === 1 ? "1 hora" : `${minHours} horas`;
       setPhotographySelectionError(
-        `No pod\u00e9s seleccionar "${option.label}" porque requiere un m\u00ednimo de ${requiredHoursLabel}. Horas seleccionadas: ${selectedHoursLabel}.`
+        `No podés seleccionar "${option.label}" porque requiere un mínimo de ${requiredHoursLabel}. Horas seleccionadas: ${selectedHoursLabel}.`
       );
       return;
     }
@@ -781,7 +781,7 @@ export default function BookingForm({
           return pairWithPrevious.map((slot) => slot.id);
         }
 
-        nextError = "Eleg\u00ed una hora que tenga otra consecutiva disponible.";
+        nextError = "Elegí una hora que tenga otra consecutiva disponible.";
         return prevSelectedSlotIds;
       }
 
@@ -831,7 +831,7 @@ export default function BookingForm({
           return nextRange.map((slot) => slot.id);
         }
 
-        nextError = "El m\u00ednimo para reservar es 2 horas consecutivas.";
+        nextError = "El mínimo para reservar es 2 horas consecutivas.";
         return prevSelectedSlotIds;
       }
 
@@ -1422,7 +1422,7 @@ export default function BookingForm({
                       {normalizedServicesCatalog.photographyTitle}
                     </p>
                     <p className="mt-1 text-xs text-muted">
-                      {photographySubtotal?.description || "Sin fotograf\u00eda"}
+                      {photographySubtotal?.description || "Sin fotografía"}
                     </p>
                   </div>
                   <div className="flex items-center gap-2 pl-3">
@@ -1472,7 +1472,7 @@ export default function BookingForm({
                           checked={!selectedServices.photographyOptionId}
                           onChange={() => setPhotographyOption(null)}
                         />
-                        <span>Sin servicio de fotograf\u00eda</span>
+                        <span>Sin servicio de fotografía</span>
                       </span>
                       <span className="booking-services-photography-option-price text-xs font-medium text-muted">
                         Opcional
@@ -1839,7 +1839,7 @@ export default function BookingForm({
                         {normalizedServicesCatalog.artDirectionTitle}
                       </p>
                       <p className="mt-1 text-xs text-muted">
-                        {artDirectionSubtotal?.description || "Sin direcci\u00f3n de arte"}
+                        {artDirectionSubtotal?.description || "Sin dirección de arte"}
                       </p>
                     </div>
                     <div className="flex items-center gap-2 pl-3">
@@ -1876,7 +1876,7 @@ export default function BookingForm({
                           checked={!selectedServices.artDirectionOptionId}
                           onChange={() => setArtDirectionOption(null)}
                         />
-                        Sin direcci\u00f3n de arte
+                        Sin dirección de arte
                       </label>
                       {normalizedServicesCatalog.artDirectionOptions.map((option) => (
                         <label
@@ -2258,17 +2258,17 @@ export default function BookingForm({
                     Instructivo de reserva
                   </p>
                   <p className="mt-2 text-sm text-muted">
-                    Para editar, eleg\u00ed un nuevo bloque horario y ajusta servicios
+                    Para editar, elegí un nuevo bloque horario y ajusta servicios
                     y fondos antes de confirmar.
                   </p>
                 </div>
 
                 <ol className="mt-5 space-y-3 text-sm text-muted">
                   <li className="rounded-2xl border border-accent/20 bg-bg/90 px-4 py-3">
-                    1. Toca un d\u00eda en el calendario para abrir sus horarios.
+                    1. Toca un día en el calendario para abrir sus horarios.
                   </li>
                   <li className="rounded-2xl border border-accent/20 bg-bg/90 px-4 py-3">
-                    2. Selecciona m\u00ednimo 2 horas consecutivas.
+                    2. Selecciona mínimo 2 horas consecutivas.
                   </li>
                   <li className="rounded-2xl border border-accent/20 bg-bg/90 px-4 py-3">
                     3. Se reserva 1 hora posterior para mantenimiento, no se cobra y es para uso exclusivo de UNKT para asegurar el funcionamiento correcto del taller.
