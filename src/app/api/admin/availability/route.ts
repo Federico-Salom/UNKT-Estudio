@@ -143,13 +143,13 @@ export async function PATCH(request: NextRequest) {
     return errorResponse("Horario no encontrado.", 404);
   }
 
-  if (slot.status === "booked") {
-    return errorResponse("No puedes cambiar un horario ya reservado.");
-  }
-
   const cutoff = getAvailabilityCutoffDate();
 
   if (startISO || endISO || (date && start && end)) {
+    if (slot.status === "booked") {
+      return errorResponse("No puedes mover un horario ya reservado.");
+    }
+
     let nextStart: Date;
     let nextEnd: Date;
 
@@ -209,6 +209,40 @@ export async function PATCH(request: NextRequest) {
     return errorResponse(
       "No se puede habilitar un horario pasado o con menos de 2 horas de anticipación."
     );
+  }
+
+  if (slot.status === "booked") {
+    const activeBookings = await prisma.booking.findMany({
+      where: {
+        status: { in: ["pending_payment", "paid"] },
+        OR: [{ slotId: slot.id }, { slotIds: { contains: slot.id } }],
+      },
+      select: {
+        slotId: true,
+        slotIds: true,
+      },
+    });
+
+    const isLinkedToActiveBooking = activeBookings.some((booking) => {
+      if (booking.slotId === slot.id) {
+        return true;
+      }
+
+      try {
+        const parsed = JSON.parse(booking.slotIds) as unknown;
+        if (!Array.isArray(parsed)) {
+          return false;
+        }
+
+        return parsed.some((item) => String(item) === slot.id);
+      } catch {
+        return false;
+      }
+    });
+
+    if (isLinkedToActiveBooking) {
+      return errorResponse("No puedes liberar un horario reservado por una reserva activa.");
+    }
   }
 
   const updated = await prisma.availabilitySlot.update({

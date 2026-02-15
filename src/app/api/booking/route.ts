@@ -246,20 +246,21 @@ export async function POST(request: NextRequest) {
         maintenanceStart.getTime() + MAINTENANCE_HOURS * ONE_HOUR_IN_MS
       );
 
-      const findOrCreateMaintenanceSlot = async () => {
+      const ensureMaintenanceSlotBooked = async () => {
         let maintenanceSlot = await tx.availabilitySlot.findUnique({
           where: { start: maintenanceStart },
         });
 
         if (!maintenanceSlot) {
           try {
-            maintenanceSlot = await tx.availabilitySlot.create({
+            await tx.availabilitySlot.create({
               data: {
                 start: maintenanceStart,
                 end: maintenanceEnd,
                 status: "booked",
               },
             });
+            return;
           } catch {
             maintenanceSlot = await tx.availabilitySlot.findUnique({
               where: { start: maintenanceStart },
@@ -268,48 +269,21 @@ export async function POST(request: NextRequest) {
         }
 
         if (!maintenanceSlot) {
-          throw new Error(
-            "No hay una hora de mantenimiento disponible después de la reserva."
-          );
+          return;
         }
 
         if (maintenanceSlot.status === "available") {
-          const updatedMaintenance = await tx.availabilitySlot.updateMany({
+          await tx.availabilitySlot.updateMany({
             where: {
               id: maintenanceSlot.id,
               status: "available",
             },
             data: { status: "booked" },
           });
-
-          if (updatedMaintenance.count === 1) {
-            return;
-          }
-
-          const refreshedMaintenanceSlot = await tx.availabilitySlot.findUnique({
-            where: { id: maintenanceSlot.id },
-          });
-
-          if (
-            !refreshedMaintenanceSlot ||
-            refreshedMaintenanceSlot.status === "booked"
-          ) {
-            throw new Error(
-              "No hay una hora de mantenimiento disponible después de la reserva."
-            );
-          }
-
-          return;
-        }
-
-        if (maintenanceSlot.status === "booked") {
-          throw new Error(
-            "No hay una hora de mantenimiento disponible después de la reserva."
-          );
         }
       };
 
-      await findOrCreateMaintenanceSlot();
+      await ensureMaintenanceSlotBooked();
 
       const updated = await tx.availabilitySlot.updateMany({
         where: {

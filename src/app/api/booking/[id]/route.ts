@@ -81,14 +81,14 @@ const ensureMaintenanceSlotBooked = async (
 
   if (!maintenanceSlot) {
     try {
-      maintenanceSlot = await tx.availabilitySlot.create({
+      await tx.availabilitySlot.create({
         data: {
           start,
           end,
           status: "booked",
         },
       });
-      return maintenanceSlot;
+      return;
     } catch {
       maintenanceSlot = await tx.availabilitySlot.findUnique({
         where: { start },
@@ -96,31 +96,17 @@ const ensureMaintenanceSlotBooked = async (
     }
   }
 
-  if (!maintenanceSlot) {
-    throw new BookingUpdateError(
-      "No hay una hora de mantenimiento disponible despues de la reserva."
-    );
+  if (!maintenanceSlot || maintenanceSlot.status !== "available") {
+    return;
   }
 
-  if (maintenanceSlot.status === "booked") {
-    return maintenanceSlot;
-  }
-
-  const updated = await tx.availabilitySlot.updateMany({
+  await tx.availabilitySlot.updateMany({
     where: {
       id: maintenanceSlot.id,
       status: "available",
     },
     data: { status: "booked" },
   });
-
-  if (updated.count === 1) {
-    return maintenanceSlot;
-  }
-
-  throw new BookingUpdateError(
-    "No hay una hora de mantenimiento disponible despues de la reserva."
-  );
 };
 
 export async function PATCH(request: NextRequest, context: RouteContext) {
