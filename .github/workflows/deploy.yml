@@ -27,12 +27,5 @@ jobs:
             git fetch --all --prune
             git reset --hard origin/master
 
-            export DATABASE_URL="file:/var/www/unkt-estudio/prisma/dev.db"
-
-            npm ci
-
-            npx prisma migrate deploy
-
-            npx prisma generate
-            npm run build  
-            sudo -n /usr/bin/systemctl restart unkt-estudio
+            docker compose build --pull
+            docker compose up -d --remove-orphans

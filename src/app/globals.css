@@ -666,21 +666,21 @@ html[data-theme="dark"] .auth-page textarea::placeholder {
   isolation: isolate;
   overflow: hidden;
   border-radius: 2.2rem;
-  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
   background:
     radial-gradient(
-      circle at 18% -8%,
-      color-mix(in srgb, var(--accent2) 26%, transparent),
-      transparent 54%
+      circle at 16% -14%,
+      color-mix(in srgb, var(--accent2) 20%, transparent),
+      transparent 58%
     ),
     linear-gradient(
       152deg,
-      color-mix(in srgb, var(--bg) 88%, #3a1924 12%),
-      color-mix(in srgb, var(--bg) 82%, #1e0d15 18%)
+      color-mix(in srgb, var(--bg) 90%, #ffffff 10%),
+      color-mix(in srgb, var(--bg) 80%, #f2d6e1 20%)
     );
   box-shadow:
-    0 34px 72px -52px rgba(18, 8, 13, 0.86),
-    inset 0 1px 0 color-mix(in srgb, #ffffff 24%, transparent);
+    0 28px 64px -50px rgba(86, 46, 60, 0.58),
+    inset 0 1px 0 color-mix(in srgb, #ffffff 56%, transparent);
 }
 
 .checkout-page .checkout-frame::before {
@@ -691,7 +691,7 @@ html[data-theme="dark"] .auth-page textarea::placeholder {
   z-index: 0;
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, #ffffff 8%, transparent),
+    color-mix(in srgb, #ffffff 22%, transparent),
     transparent 44%
   );
 }
@@ -702,21 +702,21 @@ html[data-theme="dark"] .auth-page textarea::placeholder {
 }
 
 .checkout-page .checkout-hero {
-  border: 1px solid color-mix(in srgb, var(--accent2) 36%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent2) 26%, transparent);
   background:
     linear-gradient(
       145deg,
-      color-mix(in srgb, #2b111b 92%, transparent),
-      color-mix(in srgb, #0a0308 96%, transparent)
+      color-mix(in srgb, #ffffff 90%, #f8e9ef 10%),
+      color-mix(in srgb, #ffffff 82%, #f1d9e3 18%)
     ),
     radial-gradient(
       circle at 22% 0%,
-      color-mix(in srgb, var(--accent) 34%, transparent),
+      color-mix(in srgb, var(--accent) 22%, transparent),
       transparent 60%
     );
   box-shadow:
-    inset 0 1px 0 color-mix(in srgb, #ffffff 12%, transparent),
-    0 22px 45px -34px rgba(8, 3, 7, 0.9);
+    inset 0 1px 0 color-mix(in srgb, #ffffff 65%, transparent),
+    0 20px 42px -34px rgba(88, 48, 61, 0.54);
 }
 
 .checkout-page .checkout-meta-row {
@@ -724,7 +724,7 @@ html[data-theme="dark"] .auth-page textarea::placeholder {
 }
 
 .checkout-page .checkout-kicker {
-  color: color-mix(in srgb, #f2c9d7 62%, var(--fg) 38%) !important;
+  color: color-mix(in srgb, var(--fg) 62%, var(--accent2) 38%) !important;
   font-family: var(--font-controls), sans-serif;
   line-height: 1;
   display: inline-flex;
@@ -752,11 +752,11 @@ html[data-theme="dark"] .auth-page textarea::placeholder {
 }
 
 .checkout-page .checkout-panel {
-  border: 1px solid color-mix(in srgb, var(--accent) 24%, transparent);
-  background: color-mix(in srgb, var(--bg) 82%, #170b12 18%);
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
+  background: color-mix(in srgb, var(--bg) 90%, #ffffff 10%);
   box-shadow:
-    inset 0 1px 0 color-mix(in srgb, #ffffff 10%, transparent),
-    0 24px 50px -42px rgba(10, 5, 8, 0.82);
+    inset 0 1px 0 color-mix(in srgb, #ffffff 68%, transparent),
+    0 22px 46px -40px rgba(73, 37, 50, 0.52);
 }
 
 .checkout-page .checkout-summary-grid {
@@ -771,9 +771,11 @@ html[data-theme="dark"] .auth-page textarea::placeholder {
   justify-content: center;
   gap: 0.45rem;
   padding: 0.85rem 1rem;
-  border: 1px solid color-mix(in srgb, var(--accent) 24%, transparent);
-  background: color-mix(in srgb, var(--bg) 76%, #160a11 24%);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+  background: color-mix(in srgb, #ffffff 84%, var(--bg) 16%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #ffffff 72%, transparent),
+    0 12px 24px -24px rgba(74, 35, 48, 0.4);
 }
 
 .checkout-page .checkout-summary-item-with-action {
@@ -813,17 +815,17 @@ html[data-theme="dark"] .auth-page textarea::placeholder {
 }
 
 .checkout-page .checkout-total-card {
-  border: 1px solid color-mix(in srgb, var(--accent) 36%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
   background:
     linear-gradient(
       150deg,
-      color-mix(in srgb, var(--accent) 28%, transparent),
-      color-mix(in srgb, var(--accent2) 12%, transparent)
+      color-mix(in srgb, var(--accent) 16%, #ffffff 84%),
+      color-mix(in srgb, var(--accent2) 10%, #ffffff 90%)
     ),
-    color-mix(in srgb, var(--bg) 76%, #1a0c14 24%);
+    color-mix(in srgb, var(--bg) 86%, #ffffff 14%);
   box-shadow:
-    inset 0 1px 0 color-mix(in srgb, #ffffff 16%, transparent),
-    0 14px 34px -28px rgba(10, 4, 8, 0.82);
+    inset 0 1px 0 color-mix(in srgb, #ffffff 64%, transparent),
+    0 14px 32px -28px rgba(70, 32, 45, 0.48);
 }
 
 .checkout-page .checkout-total-amount {
@@ -832,7 +834,7 @@ html[data-theme="dark"] .auth-page textarea::placeholder {
 }
 
 .checkout-page .checkout-footnote {
-  color: color-mix(in srgb, var(--fg) 82%, #d7a9bb 18%);
+  color: color-mix(in srgb, var(--fg) 86%, #7e4d5e 14%);
   line-height: 1.5;
 }
 
@@ -885,6 +887,36 @@ html[data-theme="dark"] .checkout-page .checkout-frame {
   box-shadow:
     0 40px 78px -52px rgba(0, 0, 0, 0.94),
     inset 0 1px 0 color-mix(in srgb, #ffffff 10%, transparent);
+}
+
+html[data-theme="dark"] .checkout-page .checkout-frame::before {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, #ffffff 8%, transparent),
+    transparent 44%
+  );
+}
+
+html[data-theme="dark"] .checkout-page .checkout-hero {
+  border-color: color-mix(in srgb, #d68ca6 34%, transparent);
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, #2b111b 92%, transparent),
+      color-mix(in srgb, #0a0308 96%, transparent)
+    ),
+    radial-gradient(
+      circle at 22% 0%,
+      color-mix(in srgb, var(--accent) 34%, transparent),
+      transparent 60%
+    );
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #ffffff 12%, transparent),
+    0 22px 45px -34px rgba(8, 3, 7, 0.9);
+}
+
+html[data-theme="dark"] .checkout-page .checkout-kicker {
+  color: color-mix(in srgb, #f2c9d7 62%, var(--fg) 38%) !important;
 }
 
 html[data-theme="dark"] .checkout-page .checkout-panel {

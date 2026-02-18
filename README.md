@@ -2,13 +2,22 @@
 
 MVP de landing para alquiler de estudio fotográfico.
 
-## Desarrollo
+## Operacion (Docker)
 
-- Instalar dependencias: `npm install`
-- Correr en local (webpack estable): `npm run dev`
-- Opcional Turbopack: `npm run dev:turbo`
-- Lint: `npm run lint`
-- Build: `npm run build`
+1. Deja configurado `.env` con al menos:
+   - `AUTH_SECRET`
+   - `DATABASE_URL=file:../database/prod.db`
+2. Construir imagen: `npm run docker:build`
+3. Levantar en segundo plano: `npm run docker:up`
+4. Rebuild + restart: `npm run docker:rebuild`
+5. Ver logs: `npm run docker:logs`
+6. Bajar servicios: `npm run docker:down`
+
+Notas:
+- El contenedor corre en `http://localhost:3000`.
+- `DATABASE_URL` se toma desde `.env` (recomendado `file:../database/prod.db`).
+- La carpeta `database/` queda persistida en el volumen `unkt_database`.
+- Al iniciar, se ejecuta `prisma migrate deploy` antes de levantar Next.js.
 
 ## Dónde cambiar datos
 
@@ -16,9 +25,8 @@ Toda la info editable está centralizada en `src/content/studio.ts`.
 
 ## Inicio de sesión (Prisma + SQLite)
 
-- Crear archivo `.env` (o copiar `.env.example`) y definir `DATABASE_URL` y `AUTH_SECRET`
-- Generar la base local: `npx prisma migrate dev --name init`
-- Levantar el proyecto: `npm run dev`
+- Crear archivo `.env` y definir `AUTH_SECRET` y `DATABASE_URL=file:../database/prod.db`
+- Levantar con Docker: `npm run docker:up`
 - Registro: `http://localhost:3000/register`
 - Iniciar sesión: `http://localhost:3000/login`
 - Panel: `http://localhost:3000/admin`
