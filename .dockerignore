@@ -13,6 +13,11 @@ yarn-error.log*
 .env.*
 database/*.db
 database/*.db-journal
+prisma/*.db
+prisma/*.db-journal
+tsconfig.tsbuildinfo
+*.tsbuildinfo
+public/uploads/
 src.zip
 AGENTS.ms
 
