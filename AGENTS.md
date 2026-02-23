@@ -15,10 +15,10 @@ Guía rápida para agentes que trabajen en este repo.
 - TypeScript
 
 ## Comandos
-- `npm install`
-- `npm run dev`
-- `npm run lint`
-- `npm run build`
+- `npm run docker:build`
+- `npm run docker:up`
+- `npm run docker:logs`
+- `npm run docker:down`
 
 ## Estructura / rutas clave
 - Público:
@@ -53,6 +53,6 @@ Guía rápida para agentes que trabajen en este repo.
   - redirigir a `/admin` o `/account` según el contexto existente.
 
 ## Validación mínima al terminar
-- Ejecutar `npm run lint` en los archivos tocados.
-- Ideal: `npm run build` si el cambio toca routing / server components / Prisma.
-- Si no se pudo correr, explicitarlo al final con motivo (ej. faltan env vars).
+- Ejecutar `npm run docker:build`.
+- Si el cambio toca routing / server components / Prisma, levantar con `npm run docker:up` y validar logs con `npm run docker:logs`.
+- Si no se pudo correr, explicitarlo al final con motivo (ej. faltan env vars o Docker no disponible).
