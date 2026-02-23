@@ -12,6 +12,9 @@ type PreferenceBody = {
   externalReference?: string;
 };
 
+const DEFAULT_MERCADOPAGO_TEST_PAYER_EMAIL = "test@testuser.com";
+const REUSABLE_PENDING_PAYMENT_WINDOW_MS = 10 * 60 * 1000;
+
 const errorResponse = (message: string, status = 400) =>
   NextResponse.json({ ok: false, error: message }, { status });
 
@@ -24,6 +27,7 @@ const getAccessToken = () => {
 };
 
 const isTestAccessToken = (token: string) => token.startsWith("TEST-");
+const isTestPublicKey = (publicKey: string) => publicKey.startsWith("TEST-");
 
 const normalizeString = (value: unknown) => {
   if (typeof value === "string") return value.trim();
@@ -38,8 +42,32 @@ const parseAmount = (value: unknown) => {
 };
 
 const normalizeEmail = (value: string) => value.trim().toLowerCase();
+const normalizeTestPayerEmailInput = (value: string) => {
+  const normalized = value.trim().toLowerCase();
+  if (!normalized) return "";
+
+  const usernameMatch =
+    normalized.match(/^testuser(\d+)$/i) ||
+    normalized.match(/^test_user_(\d+)$/i);
+  if (usernameMatch?.[1]) {
+    return `test_user_${usernameMatch[1]}@testuser.com`;
+  }
+
+  const emailMatch =
+    normalized.match(/^testuser(\d+)@testuser\.com$/i) ||
+    normalized.match(/^test_user_(\d+)@testuser\.com$/i);
+  if (emailMatch?.[1]) {
+    return `test_user_${emailMatch[1]}@testuser.com`;
+  }
+
+  return normalized;
+};
 
 const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+const isLikelyMercadoPagoTestEmail = (value: string) => {
+  const email = value.trim().toLowerCase();
+  return email.endsWith("@testuser.com") || email.includes("test_user_");
+};
 
 const getBaseUrl = (request: NextRequest) => {
   const parsed = new URL(request.url);
@@ -131,18 +159,77 @@ export async function POST(request: NextRequest) {
 
   const accessToken = getAccessToken();
   const hasTestAccessToken = isTestAccessToken(accessToken);
+  const publicKey = process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY?.trim() || "";
+  const hasTestPublicKey = isTestPublicKey(publicKey);
+
+  if (Boolean(publicKey) && hasTestAccessToken !== hasTestPublicKey) {
+    return errorResponse(
+      "Las credenciales de Mercado Pago estan mezcladas entre TEST y PROD. Revisa MERCADOPAGO_ACCESS_TOKEN y NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY."
+    );
+  }
+
   const configuredTestBuyerEmail =
-    process.env.MERCADOPAGO_TEST_PAYER_EMAIL?.trim().toLowerCase() || "";
-  const payerEmail = configuredTestBuyerEmail || normalizedPayerEmail;
+    normalizeTestPayerEmailInput(
+      process.env.MERCADOPAGO_TEST_PAYER_EMAIL?.trim() || ""
+    );
+  let payerEmail = configuredTestBuyerEmail || normalizedPayerEmail;
+
+  if (hasTestAccessToken && configuredTestBuyerEmail) {
+    if (!isValidEmail(configuredTestBuyerEmail)) {
+      return errorResponse(
+        "MERCADOPAGO_TEST_PAYER_EMAIL no es valido. Usa un email de prueba, por ejemplo test@testuser.com."
+      );
+    }
+
+    if (!isLikelyMercadoPagoTestEmail(configuredTestBuyerEmail)) {
+      return errorResponse(
+        "MERCADOPAGO_TEST_PAYER_EMAIL debe ser de prueba (@testuser.com)."
+      );
+    }
+  }
+  if (hasTestAccessToken && !configuredTestBuyerEmail) {
+    payerEmail = DEFAULT_MERCADOPAGO_TEST_PAYER_EMAIL;
+  }
 
   if (
     hasTestAccessToken &&
-    normalizedPayerEmail.endsWith("@guest.unk") &&
-    !configuredTestBuyerEmail
+    payerEmail &&
+    !isLikelyMercadoPagoTestEmail(payerEmail)
   ) {
     return errorResponse(
-      "Configura MERCADOPAGO_TEST_PAYER_EMAIL para pagos de prueba con cuenta invitada."
+      "Con credenciales TEST de Mercado Pago debes pagar con un comprador de prueba (test_user_...@testuser.com)."
     );
+  }
+
+  if (normalizedExternalReference) {
+    const reusableSince = new Date(
+      Date.now() - REUSABLE_PENDING_PAYMENT_WINDOW_MS
+    );
+    const reusablePayment = await prisma.payment.findFirst({
+      where: {
+        externalReference: normalizedExternalReference,
+        amount: integerAmount,
+        title,
+        status: "pending",
+        mpPreferenceId: { not: null },
+        createdAt: { gte: reusableSince },
+      },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        mpPreferenceId: true,
+        payerEmail: true,
+      },
+    });
+
+    if (reusablePayment?.mpPreferenceId) {
+      return NextResponse.json({
+        ok: true,
+        preferenceId: reusablePayment.mpPreferenceId,
+        paymentId: reusablePayment.id,
+        payerEmail: reusablePayment.payerEmail || null,
+      });
+    }
   }
 
   const payment = await prisma.payment.create({
@@ -221,5 +308,6 @@ export async function POST(request: NextRequest) {
     ok: true,
     preferenceId: mpData.id,
     paymentId: payment.id,
+    payerEmail: payerEmail || null,
   });
 }

@@ -12,7 +12,6 @@ import {
 } from "@/lib/booking";
 import {
   getBookingSlotIds,
-  pruneExpiredPendingBookings,
 } from "@/lib/booking-expiration";
 import { prisma } from "@/lib/prisma";
 import { getStudioContent } from "@/lib/studio-content";
@@ -126,8 +125,6 @@ export default async function ReservarPage({ searchParams }: ReservarPageProps) 
   if (!session) {
     redirect("/login");
   }
-
-  await pruneExpiredPendingBookings();
 
   const resolvedSearchParams = await searchParams;
   const editBookingId = getFirstParamValue(

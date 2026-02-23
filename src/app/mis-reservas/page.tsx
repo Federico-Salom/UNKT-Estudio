@@ -5,10 +5,7 @@ import Container from "@/components/Container";
 import Header from "@/components/Header";
 import { getSessionFromCookies } from "@/lib/auth";
 import { BOOKING_TIMEZONE } from "@/lib/booking";
-import {
-  getBookingSlotIds,
-  pruneExpiredPendingBookings,
-} from "@/lib/booking-expiration";
+import { getBookingSlotIds } from "@/lib/booking-expiration";
 import {
   getServicesSummaryLines,
   parseStoredServicesSelection,
@@ -51,8 +48,6 @@ export default async function MisReservasPage() {
   if (!session) {
     redirect("/login");
   }
-
-  await pruneExpiredPendingBookings();
 
   const user = await prisma.user.findUnique({
     where: { id: session.userId },
@@ -261,6 +256,7 @@ export default async function MisReservasPage() {
                     <div className="mt-5 flex flex-wrap gap-2">
                       <Link
                         href={`/checkout?bookingId=${booking.id}`}
+                        prefetch={false}
                         className="inline-flex items-center rounded-full border border-accent/35 bg-accent/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-accent transition hover:border-accent hover:bg-accent/20"
                       >
                         {booking.status === "pending_payment"
@@ -282,6 +278,7 @@ export default async function MisReservasPage() {
                 </p>
                 <Link
                   href="/reservar"
+                  prefetch={false}
                   className="mt-5 inline-flex items-center justify-center rounded-full bg-accent px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] text-bg transition hover:bg-accent2"
                 >
                   Reservar

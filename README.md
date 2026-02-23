@@ -75,3 +75,21 @@ Variables de entorno necesarias:
   - Ver resultado en `/checkout/estado?payment_id=...`.
 
 Nota: en algunos pagos Mercado Pago puede abrir un challenge 3DS del banco (redireccion temporal inevitable).
+
+## Mantenimiento de reservas vencidas (cron)
+
+- Endpoint: `GET` o `POST /api/internal/maintenance/prune-expired-bookings`
+- Auth: header `Authorization: Bearer <MAINTENANCE_CRON_SECRET>`
+- En desarrollo, si no hay secreto configurado, el endpoint permite ejecucion local.
+
+Ejemplo manual:
+
+```bash
+curl -X POST "http://localhost:3000/api/internal/maintenance/prune-expired-bookings" \
+  -H "Authorization: Bearer tu-secreto"
+```
+
+Recomendacion:
+
+- Configura un cron cada 5-15 minutos en tu proveedor (Vercel Cron u otro) apuntando al endpoint.
+- Define `MAINTENANCE_CRON_SECRET` en el entorno donde se ejecute.

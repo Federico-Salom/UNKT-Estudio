@@ -244,11 +244,11 @@ export default function Gallery({ studio }: GalleryProps) {
   return (
     <section
       id="galeria"
-      className="scroll-mt-24 bg-bg pt-1 pb-4 md:pt-6 md:pb-6"
+      className="scroll-mt-24 bg-bg pt-1 md:pt-6"
     >
       <Container>
-        <div className="mb-5 flex flex-col items-center gap-4 md:mb-6 md:gap-5">
-          <div className="grid w-full max-w-5xl grid-cols-2 items-stretch gap-2 sm:grid-cols-6 sm:gap-4 md:gap-5">
+          <div className="mb-1 flex flex-col items-center gap-4 md:mb-6 md:gap-5">
+          <div className="grid w-full max-w-6xl grid-cols-2 items-stretch gap-2 sm:grid-cols-6 sm:gap-4 md:gap-5">
             <div className="w-full">
               <button
                 type="button"
@@ -341,7 +341,7 @@ export default function Gallery({ studio }: GalleryProps) {
                 }}
                 className="gallery-slide snap-center"
               >
-                <div className="gallery-card relative overflow-hidden rounded-3xl border border-accent/15 bg-muted/10 shadow-[0_26px_56px_-32px_rgba(0,0,0,0.6)]">
+                <div className="gallery-card relative overflow-hidden rounded-3xl border border-accent/15 bg-muted/10">
                   <div className="relative aspect-[16/9] w-full">
                     <Image
                       src={image.src}
@@ -377,7 +377,7 @@ export default function Gallery({ studio }: GalleryProps) {
           </button>
         </div>
 
-        <div className="gallery-dots mt-2 flex h-4 items-center justify-center gap-1.5">
+        <div className="gallery-dots my-2 flex h-4 items-center justify-center gap-1.5">
           {gallery.map((_, index) => (
             <button
               key={`dot-${index}`}
@@ -386,8 +386,7 @@ export default function Gallery({ studio }: GalleryProps) {
               onClick={() => {
                 scrollToIndex(index);
               }}
-              className={`inline-flex h-2 w-2 items-center justify-center rounded-full transition ${
-                index === currentIndex ? "bg-accent" : "bg-accent/30 hover:bg-accent/60"
+              className={`inline-flex h-2 w-2 items-center justify-center rounded-full transition ${index === currentIndex ? "bg-accent" : "bg-accent/30 hover:bg-accent/60"
               }`}
             />
           ))}

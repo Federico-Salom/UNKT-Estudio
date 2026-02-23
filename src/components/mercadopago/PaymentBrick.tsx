@@ -14,6 +14,14 @@ type PreferenceApiResponse = {
   ok?: boolean;
   preferenceId?: string;
   paymentId?: string;
+  payerEmail?: string | null;
+  error?: string;
+};
+
+type ProcessPaymentApiResponse = {
+  ok?: boolean;
+  paymentId?: string;
+  status?: string;
   error?: string;
 };
 
@@ -27,8 +35,6 @@ const normalizeText = (value: string) =>
     .replace(/\s+/g, " ")
     .trim()
     .toLowerCase();
-
-const PAY_BUTTON_LABELS = new Set(["pagar", "pay"]);
 
 const hidePaymentMethodsTitle = (container: HTMLElement | null) => {
   if (!container) return;
@@ -49,109 +55,14 @@ const hidePaymentMethodsTitle = (container: HTMLElement | null) => {
   }
 };
 
-const isPayButton = (node: HTMLElement) => {
-  const tagName = node.tagName.toLowerCase();
-  const text =
-    tagName === "input"
-      ? normalizeText((node as HTMLInputElement).value || "")
-      : normalizeText(node.textContent || "");
-
-  return PAY_BUTTON_LABELS.has(text);
-};
-
-const findPayButton = (container: HTMLElement) => {
-  const explicitSubmit = container.querySelector<HTMLElement>(
-    "button[type='submit'], input[type='submit']"
-  );
-
-  if (explicitSubmit) return explicitSubmit;
-
-  const allButtons = container.querySelectorAll<HTMLElement>(
-    "button, input[type='button'], input[type='submit'], [role='button']"
-  );
-
-  for (const candidate of allButtons) {
-    if (isPayButton(candidate)) return candidate;
-  }
-
-  return null;
-};
-
-const alignSubmitButtonToRight = (container: HTMLElement | null) => {
-  if (!container) return;
-
-  const submitControl = findPayButton(container);
-
-  if (!submitControl) return;
-
-  submitControl.style.marginInlineStart = "auto";
-  submitControl.style.alignSelf = "flex-end";
-  submitControl.style.marginTop = "0";
-  submitControl.style.marginBottom = "0";
-  submitControl.style.display = "inline-flex";
-  submitControl.style.width = "auto";
-  submitControl.style.maxWidth = "100%";
-  submitControl.dataset.mpSubmitAligned = "true";
-
-  const form = submitControl.closest("form");
-  if (form) {
-    form.style.display = "flex";
-    form.style.flexDirection = "column";
-    form.style.justifyContent = "flex-start";
-    form.style.width = "100%";
-    form.dataset.mpFormAligned = "true";
-
-    let actionBlock: HTMLElement | null = submitControl;
-    while (actionBlock && actionBlock.parentElement !== form) {
-      actionBlock = actionBlock.parentElement;
-    }
-
-    if (actionBlock && actionBlock !== form) {
-      actionBlock.style.marginTop = "auto";
-      actionBlock.style.marginBottom = "0";
-      actionBlock.style.marginInlineStart = "auto";
-      actionBlock.style.alignSelf = "flex-end";
-      actionBlock.style.width = "fit-content";
-      actionBlock.style.maxWidth = "100%";
-      actionBlock.style.textAlign = "right";
-      actionBlock.dataset.mpSubmitRowAligned = "true";
-      return;
-    }
-  }
-
-  const row = submitControl.parentElement;
-  if (!row) return;
-  row.style.marginTop = "auto";
-  row.style.marginBottom = "0";
-  row.style.marginInlineStart = "auto";
-  row.style.display = "flex";
-  row.style.justifyContent = "flex-end";
-  row.style.width = "fit-content";
-  row.style.maxWidth = "100%";
-  row.style.textAlign = "right";
-  row.dataset.mpSubmitRowAligned = "true";
-};
-
-const hideDuplicatePaymentForms = (container: HTMLElement | null) => {
-  if (!container) return;
-
-  const forms = container.querySelectorAll<HTMLElement>(
-    "form[class*='mp-checkout-bricks__payment-form'], form[class*='payment-form']"
-  );
-
-  if (forms.length <= 1) return;
-
-  forms.forEach((form, index) => {
-    if (index === 0) return;
-    form.style.display = "none";
-    form.setAttribute("aria-hidden", "true");
-    form.dataset.mpDuplicateHidden = "true";
-  });
-};
-
 const getInitialCompactViewport = () => {
   if (typeof window === "undefined") return false;
   return window.matchMedia("(max-width: 560px)").matches;
+};
+
+const asRecord = (value: unknown): Record<string, unknown> | null => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  return value as Record<string, unknown>;
 };
 
 const publicKey =
@@ -169,6 +80,8 @@ export default function PaymentBrick({
 }: PaymentBrickProps) {
   const [loadingPreference, setLoadingPreference] = useState(true);
   const [preferenceId, setPreferenceId] = useState("");
+  const [localPaymentId, setLocalPaymentId] = useState("");
+  const [resolvedPayerEmail, setResolvedPayerEmail] = useState("");
   const [error, setError] = useState("");
   const [isCompactViewport] = useState(getInitialCompactViewport);
 
@@ -206,6 +119,8 @@ export default function PaymentBrick({
         setLoadingPreference(true);
         setError("");
         setPreferenceId("");
+        setLocalPaymentId("");
+        setResolvedPayerEmail("");
 
         const response = await fetch("/api/mp/preference", {
           method: "POST",
@@ -230,6 +145,8 @@ export default function PaymentBrick({
 
         if (active) {
           setPreferenceId(data.preferenceId);
+          setLocalPaymentId(data.paymentId || "");
+          setResolvedPayerEmail(data.payerEmail?.trim().toLowerCase() || "");
           setLoadingPreference(false);
         }
       } catch {
@@ -253,14 +170,10 @@ export default function PaymentBrick({
     const container = document.getElementById(BRICK_CONTAINER_ID);
     if (!container) return;
 
-    hideDuplicatePaymentForms(container);
     hidePaymentMethodsTitle(container);
-    alignSubmitButtonToRight(container);
 
     const observer = new MutationObserver(() => {
-      hideDuplicatePaymentForms(container);
       hidePaymentMethodsTitle(container);
-      alignSubmitButtonToRight(container);
     });
 
     observer.observe(container, {
@@ -278,21 +191,67 @@ export default function PaymentBrick({
     setError("No se pudo cargar el checkout de Mercado Pago.");
   }, []);
 
-  const handleSubmit = useCallback(async () => {
-    return {};
-  }, []);
+  const handleSubmit = useCallback(
+    async (submission: { formData?: unknown }) => {
+      const formData = asRecord(submission?.formData);
+      if (!formData) {
+        setError("No recibimos los datos del formulario de pago.");
+        return {};
+      }
+
+      if (!localPaymentId) {
+        setError("No se encontro el pago a procesar.");
+        return {};
+      }
+
+      try {
+        setError("");
+
+        const response = await fetch("/api/mp/payment", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            paymentId: localPaymentId,
+            formData,
+          }),
+        });
+
+        const data = (await response
+          .json()
+          .catch(() => ({}))) as ProcessPaymentApiResponse;
+
+        if (!response.ok || !data.ok || !data.paymentId) {
+          setError(data.error || "No se pudo procesar el pago.");
+          return {};
+        }
+
+        window.location.assign(
+          `/checkout/estado?payment_id=${encodeURIComponent(data.paymentId)}`
+        );
+
+        return data;
+      } catch {
+        setError("No se pudo procesar el pago.");
+        return {};
+      }
+    },
+    [localPaymentId]
+  );
 
   const initialization = useMemo(
     () => ({
       amount: normalizedPayload.amount,
       preferenceId,
-      payer: normalizedPayload.payerEmail
+      payer: resolvedPayerEmail
         ? {
-            email: normalizedPayload.payerEmail,
+            email: resolvedPayerEmail,
           }
         : undefined,
     }),
-    [normalizedPayload.amount, normalizedPayload.payerEmail, preferenceId]
+    [normalizedPayload.amount, preferenceId, resolvedPayerEmail]
   );
 
   const customization = useMemo(() => {

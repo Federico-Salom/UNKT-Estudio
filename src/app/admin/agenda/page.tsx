@@ -6,7 +6,6 @@ import Container from "@/components/Container";
 import UserMenu from "@/components/UserMenu";
 import ThemeToggle from "@/components/ThemeToggle";
 import { getSessionFromCookies } from "@/lib/auth";
-import { pruneExpiredPendingBookings } from "@/lib/booking-expiration";
 import {
   getServicesSummaryLines,
   parseStoredServicesSelection,
@@ -29,8 +28,6 @@ export default async function AdminAgendaPage() {
   if (!user || user.role !== "admin") {
     redirect("/admin");
   }
-
-  await pruneExpiredPendingBookings();
 
   const studio = await getStudioContent();
   const createdAtLabel = user.createdAt.toLocaleString("es-AR");

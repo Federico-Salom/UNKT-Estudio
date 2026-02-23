@@ -11,11 +11,26 @@ import { getStudioContent } from "@/lib/studio-content";
 export const dynamic = "force-dynamic";
 
 type CheckoutStatusPageProps = {
-  searchParams?: Promise<{ payment_id?: string | string[] }>;
+  searchParams?: Promise<{
+    payment_id?: string | string[];
+    collection_id?: string | string[];
+  }>;
 };
 
 const getFirstParamValue = (value: string | string[] | undefined) =>
   Array.isArray(value) ? value[0] : value;
+
+const normalizePaymentParam = (value: string | string[] | undefined) => {
+  const raw = getFirstParamValue(value)?.trim();
+  if (!raw) return null;
+
+  const lowered = raw.toLowerCase();
+  if (lowered === "null" || lowered === "undefined" || lowered === "nan") {
+    return null;
+  }
+
+  return raw;
+};
 
 export default async function CheckoutStatusPage({
   searchParams,
@@ -26,9 +41,9 @@ export default async function CheckoutStatusPage({
   }
 
   const resolvedSearchParams = await searchParams;
-  const paymentId = getFirstParamValue(
-    resolvedSearchParams?.payment_id
-  )?.trim();
+  const paymentId =
+    normalizePaymentParam(resolvedSearchParams?.payment_id) ??
+    normalizePaymentParam(resolvedSearchParams?.collection_id);
   const [studio, user] = await Promise.all([
     getStudioContent(),
     prisma.user.findUnique({
@@ -92,7 +107,7 @@ export default async function CheckoutStatusPage({
       <main className="w-full px-3 py-8 sm:px-6 sm:py-12 lg:px-8">
         <section className="checkout-frame w-full p-3 sm:p-4 lg:p-5">
           <div className="checkout-layout flex w-full flex-col gap-5">
-            <header className="checkout-hero relative isolate overflow-hidden rounded-[1.9rem] px-5 py-6 sm:px-7 sm:py-7">
+            <header className="checkout-hero checkout-status-hero relative isolate overflow-hidden rounded-[1.9rem] px-5 py-6 sm:px-7 sm:py-7">
               <div
                 aria-hidden
                 className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_-12%,rgba(214,36,80,0.5),transparent_62%)] opacity-75"
@@ -112,10 +127,10 @@ export default async function CheckoutStatusPage({
               </div>
 
               <div className="relative mt-3 w-full text-left">
-                <h1 className="font-display text-2xl leading-tight sm:text-3xl">
+                <h1 className="checkout-status-title font-display text-2xl leading-tight sm:text-3xl">
                   Estado del pago
                 </h1>
-                <p className="mt-2 text-sm text-muted">
+                <p className="checkout-status-description mt-2 text-sm text-muted">
                   {hasPaymentId
                     ? "Revisa el resultado de la transaccion y su estado registrado."
                     : "No recibimos payment_id. Vuelve a Mis reservas para generar uno desde una reserva pendiente."}

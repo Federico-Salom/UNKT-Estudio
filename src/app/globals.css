@@ -158,6 +158,8 @@ html[data-theme="dark"] .text-fg\/80 {
 .gallery-scroll {
   -ms-overflow-style: none;
   scrollbar-width: none;
+  overflow-x: auto;
+  overflow-y: visible;
 }
 
 .gallery-frame {
@@ -194,7 +196,7 @@ html[data-theme="dark"] .text-fg\/80 {
 html[data-theme="dark"] .gallery-card {
   border-color: color-mix(in srgb, var(--accent2) 36%, transparent);
   background: color-mix(in srgb, var(--bg) 82%, #29131a 18%);
-  box-shadow: 0 24px 56px -36px rgba(0, 0, 0, 0.88);
+  box-shadow: none;
 }
 
 html[data-theme="dark"] .gallery-frame {
@@ -717,6 +719,15 @@ html[data-theme="dark"] .auth-page textarea::placeholder {
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, #ffffff 12%, transparent),
     0 22px 45px -34px rgba(8, 3, 7, 0.9);
+}
+
+.checkout-page .checkout-status-hero .checkout-status-title {
+  color: color-mix(in srgb, #ffffff 92%, #f7dce7 8%);
+  text-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
+}
+
+.checkout-page .checkout-status-hero .checkout-status-description {
+  color: color-mix(in srgb, #f6d7e2 84%, #ffffff 16%) !important;
 }
 
 .checkout-page .checkout-meta-row {

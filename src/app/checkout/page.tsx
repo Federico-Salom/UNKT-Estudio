@@ -15,7 +15,6 @@ import {
   getConfiguredBookingHolidayDates,
   resolveBasePrice,
 } from "@/lib/booking";
-import { pruneExpiredPendingBookings } from "@/lib/booking-expiration";
 import {
   getServicesBreakdown,
   getServicesSummaryLines,
@@ -82,8 +81,6 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
     redirect("/login");
   }
 
-  await pruneExpiredPendingBookings();
-
   const resolvedSearchParams = await searchParams;
   const bookingId = getFirstParamValue(resolvedSearchParams?.bookingId)?.trim();
   const [studio, user] = await Promise.all([
@@ -125,6 +122,7 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
         <div className="flex shrink-0 items-center gap-2 sm:gap-4">
           <Link
             href="/mis-reservas"
+            prefetch={false}
             className="inline-flex h-9 items-center justify-center rounded-full border border-accent/35 bg-accent/10 px-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-accent transition hover:border-accent hover:bg-accent/20 sm:px-4 sm:text-xs md:h-10"
           >
             <span className="sm:hidden">Reservas</span>
@@ -158,6 +156,7 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
                 </p>
                 <Link
                   href="/mis-reservas"
+                  prefetch={false}
                   className="mt-6 inline-flex items-center rounded-full border border-accent/35 bg-accent/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-accent transition hover:border-accent hover:bg-accent/20"
                 >
                   Ir a mis reservas
@@ -417,6 +416,7 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
                     {item.editHref ? (
                       <Link
                         href={item.editHref}
+                        prefetch={false}
                         aria-label={item.editLabel || "Editar"}
                         className="checkout-summary-edit-button inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-accent/35 bg-accent/10 text-accent transition hover:border-accent hover:bg-accent/20"
                       >
