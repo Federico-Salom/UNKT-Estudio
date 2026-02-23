@@ -3,6 +3,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY: ${NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY}
     container_name: unkt-estudio-app
     restart: unless-stopped
     env_file:
@@ -10,6 +12,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
+      DATABASE_URL: file:/app/database/prod.db
     ports:
       - "3000:3000"
     volumes:

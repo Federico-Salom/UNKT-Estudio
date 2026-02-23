@@ -143,12 +143,15 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
       <div className="auth-page checkout-page min-h-screen bg-bg text-fg">
         {header}
 
-        <main className="flex min-h-[calc(100vh-74px)] w-full items-start px-3 py-8 sm:px-6 sm:py-14 lg:px-8">
-          <section className="checkout-frame w-full p-3 sm:p-4">
+        <main className="px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+          <section className="checkout-shell mx-auto w-full max-w-5xl p-3 sm:p-4">
             <div className="checkout-layout">
-              <div className="checkout-panel rounded-[1.6rem] p-5 sm:p-8">
-                <h1 className="font-display text-2xl tracking-[0.06em] sm:text-3xl">
+              <div className="checkout-panel rounded-3xl p-5 sm:p-8">
+                <p className="checkout-kicker text-xs font-semibold uppercase tracking-[0.2em] text-muted">
                   Checkout
+                </p>
+                <h1 className="mt-3 font-display text-2xl sm:text-3xl">
+                  Reserva no encontrada
                 </h1>
                 <p className="mt-3 text-sm text-muted">
                   No encontramos una reserva para pagar. Entra desde
@@ -333,159 +336,154 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
         booking.status === "pending_payment" ? editScheduleHref : undefined,
       editLabel: "Editar fecha y horario",
     },
-  {
-    id: "extras",
-    value: extrasList.length ? (
-      <ul className="space-y-1 text-left">
-        {extrasList.map((extra) => (
-          <li key={extra} className="flex items-start gap-2">
-            <span
-              aria-hidden
-              className="mt-[0.45rem] h-1.5 w-1.5 shrink-0 rounded-full bg-accent/70"
-            />
-            <span>{extra}</span>
-          </li>
-        ))}
-      </ul>
-    ) : (
-      "Sin fondos"
-    ),
-    spanFull: true,
-    editHref:
-      booking.status === "pending_payment" ? editExtrasHref : undefined,
-    editLabel: "Editar fondos",
-  },
-  {
-    id: "services",
-    value: servicesDetails.length ? (
-      <ul className="space-y-1 text-left">
-        {servicesDetails.map((service) => (
-          <li key={service.label} className="flex items-start gap-2">
-            <span
-              aria-hidden
-              className="mt-[0.45rem] h-1.5 w-1.5 shrink-0 rounded-full bg-accent/70"
-            />
-            <span>{service.label}</span>
-          </li>
-        ))}
-      </ul>
-    ) : (
-      "Sin servicios"
-    ),
-    spanFull: true,
-    editHref:
-      booking.status === "pending_payment" ? editServicesHref : undefined,
-    editLabel: "Editar servicios",
-  },
-];
+    {
+      id: "extras",
+      value: extrasList.length ? (
+        <ul className="space-y-1 text-left">
+          {extrasList.map((extra) => (
+            <li key={extra} className="flex items-start gap-2">
+              <span
+                aria-hidden
+                className="mt-[0.45rem] h-1.5 w-1.5 shrink-0 rounded-full bg-accent/70"
+              />
+              <span>{extra}</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        "Sin fondos"
+      ),
+      spanFull: true,
+      editHref:
+        booking.status === "pending_payment" ? editExtrasHref : undefined,
+      editLabel: "Editar fondos",
+    },
+    {
+      id: "services",
+      value: servicesDetails.length ? (
+        <ul className="space-y-1 text-left">
+          {servicesDetails.map((service) => (
+            <li key={service.label} className="flex items-start gap-2">
+              <span
+                aria-hidden
+                className="mt-[0.45rem] h-1.5 w-1.5 shrink-0 rounded-full bg-accent/70"
+              />
+              <span>{service.label}</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        "Sin servicios"
+      ),
+      spanFull: true,
+      editHref:
+        booking.status === "pending_payment" ? editServicesHref : undefined,
+      editLabel: "Editar servicios",
+    },
+  ];
 
   return (
     <div className="auth-page checkout-page min-h-screen bg-bg text-fg">
       {header}
 
-      <div className="flex w-full flex-col gap-5 px-3 py-8 sm:px-6 sm:py-12 lg:px-8 p-3 sm:p-4 lg:p-5">
-        <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(22rem,0.8fr)]">
-          <header className="checkout-hero relative isolate overflow-hidden rounded-[1.9rem] px-5 py-6 sm:px-7 sm:py-7">
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_-12%,rgba(214,36,80,0.5),transparent_62%)] opacity-75"
-            />
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-0 bg-gradient-to-br from-transparent via-white/5 to-transparent opacity-60 blur-[1px]"
-            />
-            <div className="checkout-meta-row relative flex items-center justify-between gap-3">
-              <p className="checkout-kicker whitespace-nowrap text-xs font-semibold uppercase tracking-[0.2em] text-muted [overflow-wrap:normal] [word-break:normal]">
-                Checkout
-              </p>
-              <span className={`checkout-status-pill ${statusToneClassName}`}>
-                {statusLabel}
-              </span>
-            </div>
-            <div className="mt-3 mb-3 h-px w-full rounded-full bg-gradient-to-r from-accent/80 via-accent/40 to-transparent" />
-            <div className="space-y-4">
-              <dl className="checkout-summary-grid">
-                {bookingSummaryItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className={`checkout-summary-item rounded-2xl ${
-                      item.spanFull ? "checkout-summary-item-wide sm:col-span-2" : ""
-                    } ${item.editHref ? "checkout-summary-item-with-action" : ""}`}
-                  >
-                    <dd className="checkout-summary-value min-w-0">{item.value}</dd>
-                    {item.editHref ? (
-                      <Link
-                        href={item.editHref}
-                        prefetch={false}
-                        aria-label={item.editLabel || "Editar"}
-                        className="checkout-summary-edit-button inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-accent/35 bg-accent/10 text-accent transition hover:border-accent hover:bg-accent/20"
-                      >
-                        <PencilIcon />
-                      </Link>
-                    ) : null}
+      <main className="px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+        <section className="checkout-shell mx-auto w-full max-w-6xl p-3 sm:p-4 lg:p-5">
+          <div className="checkout-layout grid items-start gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(22rem,0.8fr)]">
+            <section className="checkout-panel rounded-3xl p-5 sm:p-6">
+              <div className="checkout-meta-row flex items-center justify-between gap-3">
+                <p className="checkout-kicker whitespace-nowrap text-xs font-semibold uppercase tracking-[0.2em] text-muted [overflow-wrap:normal] [word-break:normal]">
+                  Checkout
+                </p>
+                <span className={`checkout-status-pill ${statusToneClassName}`}>
+                  {statusLabel}
+                </span>
+              </div>
+              <div className="mt-3 h-px w-full rounded-full bg-accent/20" />
+
+              <div className="mt-4 space-y-4">
+                <dl className="checkout-summary-grid">
+                  {bookingSummaryItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className={`checkout-summary-item rounded-2xl ${
+                        item.spanFull ? "checkout-summary-item-wide sm:col-span-2" : ""
+                      } ${item.editHref ? "checkout-summary-item-with-action" : ""}`}
+                    >
+                      <dd className="checkout-summary-value min-w-0">{item.value}</dd>
+                      {item.editHref ? (
+                        <Link
+                          href={item.editHref}
+                          prefetch={false}
+                          aria-label={item.editLabel || "Editar"}
+                          className="checkout-summary-edit-button inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-accent/35 bg-accent/10 text-accent transition hover:border-accent hover:bg-accent/20"
+                        >
+                          <PencilIcon />
+                        </Link>
+                      ) : null}
+                    </div>
+                  ))}
+                </dl>
+
+                <div className="h-px w-full rounded-full bg-accent/20" />
+
+                <div className="checkout-total-card flex flex-col justify-between gap-4 rounded-2xl px-4 py-3 sm:p-5">
+                  <div className="flex items-center justify-between gap-4">
+                    <p className="text-sm font-semibold uppercase tracking-[0.18em] text-accent/80">
+                      Total a pagar
+                    </p>
+                    <CheckoutPriceDetails
+                      total={booking.total}
+                      basePrice={basePrice}
+                      hours={hours}
+                      extras={extrasBreakdown}
+                      services={servicesDetails}
+                      weekendOrHolidaySurcharge={
+                        pricingBreakdown.weekendOrHolidaySurcharge
+                      }
+                      weekendOrHolidayHours={pricingBreakdown.weekendOrHolidayHours}
+                      nightSurcharge={pricingBreakdown.nightSurcharge}
+                      nightHours={pricingBreakdown.nightHours}
+                      adjustment={pricingAdjustment}
+                      buttonClassName="h-10"
+                    />
                   </div>
-                ))}
-              </dl>
 
-              <div className="mt-3 mb-3 h-px w-full rounded-full bg-gradient-to-r from-accent/80 via-accent/40 to-transparent" />
-
-              <div className="checkout-total-card flex flex-col justify-between gap-4 rounded-2xl px-4 py-3 sm:p-5">
-                <div className="flex items-center justify-between gap-4">
-                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-accent/80">
-                    Total a pagar
+                  <p className="checkout-total-amount mx-auto font-display text-3xl leading-none text-accent">
+                    {totalLabel}
                   </p>
-                  <CheckoutPriceDetails
-                    total={booking.total}
-                    basePrice={basePrice}
-                    hours={hours}
-                    extras={extrasBreakdown}
-                    services={servicesDetails}
-                    weekendOrHolidaySurcharge={
-                      pricingBreakdown.weekendOrHolidaySurcharge
-                    }
-                    weekendOrHolidayHours={pricingBreakdown.weekendOrHolidayHours}
-                    nightSurcharge={pricingBreakdown.nightSurcharge}
-                    nightHours={pricingBreakdown.nightHours}
-                    adjustment={pricingAdjustment}
-                    buttonClassName="h-10"
+                </div>
+              </div>
+            </section>
+
+            <section className="checkout-panel rounded-3xl p-5 sm:p-6">
+              <div className="checkout-meta-row flex items-center justify-between gap-3">
+                <p className="checkout-kicker whitespace-nowrap text-xs font-semibold uppercase tracking-[0.2em] text-muted [overflow-wrap:normal] [word-break:normal]">
+                  Medios de pago
+                </p>
+                <span className="checkout-status-pill border-fg/20 bg-bg/70 text-fg">
+                  Mercado Pago
+                </span>
+              </div>
+              <div className="mt-3 h-px w-full rounded-full bg-accent/20" />
+
+              {booking.status === "paid" ? (
+                <div className="mt-4 rounded-2xl border border-accent/30 bg-accent/10 px-4 py-3 text-sm text-accent">
+                  Esta reserva ya figura como pagada.
+                </div>
+              ) : (
+                <div className="mt-4">
+                  <PaymentBrick
+                    amount={booking.total}
+                    title="Reserva UNKT Estudio"
+                    payerEmail={booking.email}
+                    externalReference={booking.id}
                   />
                 </div>
-
-                <p className="checkout-total-amount mx-auto font-display text-3xl leading-none text-accent">
-                  {totalLabel}
-                </p>
-              </div>
-            </div>
-          </header>
-
-          <section className="checkout-panel rounded-[1.9rem] p-5 sm:p-6">
-            <div className="checkout-meta-row flex items-center justify-between gap-3">
-              <p className="checkout-kicker whitespace-nowrap text-xs font-semibold uppercase tracking-[0.2em] text-muted [overflow-wrap:normal] [word-break:normal]">
-                Medios de pago
-              </p>
-              <span className="checkout-status-pill border-fg/20 bg-bg/70 text-fg">
-                Mercado Pago
-              </span>
-            </div>
-            <div className="mt-3 mb-3 h-px w-full rounded-full bg-gradient-to-r from-accent/80 via-accent/40 to-transparent" />
-
-            {booking.status === "paid" ? (
-              <div className="rounded-2xl border border-accent/30 bg-accent/10 px-4 py-3 text-sm text-accent">
-                Esta reserva ya figura como pagada.
-              </div>
-            ) : (
-              <div className="mt-4">
-                <PaymentBrick
-                  amount={booking.total}
-                  title="Reserva UNKT Estudio"
-                  payerEmail={booking.email}
-                  externalReference={booking.id}
-                />
-              </div>
-            )}
-          </section>
-        </div>
-      </div>
+              )}
+            </section>
+          </div>
+        </section>
+      </main>
     </div>
   );
 }

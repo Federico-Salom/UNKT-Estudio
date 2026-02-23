@@ -26,7 +26,6 @@ type SmtpConfig = {
 const DEFAULT_SMTP_PORT = 587;
 const PASSWORD_RESET_SUBJECT = "Restablece tu contraseña en UNKT Estudio";
 const PASSWORD_RESET_LOGO_CID = "password-reset-logo@unkt";
-const PASSWORD_RESET_PATTERN_CID = "password-reset-pattern@unkt";
 
 const isProduction = process.env.NODE_ENV === "production";
 
@@ -146,20 +145,15 @@ const getInlineAttachment = async (
 const getPasswordResetInlineAttachments = async (): Promise<
   InlineAttachment[]
 > => {
-  const [logo, pattern] = await Promise.all([
+  const [logo] = await Promise.all([
     getInlineAttachment(
       "apple-touch-icon.png",
       PASSWORD_RESET_LOGO_CID,
       "image/png"
     ),
-    getInlineAttachment(
-      "patron-flores.png",
-      PASSWORD_RESET_PATTERN_CID,
-      "image/png"
-    ),
   ]);
 
-  return [logo, pattern].filter(
+  return [logo].filter(
     (item): item is InlineAttachment => Boolean(item)
   );
 };
@@ -168,7 +162,6 @@ const buildResetEmailHtml = (resetUrl: string) => {
   const safeUrl = escapeHtml(resetUrl);
   const safeLogoUrl = escapeHtml(`cid:${PASSWORD_RESET_LOGO_CID}`);
   const safeSecondaryLogoUrl = safeLogoUrl;
-  const safePatternUrl = escapeHtml(`cid:${PASSWORD_RESET_PATTERN_CID}`);
   return `
     <!doctype html>
     <html lang="es">
@@ -204,13 +197,10 @@ const buildResetEmailHtml = (resetUrl: string) => {
           style="
             width: 100%;
             background-color: #130a0f;
-            background-image:
-              radial-gradient(circle at 18% -6%, rgba(255, 79, 195, 0.26), transparent 42%),
-              radial-gradient(circle at 84% 2%, rgba(200, 108, 255, 0.18), transparent 38%),
-              url('${safePatternUrl}');
-            background-repeat: no-repeat, no-repeat, repeat;
-            background-size: auto, auto, 1500px auto;
-            background-position: left top, right top, center top;
+            background-image: radial-gradient(circle at 50% -8%, rgba(207, 63, 105, 0.2), transparent 44%);
+            background-repeat: no-repeat;
+            background-size: auto;
+            background-position: center top;
           "
         >
           <tr>
@@ -252,15 +242,17 @@ const buildResetEmailHtml = (resetUrl: string) => {
                             style="
                               display: inline-block;
                               border-radius: 999px;
-                              border: 1px solid #c95f84;
-                              background-color: rgba(207, 63, 105, 0.12);
-                              padding: 8px 15px;
+                              border: 1px solid #d97598;
+                              background-color: rgba(34, 17, 26, 0.82);
+                              box-shadow: 0 0 0 1px rgba(255, 173, 205, 0.08) inset;
+                              padding: 8px 16px;
                               font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-                              font-size: 11px;
+                              font-size: 12px;
                               font-weight: 700;
-                              letter-spacing: 0.18em;
+                              letter-spacing: 0.19em;
                               text-transform: uppercase;
-                              color: #f4d6de;
+                              color: #fff1f6;
+                              text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45);
                             "
                           >
                             UNKT ESTUDIO
@@ -290,24 +282,11 @@ const buildResetEmailHtml = (resetUrl: string) => {
                       <tr>
                         <td
                           style="
-                            height: 7px;
-                            font-size: 0;
-                            line-height: 0;
-                            background: linear-gradient(90deg, #cf3f69 0%, #e0658b 100%);
-                          "
-                        >
-                          &nbsp;
-                        </td>
-                      </tr>
-                      <tr>
-                        <td
-                          style="
-                            padding: 30px 26px 10px;
+                            padding: 32px 26px 14px;
                             font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-                            background-image: url('${safePatternUrl}');
-                            background-repeat: repeat;
-                            background-size: 980px auto;
-                            background-position: center top;
+                            background-color: #1c0f16;
+                            background-image: linear-gradient(180deg, rgba(227, 122, 159, 0.18) 0%, rgba(28, 15, 22, 1) 78%);
+                            background-repeat: no-repeat;
                           "
                         >
                           <h1
@@ -327,7 +306,7 @@ const buildResetEmailHtml = (resetUrl: string) => {
                               margin: 0;
                               font-size: 16px;
                               line-height: 1.55;
-                              color: #ddb5c2;
+                              color: #ebc8d5;
                             "
                           >
                             Recibimos una solicitud para cambiar la contraseña de tu cuenta.
@@ -568,4 +547,3 @@ export const sendPasswordResetEmail = async (
 
   return { delivered: true, mode: "smtp" };
 };
-

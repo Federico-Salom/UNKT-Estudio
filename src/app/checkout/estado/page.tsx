@@ -44,6 +44,7 @@ export default async function CheckoutStatusPage({
   const paymentId =
     normalizePaymentParam(resolvedSearchParams?.payment_id) ??
     normalizePaymentParam(resolvedSearchParams?.collection_id);
+
   const [studio, user] = await Promise.all([
     getStudioContent(),
     prisma.user.findUnique({
@@ -99,25 +100,17 @@ export default async function CheckoutStatusPage({
   );
 
   const hasPaymentId = Boolean(paymentId);
+  const resolvedPaymentId = paymentId || "";
 
   return (
     <div className="auth-page checkout-page min-h-screen bg-bg text-fg">
       {header}
 
-      <main className="w-full px-3 py-8 sm:px-6 sm:py-12 lg:px-8">
-        <section className="checkout-frame w-full p-3 sm:p-4 lg:p-5">
+      <main className="px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+        <section className="checkout-shell mx-auto w-full max-w-6xl p-3 sm:p-4 lg:p-5">
           <div className="checkout-layout flex w-full flex-col gap-5">
-            <header className="checkout-hero checkout-status-hero relative isolate overflow-hidden rounded-[1.9rem] px-5 py-6 sm:px-7 sm:py-7">
-              <div
-                aria-hidden
-                className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_-12%,rgba(214,36,80,0.5),transparent_62%)] opacity-75"
-              />
-              <div
-                aria-hidden
-                className="pointer-events-none absolute inset-0 bg-gradient-to-br from-transparent via-white/5 to-transparent opacity-60 blur-[1px]"
-              />
-
-              <div className="relative flex items-start justify-between gap-3">
+            <header className="checkout-panel rounded-3xl p-5 sm:p-6">
+              <div className="checkout-meta-row flex items-start justify-between gap-3">
                 <p className="checkout-kicker whitespace-nowrap text-xs font-semibold uppercase tracking-[0.2em] text-muted [overflow-wrap:normal] [word-break:normal]">
                   Checkout
                 </p>
@@ -126,16 +119,17 @@ export default async function CheckoutStatusPage({
                 </span>
               </div>
 
-              <div className="relative mt-3 w-full text-left">
-                <h1 className="checkout-status-title font-display text-2xl leading-tight sm:text-3xl">
+              <div className="mt-3 h-px w-full rounded-full bg-accent/20" />
+
+              <div className="mt-4 w-full text-left">
+                <h1 className="font-display text-2xl leading-tight text-fg sm:text-3xl">
                   Estado del pago
                 </h1>
-                <p className="checkout-status-description mt-2 text-sm text-muted">
+                <p className="mt-2 text-sm text-muted">
                   {hasPaymentId
-                    ? "Revisa el resultado de la transaccion y su estado registrado."
+                    ? "Revisa el resultado de la transacción y su estado registrado."
                     : "No recibimos payment_id. Vuelve a Mis reservas para generar uno desde una reserva pendiente."}
                 </p>
-                <div className="mt-3 h-px w-16 rounded-full bg-gradient-to-r from-accent/80 via-accent/40 to-transparent" />
               </div>
             </header>
 
@@ -147,7 +141,7 @@ export default async function CheckoutStatusPage({
                 <p className="mt-2 text-sm text-muted">
                   {hasPaymentId
                     ? "Mercado Pago actualiza el estado en tiempo real. Puedes refrescar esta página en cualquier momento."
-                    : "Sin payment_id no podemos consultar el estado. Generalo desde Mis reservas con la reserva que quieras pagar."}
+                    : "Sin payment_id no podemos consultar el estado. Genéralo desde Mis reservas con la reserva que quieras pagar."}
                 </p>
 
                 <div className="checkout-summary-item mt-4 rounded-2xl px-4 py-3 text-sm text-fg/80">
@@ -178,14 +172,14 @@ export default async function CheckoutStatusPage({
                 </h2>
                 <p className="mt-2 text-sm text-muted">
                   {hasPaymentId
-                    ? "El Status Screen Brick muestra como Mercado Pago ve la operacion."
+                    ? "El Status Screen Brick muestra cómo Mercado Pago ve la operación."
                     : "Mostraremos esta pantalla apenas tengas un payment_id válido."}
                 </p>
 
                 <div className="mt-4 flex flex-1 flex-col">
                   {hasPaymentId ? (
                     <div className="flex-1">
-                      <StatusScreenBrick paymentId={paymentId!} />
+                      <StatusScreenBrick paymentId={resolvedPaymentId} />
                     </div>
                   ) : (
                     <div className="checkout-summary-item flex flex-1 flex-col justify-center gap-3 rounded-2xl px-4 py-5 text-sm text-muted">
