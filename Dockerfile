@@ -12,8 +12,6 @@ RUN --mount=type=cache,target=/root/.npm npm ci --no-audit --no-fund
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-ARG NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY=""
-ENV NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY=${NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY}
 RUN ./node_modules/.bin/next build
 
 FROM base AS runner
@@ -32,7 +30,9 @@ COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/next.config.ts ./next.config.ts
 COPY --from=builder /app/docker-entrypoint.sh /docker-entrypoint.sh
 
-RUN chmod +x /docker-entrypoint.sh && mkdir -p /app/database && chown nextjs:nodejs /app/database
+RUN chmod +x /docker-entrypoint.sh \
+  && mkdir -p /app/database \
+  && chown -R nextjs:nodejs /app/.next /app/database
 
 EXPOSE 3000
 

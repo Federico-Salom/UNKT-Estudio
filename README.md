@@ -53,37 +53,6 @@ Comportamiento:
 - `manual`: no envia correo y dirige a restablecimiento manual por soporte.
 - Desarrollo sin provider/config: no rompe el flujo; loguea el enlace en consola.
 
-## Mercado Pago Checkout Bricks
-
-Integracion actual:
-
-- Checkout embebido con `Payment Brick` en `/checkout?bookingId=<id>`.
-- Estado de pago con `Status Screen Brick` en `/checkout/estado?payment_id=<id>`.
-- Preferencias creadas en backend por `POST /api/mp/preference`.
-- Webhook en `POST /api/mp/webhook` (consulta API de MP antes de marcar pago).
-- Persistencia en Prisma con modelo `Payment`.
-
-Variables de entorno necesarias:
-
-- `MERCADOPAGO_ACCESS_TOKEN` (solo server, TEST o PROD segun ambiente).
-- `NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY` (solo client, TEST o PROD segun ambiente).
-- `MERCADOPAGO_TEST_PAYER_EMAIL` (opcional, recomendado para pruebas con comprador test).
-- `MERCADOPAGO_WEBHOOK_SECRET` (opcional, reservado para validacion de firma).
-
-### Pruebas en TEST (sandbox)
-
-- Usa `MERCADOPAGO_ACCESS_TOKEN` de una cuenta **Vendedor** de prueba.
-- Usa `NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY` de la misma cuenta TEST.
-- Crea una cuenta **Comprador** de prueba en el mismo pais.
-- Si reservas como invitado (`guest-...@guest.unk`), define `MERCADOPAGO_TEST_PAYER_EMAIL`.
-- Flujo sugerido:
-  - Crear reserva en `/reservar`.
-  - Ir al checkout embebido (`/checkout?bookingId=...`).
-  - Completar pago de prueba.
-  - Ver resultado en `/checkout/estado?payment_id=...`.
-
-Nota: en algunos pagos Mercado Pago puede abrir un challenge 3DS del banco (redireccion temporal inevitable).
-
 ## Mantenimiento de reservas vencidas (cron)
 
 - Endpoint: `GET` o `POST /api/internal/maintenance/prune-expired-bookings`

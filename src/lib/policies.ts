@@ -8,7 +8,7 @@ export const CANCELLATION_POLICY = [
 export const BOOKING_CONDITIONS = [
   "La reserva mínima es de 2 horas consecutivas.",
   "Solo se habilitan reservas con un mínimo de 2 horas de anticipación.",
-  "La reserva queda confirmada cuando el pago figura acreditado por Mercado Pago.",
+  "La reserva queda confirmada cuando el pago figura acreditado.",
   "Los fondos se cobran por cada color de fondo seleccionado (hasta 5).",
   "Cada fondo puede configurarse como sin pisar o pisando según necesidad.",
   "Los servicios se calculan automáticamente por categoría y se suman al total general.",
@@ -21,4 +21,3 @@ export const BOOKING_CONDITIONS = [
 
 export const POLICY_ACCEPTANCE_COPY =
   "Al reservar, aceptas los términos y condiciones.";
-

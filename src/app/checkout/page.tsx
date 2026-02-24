@@ -5,7 +5,6 @@ import BrandMark from "@/components/BrandMark";
 import CheckoutPriceDetails from "@/components/CheckoutPriceDetails";
 import ThemeToggle from "@/components/ThemeToggle";
 import UserMenu from "@/components/UserMenu";
-import PaymentBrick from "@/components/mercadopago/PaymentBrick";
 import { getSessionFromCookies } from "@/lib/auth";
 import {
   BOOKING_TIMEZONE,
@@ -461,25 +460,16 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
                   Medios de pago
                 </p>
                 <span className="checkout-status-pill border-fg/20 bg-bg/70 text-fg">
-                  Mercado Pago
+                  En actualizacion
                 </span>
               </div>
               <div className="mt-3 h-px w-full rounded-full bg-accent/20" />
 
-              {booking.status === "paid" ? (
-                <div className="mt-4 rounded-2xl border border-accent/30 bg-accent/10 px-4 py-3 text-sm text-accent">
-                  Esta reserva ya figura como pagada.
-                </div>
-              ) : (
-                <div className="mt-4">
-                  <PaymentBrick
-                    amount={booking.total}
-                    title="Reserva UNKT Estudio"
-                    payerEmail={booking.email}
-                    externalReference={booking.id}
-                  />
-                </div>
-              )}
+              <div className="mt-4 rounded-2xl border border-accent/35 bg-accent/10 px-4 py-4 text-sm text-accent">
+                {booking.status === "paid"
+                  ? "Esta reserva ya figura como pagada."
+                  : "El checkout online esta deshabilitado temporalmente mientras actualizamos la integracion de pagos."}
+              </div>
             </section>
           </div>
         </section>
