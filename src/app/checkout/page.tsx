@@ -5,6 +5,7 @@ import BrandMark from "@/components/BrandMark";
 import CheckoutPriceDetails from "@/components/CheckoutPriceDetails";
 import ThemeToggle from "@/components/ThemeToggle";
 import UserMenu from "@/components/UserMenu";
+import MercadoPagoOrderBrick from "@/components/mercadopago/MercadoPagoOrderBrick";
 import { getSessionFromCookies } from "@/lib/auth";
 import {
   BOOKING_TIMEZONE,
@@ -380,6 +381,8 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
       editLabel: "Editar servicios",
     },
   ];
+  const mercadoPagoPublicKey =
+    process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY?.trim() || "";
 
   return (
     <div className="auth-page checkout-page min-h-screen bg-bg text-fg">
@@ -460,16 +463,25 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
                   Medios de pago
                 </p>
                 <span className="checkout-status-pill border-fg/20 bg-bg/70 text-fg">
-                  En actualizacion
+                  Mercado Pago
                 </span>
               </div>
               <div className="mt-3 h-px w-full rounded-full bg-accent/20" />
 
-              <div className="mt-4 rounded-2xl border border-accent/35 bg-accent/10 px-4 py-4 text-sm text-accent">
-                {booking.status === "paid"
-                  ? "Esta reserva ya figura como pagada."
-                  : "El checkout online esta deshabilitado temporalmente mientras actualizamos la integracion de pagos."}
-              </div>
+              {booking.status === "paid" ? (
+                <div className="mt-4 rounded-2xl border border-accent/30 bg-accent/10 px-4 py-3 text-sm text-accent">
+                  Esta reserva ya figura como pagada.
+                </div>
+              ) : (
+                <div className="mt-4">
+                  <MercadoPagoOrderBrick
+                    bookingId={booking.id}
+                    amount={booking.total}
+                    payerEmail={booking.email}
+                    publicKey={mercadoPagoPublicKey}
+                  />
+                </div>
+              )}
             </section>
           </div>
         </section>

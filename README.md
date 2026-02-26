@@ -53,6 +53,29 @@ Comportamiento:
 - `manual`: no envia correo y dirige a restablecimiento manual por soporte.
 - Desarrollo sin provider/config: no rompe el flujo; loguea el enlace en consola.
 
+## Mercado Pago (Checkout API Orders)
+
+Integracion actual:
+
+- Checkout de tarjeta embebido en `/checkout?bookingId=<id>`.
+- Creacion y procesamiento de order en modo `automatic` via `POST /api/mp/orders`.
+- Webhook de sincronizacion de estado en `POST /api/mp/orders/webhook`.
+
+Variables de entorno:
+
+- `MERCADOPAGO_ACCESS_TOKEN` (server, usar `APP_USR-...`).
+- `NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY` (client, usar `APP_USR-...` de la misma app).
+- `MERCADOPAGO_TEST_PAYER_EMAIL` (opcional para sandbox; en pruebas con tarjetas usar `test@testuser.com`).
+- `MERCADOPAGO_WEBHOOK_SECRET` (recomendado: valida origen de notificaciones con `x-signature`).
+
+Notas sandbox:
+
+- Checkout API Orders no soporta credenciales `TEST-...`.
+- Para pruebas, usa credenciales `APP_USR-...` y usuarios/tarjetas de prueba de Mercado Pago.
+- En pruebas de tarjetas para Orders, usa `test@testuser.com` como email del comprador (puedes forzarlo con `MERCADOPAGO_TEST_PAYER_EMAIL`).
+- Si necesitas notificaciones asincronas, configura en el panel de Mercado Pago el webhook apuntando a `/api/mp/orders/webhook`.
+- Si defines `MERCADOPAGO_WEBHOOK_SECRET`, el endpoint verifica firma HMAC SHA256 y rechaza (`401`) notificaciones sin firma valida.
+
 ## Mantenimiento de reservas vencidas (cron)
 
 - Endpoint: `GET` o `POST /api/internal/maintenance/prune-expired-bookings`

@@ -30,6 +30,10 @@ type BookingItem = {
   totalLabel: string;
 };
 
+type GroupedBookingItem = BookingItem & {
+  slotCount: number;
+};
+
 type BookingPopover = {
   booking: BookingItem;
   x: number;
@@ -199,6 +203,66 @@ const hasTimeOverlap = (
   startB: number,
   endB: number
 ) => startA < endB && startB < endA;
+
+const normalizeBookingKeyPart = (value: string) =>
+  value.trim().toLocaleLowerCase("es-AR");
+
+const buildBookingMergeKey = (booking: BookingItem) =>
+  [
+    normalizeBookingKeyPart(booking.title),
+    normalizeBookingKeyPart(booking.email),
+    normalizeBookingKeyPart(booking.phone),
+    normalizeBookingKeyPart(booking.extrasLabel),
+    normalizeBookingKeyPart(booking.totalLabel),
+    normalizeBookingKeyPart(booking.status),
+  ].join("||");
+
+const mergeGapToleranceMs = 60000;
+
+const groupBookingsByClient = (
+  bookingList: BookingItem[]
+): GroupedBookingItem[] => {
+  const sortedBookings = [...bookingList].sort(
+    (a, b) => toDate(a.start).getTime() - toDate(b.start).getTime()
+  );
+  const grouped: Array<
+    GroupedBookingItem & { mergeKey: string; endTime: number }
+  > = [];
+
+  sortedBookings.forEach((booking) => {
+    const startTime = toDate(booking.start).getTime();
+    const endTime = toDate(booking.end).getTime();
+    const mergeKey = buildBookingMergeKey(booking);
+    const last = grouped[grouped.length - 1];
+
+    const canMerge =
+      last &&
+      last.mergeKey === mergeKey &&
+      Number.isFinite(startTime) &&
+      Number.isFinite(endTime) &&
+      Number.isFinite(last.endTime) &&
+      startTime <= last.endTime + mergeGapToleranceMs;
+
+    if (canMerge) {
+      if (endTime > last.endTime) {
+        last.end = booking.end;
+        last.endTime = endTime;
+      }
+      last.slotCount += 1;
+      return;
+    }
+
+    grouped.push({
+      ...booking,
+      id: `${booking.id}-group-${grouped.length}`,
+      slotCount: 1,
+      mergeKey,
+      endTime,
+    });
+  });
+
+  return grouped.map(({ mergeKey, endTime, ...booking }) => booking);
+};
 
 export default function AdminAgendaPanel({
   slots,
@@ -698,6 +762,14 @@ export default function AdminAgendaPanel({
     return grouped;
   }, [bookings]);
 
+  const dayGroupedBookingGroups = useMemo(() => {
+    const grouped = new Map<string, GroupedBookingItem[]>();
+    dayBookingGroups.forEach((bookingList, dayKey) => {
+      grouped.set(dayKey, groupBookingsByClient(bookingList));
+    });
+    return grouped;
+  }, [dayBookingGroups]);
+
   const monthVisibleDayKeys = useMemo(() => {
     if (!isMonthView || !visibleRange) {
       return [] as string[];
@@ -733,7 +805,7 @@ export default function AdminAgendaPanel({
       : Array.from(new Set(defaultDayKeys)).sort();
 
     return dayKeys.flatMap((dayKey) => {
-      const bookingCount = dayBookingGroups.get(dayKey)?.length ?? 0;
+      const bookingCount = dayGroupedBookingGroups.get(dayKey)?.length ?? 0;
       const availableCount = daySlotGroups.get(dayKey)?.available.length ?? 0;
 
       return [
@@ -778,6 +850,7 @@ export default function AdminAgendaPanel({
     monthVisibleDayKeys,
     daySlotGroups,
     dayBookingGroups,
+    dayGroupedBookingGroups,
     activeSlotColors,
   ]);
 
@@ -846,11 +919,11 @@ export default function AdminAgendaPanel({
     return {
       dayKey: monthDetailDayKey,
       dayLabel: formatDayLabel(monthDetailDayKey),
-      bookings: dayBookingGroups.get(monthDetailDayKey) ?? [],
+      bookings: dayGroupedBookingGroups.get(monthDetailDayKey) ?? [],
       availableSlots: slotsByStatus.available,
       bookedSlots: slotsByStatus.booked,
     };
-  }, [monthDetailDayKey, daySlotGroups, dayBookingGroups]);
+  }, [monthDetailDayKey, daySlotGroups, dayGroupedBookingGroups]);
 
   const handleSelect = async (selection: {
     startStr: string;
