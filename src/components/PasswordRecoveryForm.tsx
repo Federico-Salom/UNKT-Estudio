@@ -2,9 +2,15 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { readApiResult } from "@/lib/client-api";
 
 type Status = "idle" | "loading";
 type NextStep = "email" | "support";
+
+type PasswordRecoveryApiResponse = {
+  message?: string;
+  nextStep?: string;
+};
 
 export default function PasswordRecoveryForm() {
   const [email, setEmail] = useState("");
@@ -16,7 +22,7 @@ export default function PasswordRecoveryForm() {
   const getEmailError = () => {
     if (!email) return "Escribe tu correo.";
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return "Correo inválido.";
+      return "Correo invalido.";
     }
     return "";
   };
@@ -45,21 +51,25 @@ export default function PasswordRecoveryForm() {
         body: JSON.stringify({ email }),
       });
 
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        setApiError(data.error || "No se pudo iniciar la recuperación.");
+      const result = await readApiResult<PasswordRecoveryApiResponse>(
+        response,
+        "No se pudo iniciar la recuperacion."
+      );
+
+      if (!result.ok) {
+        setApiError(result.error);
         setStatus("idle");
         return;
       }
 
       setInfoMessage(
-        typeof data.message === "string"
-          ? data.message
-          : "Si existe una cuenta con ese correo, enviamos instrucciones para recuperar la contraseña."
+        typeof result.data?.message === "string"
+          ? result.data.message
+          : "Si existe una cuenta con ese correo, enviamos instrucciones para recuperar la contrasena."
       );
-      setNextStep(data.nextStep === "support" ? "support" : "email");
+      setNextStep(result.data?.nextStep === "support" ? "support" : "email");
     } catch {
-      setApiError("No se pudo iniciar la recuperación. Intenta nuevamente.");
+      setApiError("No se pudo iniciar la recuperacion. Intenta nuevamente.");
     } finally {
       setStatus("idle");
     }
@@ -84,7 +94,7 @@ export default function PasswordRecoveryForm() {
           <p>{infoMessage}</p>
           {nextStep === "email" ? (
             <p className="mt-2 text-xs text-muted">
-              Revisa tu bandeja de entrada y spam. El enlace vence rápido y solo se puede usar una vez.
+              Revisa tu bandeja de entrada y spam. El enlace vence rapido y solo se puede usar una vez.
             </p>
           ) : null}
         </div>
@@ -117,7 +127,7 @@ export default function PasswordRecoveryForm() {
           className="font-semibold text-accent transition hover:text-accent2"
           href="/login"
         >
-          Volver al inicio de sesión
+          Volver al inicio de sesion
         </Link>
       </div>
     </>

@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import {
+  jsonApiError,
+  logApiError,
+  resolveApiError,
+  safeJsonBody,
+} from "@/lib/api-errors";
 import { AUTH_COOKIE, signSession, verifyPassword } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 
@@ -23,7 +29,7 @@ const getBaseUrl = (request: NextRequest) => {
 const getAuthInput = async (request: NextRequest): Promise<AuthInput> => {
   const contentType = request.headers.get("content-type") || "";
   if (contentType.includes("application/json")) {
-    const body = (await request.json()) as Partial<AuthInput>;
+    const body = await safeJsonBody<AuthInput>(request);
     return {
       email: String(body.email || ""),
       password: String(body.password || ""),
@@ -55,41 +61,64 @@ const errorResponse = (
     url.searchParams.set("error", message);
     return NextResponse.redirect(url, { status: 303 });
   }
-  return NextResponse.json({ error: message }, { status });
+
+  return jsonApiError(message, status);
 };
 
 export async function POST(request: NextRequest) {
-  const { email, password } = await getAuthInput(request);
-  const normalizedEmail = email.trim().toLowerCase();
+  try {
+    const { email, password } = await getAuthInput(request);
+    const normalizedEmail = email.trim().toLowerCase();
 
-  if (!normalizedEmail || !password) {
-    return errorResponse(request, "Correo y contraseña son requeridos.");
-  }
+    if (!normalizedEmail || !password) {
+      return errorResponse(request, "Correo y contrasena son requeridos.");
+    }
 
-  const user = await prisma.user.findUnique({
-    where: { email: normalizedEmail },
-  });
+    const user = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+    });
 
-  if (!user) {
-    return errorResponse(request, "Credenciales inválidas.", 401);
-  }
+    if (!user) {
+      return errorResponse(request, "Credenciales invalidas.", 401);
+    }
 
-  const isValid = await verifyPassword(password, user.passwordHash);
-  if (!isValid) {
-    return errorResponse(request, "Credenciales inválidas.", 401);
-  }
+    const isValid = await verifyPassword(password, user.passwordHash);
+    if (!isValid) {
+      return errorResponse(request, "Credenciales invalidas.", 401);
+    }
 
-  const token = signSession({
-    userId: user.id,
-    email: user.email,
-    role: user.role,
-  });
+    const token = signSession({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+    });
 
-  const redirectPath = user.role === "admin" ? "/admin" : "/account";
+    const redirectPath = user.role === "admin" ? "/admin" : "/account";
 
-  if (isFormRequest(request)) {
-    const url = new URL(redirectPath, getBaseUrl(request));
-    const response = NextResponse.redirect(url, { status: 303 });
+    if (isFormRequest(request)) {
+      const url = new URL(redirectPath, getBaseUrl(request));
+      const response = NextResponse.redirect(url, { status: 303 });
+      response.cookies.set({
+        name: AUTH_COOKIE,
+        value: token,
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        maxAge: 60 * 60 * 24 * 7,
+      });
+      return response;
+    }
+
+    const response = NextResponse.json(
+      {
+        ok: true,
+        redirectTo: redirectPath,
+        user: { id: user.id, email: user.email, role: user.role },
+      },
+      { status: 200 }
+    );
+
     response.cookies.set({
       name: AUTH_COOKIE,
       value: token,
@@ -99,25 +128,14 @@ export async function POST(request: NextRequest) {
       path: "/",
       maxAge: 60 * 60 * 24 * 7,
     });
-    return response;
-  }
 
-  const response = NextResponse.json(
-    {
-      ok: true,
-      redirectTo: redirectPath,
-      user: { id: user.id, email: user.email, role: user.role },
-    },
-    { status: 200 }
-  );
-  response.cookies.set({
-    name: AUTH_COOKIE,
-    value: token,
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 7,
-  });
-  return response;
+    return response;
+  } catch (error) {
+    const normalized = resolveApiError(
+      error,
+      "No se pudo iniciar sesion. Intenta nuevamente."
+    );
+    logApiError("api/auth/login", error, normalized);
+    return errorResponse(request, normalized.message, normalized.status);
+  }
 }

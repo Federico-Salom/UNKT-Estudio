@@ -4,6 +4,13 @@ import { cookies } from "next/headers";
 
 export const AUTH_COOKIE = "unkt_session";
 
+export class AuthConfigError extends Error {
+  constructor(message = "AUTH_SECRET is not configured.") {
+    super(message);
+    this.name = "AuthConfigError";
+  }
+}
+
 export type SessionPayload = {
   userId: string;
   email: string;
@@ -11,9 +18,9 @@ export type SessionPayload = {
 };
 
 const getAuthSecret = () => {
-  const secret = process.env.AUTH_SECRET;
+  const secret = process.env.AUTH_SECRET?.trim();
   if (!secret) {
-    throw new Error("AUTH_SECRET is not set");
+    throw new AuthConfigError();
   }
   return secret;
 };

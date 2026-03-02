@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { handleApiError } from "@/lib/api-errors";
 import { pruneExpiredPendingBookings } from "@/lib/booking-expiration";
 
 export const runtime = "nodejs";
@@ -45,17 +46,29 @@ const runCleanup = async () => {
 };
 
 export async function GET(request: NextRequest) {
-  if (!isAuthorized(request)) {
-    return unauthorizedResponse();
-  }
+  try {
+    if (!isAuthorized(request)) {
+      return unauthorizedResponse();
+    }
 
-  return runCleanup();
+    return runCleanup();
+  } catch (error) {
+    return handleApiError("api/internal/maintenance/prune-expired-bookings", error, {
+      defaultMessage: "No se pudo ejecutar la limpieza de reservas vencidas.",
+    });
+  }
 }
 
 export async function POST(request: NextRequest) {
-  if (!isAuthorized(request)) {
-    return unauthorizedResponse();
-  }
+  try {
+    if (!isAuthorized(request)) {
+      return unauthorizedResponse();
+    }
 
-  return runCleanup();
+    return runCleanup();
+  } catch (error) {
+    return handleApiError("api/internal/maintenance/prune-expired-bookings", error, {
+      defaultMessage: "No se pudo ejecutar la limpieza de reservas vencidas.",
+    });
+  }
 }

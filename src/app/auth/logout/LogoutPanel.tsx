@@ -1,24 +1,25 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { readApiResult } from "@/lib/client-api";
 
 type LogoutStatus = "loading" | "done" | "error";
 
 const statusCopy: Record<LogoutStatus, { title: string; description: string }> = {
   loading: {
-    title: "Cerrando sesión...",
+    title: "Cerrando sesion...",
     description:
-      "Estamos liberando tus datos y preparando todo para tu próxima visita.",
+      "Estamos liberando tus datos y preparando todo para tu proxima visita.",
   },
   done: {
-    title: "¡Hasta pronto!",
-    description: "La sesión se cerró correctamente. Puedes volver cuando quieras.",
+    title: "Hasta pronto",
+    description: "La sesion se cerro correctamente. Puedes volver cuando quieras.",
   },
   error: {
-    title: "Algo salió mal",
+    title: "Algo salio mal",
     description:
-      "No pudimos cerrar sesión en este momento. Reintenta en unos segundos.",
+      "No pudimos cerrar sesion en este momento. Reintenta en unos segundos.",
   },
 };
 
@@ -34,7 +35,12 @@ export default function LogoutPanel() {
           method: "GET",
           cache: "no-store",
         });
-        if (!response.ok) throw new Error("logout failed");
+
+        const result = await readApiResult(response, "No se pudo cerrar sesion.");
+        if (!result.ok) {
+          throw new Error(result.error);
+        }
+
         if (isMounted) {
           setStatus("done");
         }
@@ -71,9 +77,7 @@ export default function LogoutPanel() {
       </div>
 
       <div className="space-y-2">
-        <p className="text-2xl font-display uppercase tracking-[0.16em]">
-          {title}
-        </p>
+        <p className="text-2xl font-display uppercase tracking-[0.16em]">{title}</p>
         <p className="text-sm text-muted">{description}</p>
       </div>
 
@@ -88,12 +92,12 @@ export default function LogoutPanel() {
           href="/login"
           className="inline-flex w-full items-center justify-center rounded-full border border-transparent bg-accent px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] text-bg transition hover:bg-accent2"
         >
-          Iniciar sesión
+          Iniciar sesion
         </Link>
       </div>
       {status === "error" ? (
         <p className="mt-2 text-xs text-muted">
-          Si el problema persiste, prueba borrando cookies o revisando tu conexión.
+          Si el problema persiste, prueba borrando cookies o revisando tu conexion.
         </p>
       ) : null}
     </div>

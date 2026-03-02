@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { readApiResult } from "@/lib/client-api";
 
 type AccountProfileFormProps = {
   initialEmail: string;
@@ -9,6 +10,15 @@ type AccountProfileFormProps = {
 };
 
 type Status = "idle" | "saving";
+
+type ProfileApiResponse = {
+  user?: {
+    email?: string;
+    name?: string | null;
+    phone?: string | null;
+  };
+  message?: string;
+};
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -37,15 +47,16 @@ export default function AccountProfileForm({
     if (!normalizedEmail) {
       return "Escribe tu correo.";
     }
+
     if (!EMAIL_REGEX.test(normalizedEmail)) {
-      return "Correo inválido.";
+      return "Correo invalido.";
     }
 
     const normalizedPhone = phone.trim();
     if (normalizedPhone) {
       const digits = normalizedPhone.replace(/\D/g, "");
       if (digits.length < 7) {
-        return "Teléfono inválido.";
+        return "Telefono invalido.";
       }
     }
 
@@ -54,19 +65,19 @@ export default function AccountProfileForm({
 
     if (wantsPasswordChange) {
       if (!newPassword) {
-        return "Escribe una nueva contraseña.";
+        return "Escribe una nueva contrasena.";
       }
       if (!newPasswordConfirm) {
-        return "Repite la nueva contraseña.";
+        return "Repite la nueva contrasena.";
       }
       if (newPassword !== newPasswordConfirm) {
-        return "Las contraseñas no coinciden.";
+        return "Las contrasenas no coinciden.";
       }
       if (newPassword.length < 8) {
-        return "La contraseña debe tener al menos 8 caracteres.";
+        return "La contrasena debe tener al menos 8 caracteres.";
       }
       if (!hasLettersAndNumbers(newPassword)) {
-        return "La contraseña debe incluir letras y números.";
+        return "La contrasena debe incluir letras y numeros.";
       }
     }
 
@@ -103,21 +114,35 @@ export default function AccountProfileForm({
         }),
       });
 
-      const data = await response.json().catch(() => ({}));
+      const result = await readApiResult<ProfileApiResponse>(
+        response,
+        "No se pudo actualizar el perfil."
+      );
 
-      if (!response.ok) {
-        setError(data.error || "No se pudo actualizar el perfil.");
+      if (!result.ok) {
+        setError(result.error);
         setStatus("idle");
         return;
       }
 
-      setEmail(typeof data.user?.email === "string" ? data.user.email : email);
-      setName(typeof data.user?.name === "string" ? data.user.name : "");
-      setPhone(typeof data.user?.phone === "string" ? data.user.phone : "");
+      const nextEmail =
+        typeof result.data?.user?.email === "string"
+          ? result.data.user.email
+          : email;
+      const nextName =
+        typeof result.data?.user?.name === "string" ? result.data.user.name : "";
+      const nextPhone =
+        typeof result.data?.user?.phone === "string" ? result.data.user.phone : "";
+
+      setEmail(nextEmail);
+      setName(nextName);
+      setPhone(nextPhone);
       setNewPassword("");
       setNewPasswordConfirm("");
       setMessage(
-        typeof data.message === "string" ? data.message : "Perfil actualizado."
+        typeof result.data?.message === "string"
+          ? result.data.message
+          : "Perfil actualizado."
       );
     } catch {
       setError("No se pudo actualizar el perfil. Intenta nuevamente.");
@@ -175,13 +200,13 @@ export default function AccountProfileForm({
         />
         {!canEditName && (
           <span className="text-xs font-normal text-muted">
-            Se completa automáticamente con tu primera reserva.
+            Se completa automaticamente con tu primera reserva.
           </span>
         )}
       </label>
 
       <label className="grid gap-2 text-sm font-semibold text-fg">
-        Teléfono
+        Telefono
         <input
           className={inputClass}
           type="tel"
@@ -194,18 +219,18 @@ export default function AccountProfileForm({
         />
         {!canEditPhone && (
           <span className="text-xs font-normal text-muted">
-            Se completa automáticamente con tu primera reserva.
+            Se completa automaticamente con tu primera reserva.
           </span>
         )}
       </label>
 
       <div className="account-profile-security-box rounded-2xl border border-white/15 bg-black/20 p-4">
         <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70">
-          Cambiar contraseña
+          Cambiar contrasena
         </p>
         <div className="mt-3 grid gap-3">
           <label className="grid gap-2 text-sm font-semibold text-fg">
-            Nueva contraseña
+            Nueva contrasena
             <input
               className={inputClass}
               type="password"
@@ -218,7 +243,7 @@ export default function AccountProfileForm({
           </label>
 
           <label className="grid gap-2 text-sm font-semibold text-fg">
-            Repetir nueva contraseña
+            Repetir nueva contrasena
             <input
               className={inputClass}
               type="password"

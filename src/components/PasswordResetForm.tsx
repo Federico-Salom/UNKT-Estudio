@@ -2,12 +2,17 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { readApiResult } from "@/lib/client-api";
 
 type PasswordResetFormProps = {
   token: string;
 };
 
 type Status = "idle" | "loading";
+
+type PasswordResetApiResponse = {
+  message?: string;
+};
 
 const hasLettersAndNumbers = (value: string) => {
   return /[a-zA-Z]/.test(value) && /\d/.test(value);
@@ -22,17 +27,17 @@ export default function PasswordResetForm({ token }: PasswordResetFormProps) {
   const [done, setDone] = useState(false);
 
   const getPasswordError = () => {
-    if (!password) return "Escribe una nueva contraseña.";
+    if (!password) return "Escribe una nueva contrasena.";
     if (password.length < 8) return "Debe tener al menos 8 caracteres.";
     if (!hasLettersAndNumbers(password)) {
-      return "Debe incluir letras y números.";
+      return "Debe incluir letras y numeros.";
     }
     return "";
   };
 
   const getPasswordConfirmError = () => {
-    if (!passwordConfirm) return "Repite la nueva contraseña.";
-    if (passwordConfirm !== password) return "Las contraseñas no coinciden.";
+    if (!passwordConfirm) return "Repite la nueva contrasena.";
+    if (passwordConfirm !== password) return "Las contrasenas no coinciden.";
     return "";
   };
 
@@ -65,9 +70,13 @@ export default function PasswordResetForm({ token }: PasswordResetFormProps) {
         }),
       });
 
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        setApiError(data.error || "No se pudo restablecer la contraseña.");
+      const result = await readApiResult<PasswordResetApiResponse>(
+        response,
+        "No se pudo restablecer la contrasena."
+      );
+
+      if (!result.ok) {
+        setApiError(result.error);
         setStatus("idle");
         return;
       }
@@ -76,12 +85,12 @@ export default function PasswordResetForm({ token }: PasswordResetFormProps) {
       setPassword("");
       setPasswordConfirm("");
       setInfoMessage(
-        typeof data.message === "string"
-          ? data.message
-          : "Contraseña actualizada. Ya puedes iniciar sesión."
+        typeof result.data?.message === "string"
+          ? result.data.message
+          : "Contrasena actualizada. Ya puedes iniciar sesion."
       );
     } catch {
-      setApiError("No se pudo restablecer la contraseña. Intenta nuevamente.");
+      setApiError("No se pudo restablecer la contrasena. Intenta nuevamente.");
     } finally {
       setStatus("idle");
     }
@@ -97,7 +106,7 @@ export default function PasswordResetForm({ token }: PasswordResetFormProps) {
           className="inline-flex items-center justify-center rounded-full border border-accent/35 bg-accent/10 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-accent transition hover:border-accent hover:bg-accent/20"
           href="/login"
         >
-          Iniciar sesión
+          Iniciar sesion
         </Link>
       </div>
     );
@@ -119,7 +128,7 @@ export default function PasswordResetForm({ token }: PasswordResetFormProps) {
 
       <form className="mt-6 grid min-w-0 gap-4" onSubmit={onSubmit} noValidate>
         <label className="grid min-w-0 gap-2 text-sm font-semibold">
-          Nueva contraseña
+          Nueva contrasena
           <input
             className={inputClass}
             type="password"
@@ -132,7 +141,7 @@ export default function PasswordResetForm({ token }: PasswordResetFormProps) {
         </label>
 
         <label className="grid min-w-0 gap-2 text-sm font-semibold">
-          Repetir nueva contraseña
+          Repetir nueva contrasena
           <input
             className={inputClass}
             type="password"
@@ -144,14 +153,14 @@ export default function PasswordResetForm({ token }: PasswordResetFormProps) {
           />
         </label>
 
-        <p className="text-xs text-muted">Mínimo 8 caracteres. Usa letras y números.</p>
+        <p className="text-xs text-muted">Minimo 8 caracteres. Usa letras y numeros.</p>
 
         <button
           className="mt-2 inline-flex w-full items-center justify-center rounded-full border border-transparent bg-gradient-to-r from-accent to-accent2 px-6 py-3.5 text-sm font-semibold uppercase tracking-wide text-bg shadow-[0_18px_34px_-20px_rgba(139,13,90,0.92)] transition hover:from-accent2 hover:to-accent hover:shadow-[0_22px_42px_-20px_rgba(139,13,90,0.95)] active:scale-[0.995] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2 disabled:cursor-not-allowed disabled:opacity-70"
           type="submit"
           disabled={status === "loading"}
         >
-          {status === "loading" ? "Guardando..." : "Guardar nueva contraseña"}
+          {status === "loading" ? "Guardando..." : "Guardar nueva contrasena"}
         </button>
       </form>
     </>

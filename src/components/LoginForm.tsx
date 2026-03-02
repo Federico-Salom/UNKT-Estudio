@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { readApiResult } from "@/lib/client-api";
 
 type LoginFormProps = {
   initialError?: string;
@@ -9,6 +10,10 @@ type LoginFormProps = {
 };
 
 type Status = "idle" | "loading";
+
+type LoginApiResponse = {
+  redirectTo?: string;
+};
 
 export default function LoginForm({ initialError, registered }: LoginFormProps) {
   const router = useRouter();
@@ -22,7 +27,7 @@ export default function LoginForm({ initialError, registered }: LoginFormProps) 
     setError("");
 
     if (!email || !password) {
-      setError("Completa correo y contraseña.");
+      setError("Completa correo y contrasena.");
       return;
     }
 
@@ -39,19 +44,24 @@ export default function LoginForm({ initialError, registered }: LoginFormProps) 
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.json().catch(() => ({}));
+      const result = await readApiResult<LoginApiResponse>(
+        response,
+        "Credenciales invalidas."
+      );
 
-      if (!response.ok) {
-        setError(data.error || "Credenciales inválidas.");
+      if (!result.ok) {
+        setError(result.error);
         setStatus("idle");
         return;
       }
 
       const redirectTo =
-        typeof data.redirectTo === "string" ? data.redirectTo : "/admin";
+        typeof result.data?.redirectTo === "string"
+          ? result.data.redirectTo
+          : "/admin";
       router.push(redirectTo);
     } catch {
-      setError("No se pudo iniciar sesión. Intenta nuevamente.");
+      setError("No se pudo iniciar sesion. Intenta nuevamente.");
       setStatus("idle");
     }
   };
@@ -60,7 +70,7 @@ export default function LoginForm({ initialError, registered }: LoginFormProps) 
     <form className="mt-6 grid min-w-0 gap-4" onSubmit={handleSubmit} noValidate>
       {registered && (
         <div className="rounded-2xl border border-accent/20 bg-bg px-4 py-3 text-sm">
-          Cuenta creada. Inicia sesión.
+          Cuenta creada. Inicia sesion.
         </div>
       )}
 
@@ -85,7 +95,7 @@ export default function LoginForm({ initialError, registered }: LoginFormProps) 
         />
       </label>
       <label className="grid min-w-0 gap-2 text-sm font-semibold">
-        Contraseña
+        Contrasena
         <input
           className="w-full min-w-0 rounded-2xl border border-accent/20 bg-white px-4 py-3 text-sm text-fg outline-none transition placeholder:text-muted focus:border-accent"
           type="password"

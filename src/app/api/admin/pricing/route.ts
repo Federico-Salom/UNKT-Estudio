@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { handleApiError, safeJsonBody } from "@/lib/api-errors";
 import { getSessionFromCookies } from "@/lib/auth";
 import { normalizeExtraBackgrounds } from "@/lib/booking";
 import { normalizeServiceCatalog } from "@/lib/services";
@@ -88,18 +89,19 @@ const readOptionPricingMap = (raw: unknown) => {
 };
 
 export async function POST(request: NextRequest) {
-  const auth = await ensureAdmin();
-  if (!auth.ok) {
-    return auth.response;
-  }
+  try {
+    const auth = await ensureAdmin();
+    if (!auth.ok) {
+      return auth.response;
+    }
 
-  const body = (await request.json().catch(() => ({}))) as PricingPayload;
-  const basePrice = normalizePrice(body.basePrice);
-  const extraPricesRaw = Array.isArray(body.extras) ? body.extras : null;
-  const servicesRaw =
-    body.services && typeof body.services === "object"
-      ? (body.services as ServicesPricingInput)
-      : null;
+    const body = await safeJsonBody<PricingPayload>(request);
+    const basePrice = normalizePrice(body.basePrice);
+    const extraPricesRaw = Array.isArray(body.extras) ? body.extras : null;
+    const servicesRaw =
+      body.services && typeof body.services === "object"
+        ? (body.services as ServicesPricingInput)
+        : null;
 
   if (!Number.isFinite(basePrice) || basePrice <= 0) {
     return errorResponse("El precio base debe ser mayor a 0.");
@@ -279,4 +281,9 @@ export async function POST(request: NextRequest) {
       services: nextContent.services,
     },
   });
+  } catch (error) {
+    return handleApiError("api/admin/pricing", error, {
+      defaultMessage: "No se pudo actualizar la configuracion de precios.",
+    });
+  }
 }

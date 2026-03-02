@@ -2,9 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { readApiResult } from "@/lib/client-api";
 
 type RegisterFormProps = {
   serverError?: string;
+};
+
+type RegisterApiResponse = {
+  redirectTo?: string;
 };
 
 const hasLettersAndNumbers = (value: string) => {
@@ -23,23 +28,23 @@ export default function RegisterForm({ serverError }: RegisterFormProps) {
   const getEmailError = () => {
     if (!email) return "Escribe tu correo.";
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return "Correo inválido.";
+      return "Correo invalido.";
     }
     return null;
   };
 
   const getPasswordError = () => {
-    if (!password) return "Escribe una contraseña.";
+    if (!password) return "Escribe una contrasena.";
     if (password.length < 8) return "Debe tener al menos 8 caracteres.";
     if (!hasLettersAndNumbers(password)) {
-      return "Debe incluir letras y números.";
+      return "Debe incluir letras y numeros.";
     }
     return null;
   };
 
   const getConfirmError = () => {
-    if (!passwordConfirm) return "Repite la contraseña.";
-    if (password !== passwordConfirm) return "Las contraseñas no coinciden.";
+    if (!passwordConfirm) return "Repite la contrasena.";
+    if (password !== passwordConfirm) return "Las contrasenas no coinciden.";
     return null;
   };
 
@@ -68,16 +73,19 @@ export default function RegisterForm({ serverError }: RegisterFormProps) {
         body: JSON.stringify({ email, password, passwordConfirm }),
       });
 
-      const data = await response.json().catch(() => ({}));
+      const result = await readApiResult<RegisterApiResponse>(
+        response,
+        "No se pudo crear la cuenta."
+      );
 
-      if (!response.ok) {
-        setApiError(data.error || "No se pudo crear la cuenta.");
+      if (!result.ok) {
+        setApiError(result.error);
         setStatus("idle");
         return;
       }
 
       const redirectTo =
-        typeof data.redirectTo === "string" ? data.redirectTo : "/";
+        typeof result.data?.redirectTo === "string" ? result.data.redirectTo : "/";
       router.push(redirectTo);
     } catch {
       setApiError("No se pudo crear la cuenta. Intenta nuevamente.");
@@ -128,7 +136,7 @@ export default function RegisterForm({ serverError }: RegisterFormProps) {
         )}
       </label>
       <label className="grid min-w-0 gap-2 text-sm font-semibold">
-        Contraseña
+        Contrasena
         <input
           className={inputClass(showPasswordError)}
           type="password"
@@ -149,7 +157,7 @@ export default function RegisterForm({ serverError }: RegisterFormProps) {
         )}
       </label>
       <label className="grid min-w-0 gap-2 text-sm font-semibold">
-        Repetir contraseña
+        Repetir contrasena
         <input
           className={inputClass(showConfirmError)}
           type="password"
@@ -170,7 +178,7 @@ export default function RegisterForm({ serverError }: RegisterFormProps) {
         )}
       </label>
       <p className="text-xs text-muted">
-        Mínimo 8 caracteres. Usa letras y números.
+        Minimo 8 caracteres. Usa letras y numeros.
       </p>
       <button
         className="mt-2 inline-flex w-full items-center justify-center rounded-full border border-transparent bg-gradient-to-r from-accent to-accent2 px-6 py-3.5 text-sm font-semibold uppercase tracking-wide text-bg shadow-[0_18px_34px_-20px_rgba(139,13,90,0.92)] transition hover:from-accent2 hover:to-accent hover:shadow-[0_22px_42px_-20px_rgba(139,13,90,0.95)] active:scale-[0.995] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2 disabled:cursor-not-allowed disabled:opacity-70"
